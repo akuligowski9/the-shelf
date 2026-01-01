@@ -1,0 +1,37 @@
+{
+  "date": "2026-01-01",
+  "summary": "Conceptual planning, light execution, and life presence.",
+  "entries": [
+    {
+      "kind": "habit_session",
+      "habit": "Dog Training",
+      "track": "Walk Training",
+      "note": "Practiced exit and greeting drills with crate training using food.",
+      "duration_minutes": null
+    },
+    {
+      "kind": "habit_session",
+      "habit": "Exercise",
+      "track": "Walking",
+      "note": "One hour walk.",
+      "duration_minutes": 60
+    },
+    {
+      "kind": "habit_session",
+      "habit": "Software",
+      "track": "Personal Project Development",
+      "note": "Updated portfolio with minor analytics, planned architecture for The Shelf, and organized data modeling approach using real examples.",
+      "duration_minutes": null
+    },
+    {
+      "kind": "life_event",
+      "title": "Meeting Aunt Betsy",
+      "note": "Being present with wife's family; social and relational energy focused here.",
+      "duration_minutes": null
+    }
+  ],
+  "reflection": {
+    "attention_context": "Social presence and planning took priority today.",
+    "closing_note": "Responsible enough. Clear next steps identified."
+  }
+}
