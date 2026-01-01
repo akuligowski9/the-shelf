@@ -143,23 +143,41 @@ The goal of the MVP is a **working prototype that feels calm and enjoyable to us
 ## 🧱 Tech Stack
 
 ### Frontend
-- React Native
-- JavaScript (no TypeScript)
-- Cross-platform support:
-  - iOS
-  - Android
-  - Web (via React Native Web)
 
-### Backend
+**Mobile (Primary)**
+- SwiftUI (iOS)
+- SwiftData (local-first persistence for early experimentation)
+
+**Web (Planned)**
+- React
+- JavaScript (no TypeScript)
+
+---
+
+### Backend (Planned)
+
 - Node.js
 - REST API
 - SQL database (PostgreSQL or SQLite initially)
 
+---
+
+### Architecture Notes
+
+- SwiftUI is the **canonical client** for early use and daily rituals
+- The backend will own shared meaning and aggregation logic
+- The web client will be added after the core workflows stabilize
+- Data models and API contracts are designed to support multiple clients
+
+---
+
 ### Rationale
-- Single codebase across platforms
-- Reduced cognitive overhead (JavaScript only)
-- Flexible and portable for experimentation
-- Appropriate for a personal growth experiment
+
+- Optimized for daily personal use on iPhone
+- Fast validation of rituals with minimal friction
+- Native UI and animations where attention matters most
+- Backend-first logic enables future web and cross-platform clients
+- Keeps early complexity low while preserving long-term flexibility
 
 ---
 
