@@ -1,0 +1,46 @@
+############################
+# Personal data & logs
+############################
+
+# Daily JSON logs (personal, local-first)
+data/logs/
+data/daily/
+
+# Keep documentation about data
+!data/README.md
+
+############################
+# Backend (Node API)
+############################
+
+backend/api/node_modules/
+backend/api/.env
+
+############################
+# Frontend — iOS (SwiftUI)
+############################
+
+# Xcode build artifacts
+frontend/ios/DerivedData/
+frontend/ios/build/
+
+# User-specific Xcode files
+frontend/ios/*.xcodeproj/xcuserdata/
+frontend/ios/*.xcworkspace/xcuserdata/
+
+############################
+# Frontend — Web (React)
+############################
+
+frontend/web/node_modules/
+frontend/web/.env
+frontend/web/dist/
+frontend/web/build/
+
+############################
+# OS / Editor noise
+############################
+
+.DS_Store
+.idea/
+.vscode/

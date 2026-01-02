@@ -3,31 +3,52 @@
   "summary": "Conceptual planning, light execution, and life presence.",
   "entries": [
     {
-      "kind": "habit_session",
+      "occurred_at": "2026-01-01T00:00:00Z",
+      "type": "habit",
       "habit": "Dog Training",
-      "track": "Walk Training",
+      "practice": "Walk Training",
       "note": "Practiced exit and greeting drills with crate training using food.",
-      "duration_minutes": null
+      "duration_minutes": null,
+      "target": null,
+      "program": null,
+      "source": "manual",
+      "is_highlight": false
     },
     {
-      "kind": "habit_session",
+      "occurred_at": "2026-01-01T00:00:00Z",
+      "type": "habit",
       "habit": "Exercise",
-      "track": "Walking",
+      "practice": "Walking",
       "note": "One hour walk.",
-      "duration_minutes": 60
+      "duration_minutes": 60,
+      "target": null,
+      "program": null,
+      "source": "manual",
+      "is_highlight": false
     },
     {
-      "kind": "habit_session",
+      "occurred_at": "2026-01-01T00:00:00Z",
+      "type": "habit",
       "habit": "Software",
-      "track": "Personal Project Development",
-      "note": "Updated portfolio with minor analytics, planned architecture for The Shelf, and organized data modeling approach using real examples.",
-      "duration_minutes": null
+      "practice": "Personal Project Development",
+      "note": "Updated portfolio with minor analytics, planned architecture for The Shelf, and organized the data modeling approach using real examples.",
+      "duration_minutes": null,
+      "target": "The Shelf",
+      "program": null,
+      "source": "manual",
+      "is_highlight": true
     },
     {
-      "kind": "life_event",
-      "title": "Meeting Aunt Betsy",
-      "note": "Being present with wife's family; social and relational energy focused here.",
-      "duration_minutes": null
+      "occurred_at": "2026-01-01T00:00:00Z",
+      "type": "life",
+      "habit": null,
+      "practice": "Family / Social",
+      "note": "Meeting Aunt Betsy and being present with wife's family; social and relational energy focused here.",
+      "duration_minutes": null,
+      "target": null,
+      "program": null,
+      "source": "manual",
+      "is_highlight": false
     }
   ],
   "reflection": {
