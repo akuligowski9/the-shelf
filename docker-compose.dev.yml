@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16
+    container_name: shelf_db
+    environment:
+      POSTGRES_USER: shelf
+      POSTGRES_PASSWORD: shelf
+      POSTGRES_DB: shelf
+    ports:
+      - "5432:5432"
+    volumes:
+      - shelf_pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ./backend/api
+      dockerfile: Dockerfile.dev
+    container_name: shelf_api
+    env_file:
+      - ./backend/api/.env
+    depends_on:
+      - db
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend/api:/app
+      - /app/node_modules
+
+  web:
+    build:
+      context: ./frontend/web
+      dockerfile: Dockerfile.dev
+    container_name: shelf_web
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"
+    environment:
+      # Vite will run in container; API is reachable from browser at localhost:3001
+      # because we publish api:3001 to host port 3001
+      - VITE_API_BASE_URL=http://localhost:3001
+    volumes:
+      - ./frontend/web:/app
+      - /app/node_modules
+
+volumes:
+  shelf_pgdata:
