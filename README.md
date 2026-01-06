@@ -210,12 +210,32 @@ Analytics are intentionally lightweight and reflective, not extractive.
 
 ---
 
-## 🚧 Project Status
+## 🛠 Local Development
 
-The Shelf is in **early active exploration**.
+The Shelf is designed to be easy to run locally with minimal setup and low cognitive overhead.
 
-The goal is not speed, polish, or public launch.  
-The goal is **alignment, sustainability, and learning**.
+Local development uses **Docker Compose** to run all services together:
+
+- PostgreSQL
+- Node.js REST API (with hot reload)
+- React web client (with hot reload)
+
+# Build-
+docker compose -f docker-compose.dev.yml up -d
+# Rebuild after dependency/config changes:
+docker compose -f docker-compose.dev.yml up -d --build
+# Stop the stack:
+docker compose -f docker-compose.dev.yml down
+# Reset the database (destructive):
+docker compose -f docker-compose.dev.yml down -v
+
+# Endpoints
+- Web UI: http://localhost:5173
+- API: http://localhost:3001
+- PostgreSQL: localhost:5432
+
+# Web env var (see frontend/web/.env.example)
+VITE_API_BASE_URL=http://localhost:3001
 
 ---
 
@@ -223,3 +243,4 @@ The goal is **alignment, sustainability, and learning**.
 
 Personal project.  
 License to be determined if/when shared publicly.
+
