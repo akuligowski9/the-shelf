@@ -1,9 +1,14 @@
 # The Shelf — Data Model (Single User)
 
 This project is a personal attention and life-balance companion.
-The system is **single-tenant** (no users table). **Entries are the source of truth**, and the system also supports **stored daily metrics** for Screen Time–style visualization.
 
-> Note: Metrics can be derived from entries, but the product intends to **persist daily aggregates** to make charting fast, stable, and easy to query.
+The system is **single-tenant** (no users table).  
+**Entries are the canonical source of truth**, and the system also supports **stored daily metrics** to enable fast, stable, Screen Time–style visualizations.
+
+> Metrics can be derived from entries, but the product intentionally **persists daily aggregates** to make long-range charting fast, resilient to edits, and easy to query.
+
+The primary goal of the data model is **long-term memory preservation**:  
+data recorded in 2026 should still be explorable and meaningful in 2028 and beyond.
 
 ---
 
@@ -11,211 +16,360 @@ The system is **single-tenant** (no users table). **Entries are the source of tr
 
 - **Entries are the canonical ledger** of what happened.
 - **Targets unify** projects, milestones, and ideas.
-- **Programs are removed** as a noun/entity. Time-boxing is handled directly on **Targets** (planned/active via date window).
+- **Programs are removed** as a noun/entity; time-boxing lives directly on **Targets**.
 - **Parking Lot is a status**, not a separate entity: `targets.status = 'parked'`.
-- **Habits and Practices** are separate: habits define attention categories; practices define ways to fulfill them.
-- **Entry types are first-class**: habits, life events, caution behaviors, and transitions are tracked as peer signals.
-- **Highlights** are celebration flags on entries: `entries.is_highlight`.
-- **Reflections** are stored artifacts over a time range (daily/weekly/monthly/ad-hoc).
-- **Preparations** are stored framing notes used at start-of-day/week.
-- **Metrics are Screen Time–style**: daily time distribution + overlays (counts) for caution behaviors and transitions.
-- **Settings** are flexible key/value JSON configuration.
+- **Habits and Practices are distinct**:
+  - habits define *domains of attention*
+  - practices define *ways attention is expressed*
+- **Metrics are descriptive**, not evaluative.
+- **History is never destroyed**:
+  - archival removes items from active views
+  - archival never removes data from metrics
+- **Rest days are valid data**, not gaps.
+- **Transitions are structural events**, not effort events.
+- **The system must support demo / sample data** for portfolio presentation.
 
 ---
 
 ## Canonical definitions (domain language)
 
-- **Habit**: a recurring category of attention (Software, Spanish, Exercise).
-- **Practice**: a way to fulfill a habit (Walking, Conversations, Textbook).
-- **Target**: the thing you’re working on (project / milestone / idea); may be unscheduled, planned, active, parked, done, archived.
-- **Preparation**: soft framing note (day/week).
-- **Entry**: logged event (what happened).
-- **Highlight**: celebratory flag on an entry.
-- **Reflection**: stored narrative interpretation over a time range.
-- **Parking Lot**: targets (and other future items) that are intentionally inactive.
+- **Habit**  
+  A recurring domain of attention (e.g., Software, Spanish, Exercise).
+
+- **Practice**  
+  A concrete way to fulfill a habit (e.g., Walking, Conversations, Personal Project Development).
+
+- **Target**  
+  The thing you are working toward (project, milestone, idea).  
+  Targets give *direction*, not obligation.
+
+- **Preparation**  
+  A soft framing note used to start a day or week intentionally.
+
+- **Closure**  
+  An intentional stopping marker used to end a day or session.
+
+- **Entry**  
+  A logged event representing what actually happened.
+
+- **Highlight**  
+  A celebratory flag on an entry.
+
+- **Reflection**  
+  A stored narrative artifact interpreting patterns over a time range.
+
+- **Transition Window**  
+  An intentional period where the set of active habits is adjusted.
+
+- **Parking Lot**  
+  Inactive targets held intentionally for later attention.
 
 ---
 
 ## Entities
 
 ### Habits
-Balancing pillars (e.g., Software, Spanish, Exercise).
+
+Habits represent long-running pillars of attention.
+
+Examples:
+- Software
+- Spanish
+- Exercise
+- Dog Training
 
 Fields / behavior:
-- `target_minutes` (default 60)
-- `active` flag
-- optional warm-up / cool-down prompts (habit-level)
-- owns a set of practices
+- `id`
+- `name`
+- `active` (boolean)
+- `target_minutes` (default framing value; not a requirement)
+- `sort_order`
+- timestamps
+
+Notes:
+- Activating or deactivating a habit **may trigger a transition window**
+- Editing habit metadata does **not** trigger a transition
+- Habits persist historically even when inactive
 
 ---
 
 ### Practices
-Concrete ways to fulfill a habit (e.g., Walking, Personal Project Development, Conversations).
+
+Practices are concrete expressions of a habit.
+
+Examples:
+- Exercise → Walking
+- Software → Open Source
+- Spanish → Conversation
 
 Fields / behavior:
-- belongs to exactly one habit
-- may be active/inactive over time
-- reused across entries to standardize reporting and charting
+- `id`
+- `habit_id` (FK)
+- `name`
+- `active` (boolean)
+- `sort_order`
+- timestamps
+
+Notes:
+- Practices are normalized to avoid duplication
+- Practices can be inactive (hidden from selection) without deleting history
+- Practices enable sub-habit pattern analysis in metrics
 
 ---
 
 ### Targets
-Anything that can receive focus and appear “on the shelf.”
 
-Targets unify:
-- projects
-- milestones
-- ideas
+Targets unify projects, milestones, and ideas.
 
 Targets have **status**:
 - `active`
 - `parked` (parking lot)
+- `planned`
 - `done`
 - `archived`
 
-Targets also support **optional scheduling**:
+Targets support **optional scheduling**:
 - `start_date` (nullable)
 - `end_date` (nullable)
+- `done_at` (nullable)
 
 Time-boxing semantics:
-- **Planned**: `start_date` and/or `end_date` is set and the window is in the future
+- **Planned**: date window exists and is in the future
 - **Active (scheduled)**: today is inside `[start_date, end_date]`
-- **On the shelf (unscheduled)**: no dates set (but still can be status=active or parked)
+- **On the shelf (unscheduled)**: no dates set
+- **Done / Archived**: removed from current attention regardless of dates
 
-Targets can optionally relate to:
-- a habit (e.g., Spanish)
-- a default practice (optional convenience)
-- or neither (some targets are life/admin/etc.)
+Targets may optionally relate to:
+- a habit
+- a default practice
+- or neither (life/admin targets)
+
+Targets may overlap freely.
 
 ---
 
-### Entries (canonical ledger)
-The main event stream of what happened.
+### Entries (Canonical Ledger)
 
-Entries are typed, because context matters.
+Entries are the primary record of what happened.
+
+Entries are **appendable, editable, and archivable** — never hard-deleted.
 
 #### Entry types
-- `habit` — practice under a habit
-- `life` — life context (family, travel, social)
-- `caution` — caution behavior (tracked for awareness)
-- `transition` — structural change marker
+- `habit`
+- `life`
+- `caution`
+
+> **Note:** Transitions are no longer an entry type.  
+> They are tracked separately as structural events.
 
 Key fields:
-- `type`: `habit` | `life` | `caution` | `transition`
+- `id`
+- `type`: `habit` | `life` | `caution`
 - `occurred_on`: date (day-level grouping)
-- `occurred_at`: timestamp (optional)
+- `occurred_at`: timestamp (stored in EST)
 - `habit_id`: nullable; required for `type=habit`
-- `practice_id`: nullable; usually present for `type=habit`, optional for others
-- `target_id`: nullable; optional link for context/focus
-- `duration_minutes`: nullable (time-based when available)
-- `note`: nullable free text
-- `is_highlight`: boolean (celebration)
+- `practice_id`: nullable; encouraged for `type=habit`
+- `target_id`: nullable
+- `duration_minutes`: nullable (valid for habit and life)
+- `note`: nullable text
+- `is_highlight`: boolean
 - `source`: `manual` | `import` | `auto`
+- `archived_at`: nullable
+- timestamps
 
 Semantics:
-- Habits are primarily **time-based** (minutes)
-- Life events may be time-based or note-only
-- Caution behaviors are often **occurrence-based** (duration optional)
-- Transitions are typically **occurrence-based** (duration usually null)
+- Habit entries are primarily time-based
+- Life entries may be time-based or note-only
+- Caution entries are usually occurrence-based
+- Entries power all metrics and review surfaces
 
 ---
 
 ### Preparations
-Soft framing notes for a day or week (start-of-day/week intention).
+
+Preparations are soft framing notes.
 
 Fields / behavior:
+- `id`
 - `period_type`: `day` | `week`
 - `period_start`: date
-- `note`: text
-- optional linkage: `target_id` (what matters), optional `habit_id`
+- `note`
+- optional `habit_id`
+- optional `target_id`
+- optional `rest_day` boolean
+- timestamp
+
+Notes:
+- Preparations do not invalidate rest days
+- Counts of preparations are meaningful metrics
+
+---
+
+### Closures
+
+Closures represent intentional stopping.
+
+Fields / behavior:
+- `id`
+- `scope`: `day` | `session`
+- `occurred_at`
+- optional `habit_id`
+- optional `practice_id`
+- `note`
+- timestamp
+
+Notes:
+- Closures support end-of-day hygiene
+- Closure counts are tracked as metrics
+- Closures help retrieve “last session context” per habit/practice
 
 ---
 
 ### Reflections
-Stored narrative artifacts used to interpret metrics and patterns.
+
+Reflections are macro sense-making artifacts.
 
 Fields / behavior:
+- `id`
 - `reflection_type`: `day` | `week` | `month` | `adhoc`
-- `period_start` / `period_end` (required for week/month; optional for adhoc)
-- optional linkage: `target_id`, `habit_id`
-- text fields (prompt responses, closing note, context)
+- `period_start` / `period_end` (required for week/month)
+- optional `habit_id`
+- optional `target_id`
+- `note`
+- timestamp
+
+Notes:
+- Reflections are never required
+- Reflections are never auto-generated
+- Reflections may reference metrics, transitions, or decisions
 
 ---
 
-### Habit Prompts (Warm-ups & Cool-downs)
-Habit-level prompts for framing and closure.
+### Habit Prompts (Optional)
+
+Habit-level prompts used to assist framing or closure.
 
 Fields / behavior:
 - `habit_id`
 - `prompt_type`: `warmup` | `cooldown`
 - `prompt_text`
-- optional active flag / ordering
+- optional active flag
+- sort order
 
-Prompt responses:
-- can be stored as **entries** (`type=habit` or `type=transition`) with notes
-- or stored as reflections (depending on UI flow)
+Notes:
+- Prompt responses are **not** stored separately
+- Responses may be captured via preparations, closures, or reflections
+
+---
+
+### Habit Transitions (Transition Windows)
+
+Transitions track **changes to the active habit set**.
+
+Fields:
+- `id`
+- `started_at`
+- `ended_at`
+- `note` (optional)
+- timestamp
+
+Rules:
+- A transition window may contain multiple habit activations/deactivations
+- One window = one transition event for metrics
+- Transition windows explain balance shifts over time
 
 ---
 
 ### Settings
-Flexible key/value JSON config for preferences and defaults.
+
+Flexible key/value configuration.
+
+Fields:
+- `key`
+- `value` (JSON)
+- timestamp
 
 Examples:
-- default habit duration presets
-- preferred reflection cadence
-- UI flags (show totals, default overlays)
-- charting preferences (stack order, grouping rules)
+- timezone
+- default habit durations
+- chart preferences
+- import behavior flags
+- UI display toggles
 
 ---
 
-### Daily Metrics (stored)
+## Daily Metrics (Stored)
+
 To support Screen Time–style charts, the system persists daily aggregates.
 
-**Why store these?**
-- fast chart loads
-- stable historical view even if raw entries are edited
-- simplified queries for weekly/monthly/yearly summaries
+### Why store daily metrics?
 
-Two layers:
+- Fast chart rendering
+- Stable historical views
+- Simplified weekly/monthly/yearly queries
+- Insulation from entry edits
+
+### Metric layers
 
 #### 1) `daily_metrics`
-One row per day.
+One row per calendar day.
 - `date`
-- optional high-level totals (total minutes logged, etc.)
+- `is_rest_day` (boolean)
+- optional totals (e.g. total minutes)
 
 #### 2) `daily_metric_items`
-Breakdown rows per day per “bucket.”
-Buckets represent peer signals:
-- Habit buckets (time-based): minutes per habit
-- Life buckets (time-based when available): minutes per life practice/category
-- Caution buckets (occurrence-based): count per caution behavior
-- Transition buckets (occurrence-based): count per transition type
+Breakdown rows per day per bucket.
 
-Suggested shape:
+Buckets represent peer signals:
+- Habit buckets (time-based)
+- Practice buckets (time-based)
+- Life buckets (time-based)
+- Caution buckets (occurrence-based)
+- Transition buckets (occurrence-based)
+- Preparation / closure counts
+
+Suggested fields:
 - `date`
-- `bucket_type`: `habit` | `life` | `caution` | `transition`
-- `bucket_id`: nullable (habit_id for habit; practice_id for habit/life if used; or a text key for caution/transition subtype)
+- `bucket_type`: `habit` | `practice` | `life` | `caution` | `transition` | `prep` | `closure`
+- `bucket_id`: nullable (FK or text key)
 - `minutes`: nullable
 - `count`: nullable
 
-> This supports stacked bars (minutes) and overlays (count markers) in one consistent model.
+This supports stacked bars with overlay markers.
 
 ---
 
-## Derived data (still useful even with stored metrics)
+## Derived Data (Still Used)
 
-Even if daily metrics are stored, some views can still be derived:
+Even with stored metrics, some views remain derived:
 
-- “Last touched” for a target can be derived from the latest entry referencing that target.
-- Accomplishments views can be derived from:
-  - entries where `is_highlight = true`
-  - targets where `status = done`
-  - notable life entries
-- Balance commentary can be derived from reflections + transitions.
+- “Last touched” timestamps
+- Accomplishments summaries
+- Review context assembly
+- Balance commentary tied to reflections
+
+Derived data is computed dynamically or via materialized views.
 
 ---
 
-## Table list (updated)
+## Demo / Showcase Data
+
+The system should support **demo data mode** for portfolio visitors.
+
+Demo data goals:
+- illustrate habits, practices, targets, transitions
+- show realistic balance and rest days
+- preserve privacy (no real notes)
+- visually demonstrate charts and review flows
+
+Demo data should:
+- live separately from real data
+- be clearly labeled as sample
+- reuse the same schema and views
+
+---
+
+## Table List (Updated)
 
 Core:
 - `habits`
@@ -223,13 +377,15 @@ Core:
 - `habit_prompts`
 - `targets`
 - `entries`
-- `reflections`
 - `preparations`
+- `closures`
+- `reflections`
+- `habit_transitions`
 - `settings`
 
-Metrics (stored):
+Metrics:
 - `daily_metrics`
 - `daily_metric_items`
 
-> Note: “Parking Lot” is not a table; it is `targets.status = 'parked'`.
-> Note: “Programs” table removed; time-boxing is handled on `targets` via start/end dates.
+> Notes:
+> - “Parking Lot” is not a table; it is `targets.status = 'parked'`
