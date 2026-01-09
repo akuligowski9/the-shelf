@@ -626,6 +626,18 @@ Settings control system behavior, not behavior itself.
 - history is preserved
 - designed for longevity
 
+### 5.6.1 Demo Data
+
+For testing and demonstration purposes, a set of sample data is available in the `data/logs/demo` directory. These files are structured according to the JSON import specification and can be used to populate the system via the import interface in the settings view. This allows developers and testers to quickly see the system's features populated with realistic data without needing to create it manually.
+
+### 5.6.2 Live Data Logging
+
+In addition to the database, the system will maintain a real-time log of all entries in JSON format. For each day that data is recorded, a corresponding JSON file will be created in the `data/logs/` directory. The structure of the objects within the JSON file will adhere to the format defined for `Entries` in the `docs/data-model.md` document.
+
+- **File Naming:** Files will be named based on the date, e.g., `YYYY-MM-DD.json`.
+- **Purpose:** This provides a simple, durable, and human-readable record of daily activity. It serves as a secondary backup and allows for easy inspection or external processing of the raw data.
+- **Relationship to Database:** This file-based logging is a supplement to, not a replacement for, the primary database. The database remains the canonical source for application queries and derived metrics.
+
 ---
 
 ## 6. Data Integrity & Persistence

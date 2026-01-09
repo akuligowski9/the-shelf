@@ -302,19 +302,37 @@ Single-user system. No auth required.
 
 ---
 
-## 🧱 Tech Stack
+## 🧱 Technical Overview
 
-### Web
-- React
-- JavaScript (no TypeScript)
-- Vite dev server
+This section provides a high-level summary of the system's architecture and technology choices, derived from the detailed [Technical Specification](./docs/tech-spec.md).
 
-### Backend
-- Node.js HTTP API (REST-style)
-- PostgreSQL
+### Technology Stack
 
-### Local Dev
-- Docker Compose for db + api + web
+-   **Backend**: Node.js REST-style API using Express.js.
+-   **Database**: PostgreSQL.
+-   **Frontend**: React (with Vite) using plain JavaScript.
+-   **Containerization**: Docker Compose for orchestrating the development environment (API, database, and web client).
+-   **Testing**: End-to-end tests using Playwright to validate critical user flows.
+
+### System Architecture
+
+The system is designed as a classic three-tier application, containerized for consistent and easy local development. The architecture emphasizes long-term data integrity and a clear separation of concerns between its primary UI views.
+
+#### UI Views (The 5 Core Surfaces)
+
+The user interface is broken down into five distinct views, each with a single responsibility:
+
+1.  **Shelf (Home)**: The orientation view. Shows active habits and targets, providing a calm anchor to start or end the day.
+2.  **Today (Logging)**: The action view. This is the only place where daily events are logged, edited, and closed out.
+3.  **Progress (Analysis)**: The analytical view. Makes attention visible through two lenses: **Balance** (distribution of effort) and **Patterns** (trends over time). This view is read-only.
+4.  **Review (Reflection)**: The meaning-making view. Surfaced accomplishments and saved narrative reflections on patterns and progress.
+5.  **Attention (Structure)**: The management view. This is where the underlying structure of habits, practices, and targets is defined and adjusted.
+
+#### Data Model & Integrity
+
+-   **Core Principle**: History is sacred. Nothing is ever hard-deleted. Data is archived to preserve historical accuracy for long-term review.
+-   **Source of Truth**: The `entries` table is the canonical ledger of what actually happened. All metrics and visualizations are derived from it.
+-   **Data Import**: The system supports a forgiving JSON import format to allow for manual or programmatic backfilling of data, with unknown fields being safely ignored.
 
 ---
 
@@ -322,27 +340,45 @@ Single-user system. No auth required.
 
 Run the full stack:
 
+```bash
 docker compose -f docker-compose.dev.yml up -d
+```
 
 Rebuild after dependency/config changes:
 
+```bash
 docker compose -f docker-compose.dev.yml up -d --build
+```
 
 Stop the stack:
 
+```bash
 docker compose -f docker-compose.dev.yml down
+```
 
 Reset the database (destructive):
 
+```bash
 docker compose -f docker-compose.dev.yml down -v
+```
 
-Endpoints:
-- Web UI: http://localhost:5173
-- API: http://localhost:3001
-- PostgreSQL: localhost:5432
+**Endpoints:**
 
-Web env var (see `frontend/web/.env.example`):
-- VITE_API_BASE_URL=http://localhost:3001
+-   **Web UI**: `http://localhost:5173`
+-   **API**: `http://localhost:3001`
+-   **PostgreSQL**: `localhost:5432`
+
+**Web Environment (see `frontend/web/.env.example`):**
+
+-   `VITE_API_BASE_URL=http://localhost:3001`
+
+### Demo Data
+
+The `data/logs/demo` directory contains a set of 12 sample JSON import files. These can be used to populate the system with realistic data for testing and exploration. The import functionality is available in the application's settings view.
+
+### Live Data Logging
+
+In addition to demo data, the application creates a live log of daily activities. For each day an entry is made, a corresponding JSON file is generated in the `data/logs/` directory. These logs follow the `Entry` format described in the project's data model documentation and serve as a human-readable, file-based backup of all activities, supplementing the primary PostgreSQL database.
 
 ---
 
