@@ -1,50 +1,92 @@
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useMemo, useEffect } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import EntryFormDialog from '@/components/today/EntryFormDialog'
-import { Plus, Star } from 'lucide-react'
+import PreparationDialog from '@/components/today/PreparationDialog'
+import ClosureDialog from '@/components/today/ClosureDialog'
+import DateNavigator from '@/components/today/DateNavigator'
+import { Plus, Star, Pencil, Sun, Moon } from 'lucide-react'
+import {
+  mockEntries,
+  mockPreparations,
+  mockClosures,
+  formatDateKey,
+} from '@/data/mockData'
 
 export default function TodayView() {
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [entries, setEntries] = useState([
-    {
-      id: 1,
-      type: 'habit',
-      habit: 'Software',
-      practice: 'Architecture Planning',
-      occurred_at: '2026-01-09T10:00:00',
-      duration_minutes: 90,
-      note: 'Worked on The Shelf frontend planning.',
-      is_highlight: true,
-    },
-    {
-      id: 2,
-      type: 'habit',
-      habit: 'Exercise',
-      practice: 'Walking',
-      occurred_at: '2026-01-09T14:00:00',
-      duration_minutes: 45,
-      note: 'Afternoon walk with the dogs.',
-      is_highlight: false,
-    },
-    {
-      id: 3,
-      type: 'life',
-      occurred_at: '2026-01-09T16:00:00',
-      duration_minutes: 60,
-      note: 'Errands and groceries.',
-      is_highlight: false,
-    },
-  ])
+  // Date state
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const dateKey = formatDateKey(selectedDate)
 
-  const handleAddEntry = (newEntry) => {
-    setEntries(prev => [...prev, { ...newEntry, is_highlight: false }])
+  // Dialog states
+  const [entryDialogOpen, setEntryDialogOpen] = useState(false)
+  const [prepDialogOpen, setPrepDialogOpen] = useState(false)
+  const [closureDialogOpen, setClosureDialogOpen] = useState(false)
+  const [editingEntry, setEditingEntry] = useState(null)
+
+  // Data states - initialize from mock data
+  const [allEntries, setAllEntries] = useState(mockEntries)
+  const [preparations, setPreparations] = useState(mockPreparations)
+  const [closures, setClosures] = useState(mockClosures)
+
+  // Filter entries for selected date
+  const entries = useMemo(() => {
+    return allEntries.filter(entry => {
+      const entryDate = entry.occurred_at.split('T')[0]
+      return entryDate === dateKey
+    })
+  }, [allEntries, dateKey])
+
+  // Get preparation and closure for selected date
+  const preparation = preparations[dateKey] || null
+  const closure = closures[dateKey] || null
+
+  // Check if viewing today
+  const isToday = useMemo(() => {
+    const today = new Date()
+    return selectedDate.toDateString() === today.toDateString()
+  }, [selectedDate])
+
+  // Computed stats
+  const dayStats = useMemo(() => ({
+    entries: entries.length,
+    highlights: entries.filter(e => e.is_highlight).length,
+    minutes: entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
+  }), [entries])
+
+  // Handlers
+  const handleEntrySubmit = (entry, isEdit) => {
+    // Ensure the entry has the correct date
+    if (!isEdit) {
+      // For new entries on past dates, set occurred_at to the selected date
+      const entryDate = entry.occurred_at.split('T')[1]
+      entry.occurred_at = `${dateKey}T${entryDate}`
+    }
+
+    if (isEdit) {
+      setAllEntries(prev => prev.map(e => e.id === entry.id ? entry : e))
+    } else {
+      setAllEntries(prev => [...prev, entry])
+    }
+    setEditingEntry(null)
+  }
+
+  const handleEditEntry = (entry) => {
+    setEditingEntry(entry)
+    setEntryDialogOpen(true)
+  }
+
+  const handleEntryDialogClose = (isOpen) => {
+    setEntryDialogOpen(isOpen)
+    if (!isOpen) {
+      setEditingEntry(null)
+    }
   }
 
   const toggleHighlight = (entryId) => {
-    setEntries(prev =>
+    setAllEntries(prev =>
       prev.map(entry =>
         entry.id === entryId
           ? { ...entry, is_highlight: !entry.is_highlight }
@@ -53,10 +95,32 @@ export default function TodayView() {
     )
   }
 
+  const handlePreparationSubmit = (prep) => {
+    setPreparations(prev => ({
+      ...prev,
+      [dateKey]: prep,
+    }))
+  }
+
+  const handleClosureSubmit = (close) => {
+    setClosures(prev => ({
+      ...prev,
+      [dateKey]: close,
+    }))
+  }
+
   const formatTime = (dateStr) => {
     return new Date(dateStr).toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
+    })
+  }
+
+  const formatDateDisplay = (date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
     })
   }
 
@@ -87,42 +151,75 @@ export default function TodayView() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header with Date Navigation */}
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Today</h1>
-          <p className="text-muted-foreground">
-            {new Date().toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </p>
+          <h1 className="text-2xl font-semibold text-foreground">
+            {isToday ? 'Today' : formatDateDisplay(selectedDate)}
+          </h1>
+          {isToday && (
+            <p className="text-muted-foreground">
+              {formatDateDisplay(selectedDate)}
+            </p>
+          )}
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
+        <DateNavigator
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+        />
+      </div>
+
+      {/* Add Entry Button */}
+      <div className="flex justify-end">
+        <Button onClick={() => setEntryDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Entry
         </Button>
       </div>
 
-      {/* Preparation Note */}
-      <Card className="border-primary/20 bg-primary/5">
+      {/* Preparation Card */}
+      <Card className={preparation ? 'border-primary/30 bg-primary/5' : 'border-dashed'}>
         <CardContent className="pt-4 pb-4">
-          <p className="text-sm text-muted-foreground">
-            No preparation yet. Start your day with intention?
-          </p>
+          {preparation ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sun className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Day Started</span>
+                  {preparation.rest_day && (
+                    <Badge variant="outline" className="text-xs">Rest Day</Badge>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPrepDialogOpen(true)}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
+              </div>
+              {preparation.note && (
+                <p className="text-sm text-muted-foreground">{preparation.note}</p>
+              )}
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-muted-foreground"
+              onClick={() => setPrepDialogOpen(true)}
+            >
+              <Sun className="h-4 w-4 mr-2" />
+              {isToday ? 'Start your day with intention?' : 'Add preparation note'}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
       {/* Summary */}
       <div className="flex gap-4 text-sm text-muted-foreground">
-        <span>{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</span>
-        <span>
-          {entries.filter(e => e.is_highlight).length} highlights
-        </span>
-        <span>
-          {entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0)} min total
-        </span>
+        <span>{dayStats.entries} {dayStats.entries === 1 ? 'entry' : 'entries'}</span>
+        <span>{dayStats.highlights} highlights</span>
+        <span>{dayStats.minutes} min total</span>
       </div>
 
       {/* Entry List */}
@@ -130,9 +227,13 @@ export default function TodayView() {
         {sortedEntries.length === 0 ? (
           <Card>
             <CardContent className="pt-6 pb-6 text-center">
-              <p className="text-muted-foreground">No entries yet today.</p>
+              <p className="text-muted-foreground">
+                {isToday ? 'No entries yet today.' : 'No entries for this day.'}
+              </p>
               <p className="text-sm text-muted-foreground/60 mt-1">
-                Add your first entry to get started.
+                {isToday
+                  ? 'Add your first entry to get started.'
+                  : 'You can still add entries to past days.'}
               </p>
             </CardContent>
           </Card>
@@ -167,12 +268,20 @@ export default function TodayView() {
                     {entry.duration_minutes && (
                       <div>{entry.duration_minutes} min</div>
                     )}
-                    <button
-                      onClick={() => toggleHighlight(entry.id)}
-                      className="text-xs text-muted-foreground/60 hover:text-primary mt-1"
-                    >
-                      {entry.is_highlight ? 'Remove highlight' : 'Highlight'}
-                    </button>
+                    <div className="flex gap-2 mt-1 justify-end">
+                      <button
+                        onClick={() => handleEditEntry(entry)}
+                        className="text-xs text-muted-foreground/60 hover:text-foreground"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => toggleHighlight(entry.id)}
+                        className="text-xs text-muted-foreground/60 hover:text-primary"
+                      >
+                        {entry.is_highlight ? 'Unhighlight' : 'Highlight'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -181,21 +290,53 @@ export default function TodayView() {
         )}
       </div>
 
-      {/* Closure Prompt */}
+      {/* Closure Card */}
       <Separator />
-      <Card>
+      <Card className={closure ? 'border-primary/30 bg-primary/5' : ''}>
         <CardContent className="pt-4 pb-4">
-          <Button variant="secondary" className="w-full">
-            Close the day?
-          </Button>
+          {closure ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Moon className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">Day Closed</span>
+              </div>
+              {closure.note && (
+                <p className="text-sm text-muted-foreground">{closure.note}</p>
+              )}
+            </div>
+          ) : (
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => setClosureDialogOpen(true)}
+            >
+              <Moon className="h-4 w-4 mr-2" />
+              {isToday ? 'Close the day?' : 'Add closure note'}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
-      {/* Entry Form Dialog */}
+      {/* Dialogs */}
       <EntryFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onSubmit={handleAddEntry}
+        open={entryDialogOpen}
+        onOpenChange={handleEntryDialogClose}
+        onSubmit={handleEntrySubmit}
+        editingEntry={editingEntry}
+      />
+
+      <PreparationDialog
+        open={prepDialogOpen}
+        onOpenChange={setPrepDialogOpen}
+        onSubmit={handlePreparationSubmit}
+        existingPreparation={preparation}
+      />
+
+      <ClosureDialog
+        open={closureDialogOpen}
+        onOpenChange={setClosureDialogOpen}
+        onSubmit={handleClosureSubmit}
+        todayStats={dayStats}
       />
     </div>
   )

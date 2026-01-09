@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ const ENTRY_TYPES = [
   { value: 'caution', label: 'Caution' },
 ]
 
-export default function EntryFormDialog({ open, onOpenChange, onSubmit }) {
+export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingEntry }) {
   const [entryType, setEntryType] = useState('habit')
   const [habitId, setHabitId] = useState('')
   const [practiceId, setPracticeId] = useState('')
@@ -47,6 +47,29 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit }) {
     return practices.find(p => p.id === Number(practiceId))
   }, [practiceId, practices])
 
+  // Populate form when editing
+  useEffect(() => {
+    if (editingEntry) {
+      setEntryType(editingEntry.type)
+      setDurationMinutes(editingEntry.duration_minutes?.toString() || '')
+      setNote(editingEntry.note || '')
+
+      if (editingEntry.type === 'habit') {
+        // Find habit ID by name
+        const habit = activeHabits.find(h => h.name === editingEntry.habit)
+        if (habit) {
+          setHabitId(String(habit.id))
+          // Find practice ID by name after habit is set
+          const habitPractices = getPracticesForHabit(habit.id)
+          const practice = habitPractices.find(p => p.name === editingEntry.practice)
+          if (practice) {
+            setPracticeId(String(practice.id))
+          }
+        }
+      }
+    }
+  }, [editingEntry, activeHabits])
+
   const resetForm = () => {
     setEntryType('habit')
     setHabitId('')
@@ -58,13 +81,13 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    const now = new Date()
     const entry = {
-      id: Date.now(),
+      id: editingEntry?.id || Date.now(),
       type: entryType,
-      occurred_at: now.toISOString(),
+      occurred_at: editingEntry?.occurred_at || new Date().toISOString(),
       duration_minutes: durationMinutes ? Number(durationMinutes) : null,
       note: note || null,
+      is_highlight: editingEntry?.is_highlight || false,
     }
 
     if (entryType === 'habit') {
@@ -74,7 +97,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit }) {
       entry.practice_id = practiceId ? Number(practiceId) : null
     }
 
-    onSubmit(entry)
+    onSubmit(entry, !!editingEntry)
     resetForm()
     onOpenChange(false)
   }
@@ -90,7 +113,6 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit }) {
     if (entryType === 'habit') {
       return habitId !== ''
     }
-    // Life and caution entries just need a note or duration
     return note.trim() !== '' || durationMinutes !== ''
   }
 
@@ -98,7 +120,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit }) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Entry</DialogTitle>
+          <DialogTitle>{editingEntry ? 'Edit Entry' : 'Add Entry'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -202,7 +224,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit }) {
               Cancel
             </Button>
             <Button type="submit" disabled={!canSubmit()}>
-              Add Entry
+              {editingEntry ? 'Save Changes' : 'Add Entry'}
             </Button>
           </DialogFooter>
         </form>
