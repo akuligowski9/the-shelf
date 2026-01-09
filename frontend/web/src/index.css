@@ -1,68 +1,80 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    /* Earth-tone palette - Warm neutrals with muted green accents */
+    --background: 40 20% 98%;
+    --foreground: 30 10% 20%;
+
+    --card: 40 15% 96%;
+    --card-foreground: 30 10% 20%;
+
+    --popover: 40 15% 96%;
+    --popover-foreground: 30 10% 20%;
+
+    --primary: 140 25% 35%;
+    --primary-foreground: 40 20% 98%;
+
+    --secondary: 35 20% 90%;
+    --secondary-foreground: 30 10% 25%;
+
+    --muted: 35 15% 92%;
+    --muted-foreground: 30 10% 45%;
+
+    --accent: 140 20% 90%;
+    --accent-foreground: 140 25% 25%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 40 20% 98%;
+
+    --border: 35 15% 88%;
+    --input: 35 15% 88%;
+    --ring: 140 25% 35%;
+
+    --radius: 0.5rem;
   }
-  a:hover {
-    color: #747bff;
+
+  .dark {
+    --background: 30 15% 12%;
+    --foreground: 40 15% 90%;
+
+    --card: 30 15% 15%;
+    --card-foreground: 40 15% 90%;
+
+    --popover: 30 15% 15%;
+    --popover-foreground: 40 15% 90%;
+
+    --primary: 140 30% 45%;
+    --primary-foreground: 30 15% 10%;
+
+    --secondary: 30 15% 20%;
+    --secondary-foreground: 40 15% 85%;
+
+    --muted: 30 15% 18%;
+    --muted-foreground: 40 10% 60%;
+
+    --accent: 140 20% 25%;
+    --accent-foreground: 140 30% 85%;
+
+    --destructive: 0 60% 40%;
+    --destructive-foreground: 40 15% 90%;
+
+    --border: 30 15% 22%;
+    --input: 30 15% 22%;
+    --ring: 140 30% 45%;
   }
-  button {
-    background-color: #f9f9f9;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
