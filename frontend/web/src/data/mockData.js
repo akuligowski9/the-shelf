@@ -8,6 +8,115 @@ export const mockHabits = [
   { id: 5, name: 'Reading', active: false, target_minutes: 30 },
 ]
 
+// Warm-up and cool-down templates per habit
+export const mockWarmUpTemplates = [
+  {
+    id: 1,
+    habit_id: 1,
+    name: 'PM Assist Invocation',
+    content: `## Permission Page — Authorship, Not Performance
+
+I learned to survive by being careful with language.
+That skill kept me safe once.
+It does not need to run my life now.
+
+This work is not a performance.
+It is an expression.
+
+I am allowed to:
+- Be partial
+- Be dated
+- Know only a slice
+- Stop at clarity, not completion
+
+This artifact does not define my worth.
+It defines a moment in my thinking.
+
+---
+
+## Orientation
+
+For this session:
+- My job is not to impress
+- My job is to externalize one thought
+- Stopping is allowed
+- Being responsible enough is okay
+
+{{last_session_note}}`,
+    has_dynamic_elements: true,
+    active: true,
+  },
+  {
+    id: 2,
+    habit_id: 1,
+    name: 'Quick Focus',
+    content: `What's the one thing I want to accomplish this session?
+
+Time-box: How long am I committing to?
+
+What does "done enough" look like?`,
+    has_dynamic_elements: false,
+    active: true,
+  },
+  {
+    id: 3,
+    habit_id: 3,
+    name: 'Movement Check-in',
+    content: `How is my body feeling right now?
+
+What needs attention today?
+
+Am I doing this for energy, recovery, or maintenance?`,
+    has_dynamic_elements: false,
+    active: true,
+  },
+]
+
+export const mockCoolDownTemplates = [
+  {
+    id: 1,
+    habit_id: 1,
+    name: 'Session Closure',
+    content: `## Freeze Point
+
+What did I accomplish?
+
+What's the next concrete step?
+
+## Stopping Clean
+
+- [ ] Code committed or stashed
+- [ ] Notes captured
+- [ ] Context saved for next time
+
+Am I stopping because I'm done, or because it's time?`,
+    has_dynamic_elements: false,
+    active: true,
+  },
+  {
+    id: 2,
+    habit_id: 3,
+    name: 'Movement Debrief',
+    content: `How do I feel after?
+
+Anything to note for recovery?
+
+What worked well?`,
+    has_dynamic_elements: false,
+    active: true,
+  },
+]
+
+// Helper to get warm-up templates for a habit
+export function getWarmUpTemplatesForHabit(habitId) {
+  return mockWarmUpTemplates.filter(t => t.habit_id === habitId && t.active)
+}
+
+// Helper to get cool-down templates for a habit
+export function getCoolDownTemplatesForHabit(habitId) {
+  return mockCoolDownTemplates.filter(t => t.habit_id === habitId && t.active)
+}
+
 export const mockPractices = [
   // Software
   { id: 1, habit_id: 1, name: 'Personal Project Development', active: true },
@@ -21,6 +130,8 @@ export const mockPractices = [
   { id: 7, habit_id: 3, name: 'Outdoor Walking', active: true },
   { id: 8, habit_id: 3, name: 'Gym', active: true },
   { id: 9, habit_id: 3, name: 'Corrective Exercises', active: true },
+  { id: 15, habit_id: 3, name: 'Legs Workout', active: true },
+  { id: 16, habit_id: 3, name: 'Upper Body', active: true },
   // Dog Training
   { id: 10, habit_id: 4, name: 'Walk Training', active: true },
   { id: 11, habit_id: 4, name: 'Loose-Leash Drills', active: true },
@@ -29,6 +140,53 @@ export const mockPractices = [
   { id: 13, habit_id: 5, name: 'Books', active: true },
   { id: 14, habit_id: 5, name: 'Articles', active: true },
 ]
+
+// Behaviors/actions per practice (checkboxes for what you did)
+export const mockBehaviors = [
+  // Software - Personal Project Development
+  { id: 1, practice_id: 1, name: 'Feature implementation', active: true },
+  { id: 2, practice_id: 1, name: 'Bug fixes', active: true },
+  { id: 3, practice_id: 1, name: 'Code review', active: true },
+  { id: 4, practice_id: 1, name: 'Testing', active: true },
+  // Software - Architecture Planning
+  { id: 5, practice_id: 2, name: 'System design', active: true },
+  { id: 6, practice_id: 2, name: 'Documentation', active: true },
+  { id: 7, practice_id: 2, name: 'Tech spec writing', active: true },
+  // Spanish - Textbook Learning
+  { id: 8, practice_id: 4, name: 'Vocabulary', active: true },
+  { id: 9, practice_id: 4, name: 'Grammar exercises', active: true },
+  { id: 10, practice_id: 4, name: 'Reading practice', active: true },
+  { id: 11, practice_id: 4, name: 'Flashcards', active: true },
+  // Spanish - Conversation
+  { id: 12, practice_id: 5, name: 'Speaking practice', active: true },
+  { id: 13, practice_id: 5, name: 'Listening practice', active: true },
+  // Exercise - Legs Workout
+  { id: 14, practice_id: 15, name: 'Squats', active: true },
+  { id: 15, practice_id: 15, name: 'Lunges', active: true },
+  { id: 16, practice_id: 15, name: 'Leg Press', active: true },
+  { id: 17, practice_id: 15, name: 'Calf Raises', active: true },
+  { id: 18, practice_id: 15, name: 'Leg Curls', active: true },
+  // Exercise - Upper Body
+  { id: 19, practice_id: 16, name: 'Bench Press', active: true },
+  { id: 20, practice_id: 16, name: 'Shoulder Press', active: true },
+  { id: 21, practice_id: 16, name: 'Pull-ups', active: true },
+  { id: 22, practice_id: 16, name: 'Rows', active: true },
+  { id: 23, practice_id: 16, name: 'Bicep Curls', active: true },
+  // Exercise - Corrective Exercises
+  { id: 24, practice_id: 9, name: 'Hip stretches', active: true },
+  { id: 25, practice_id: 9, name: 'Mobility work', active: true },
+  { id: 26, practice_id: 9, name: 'Foam rolling', active: true },
+  // Dog Training - Loose-Leash Drills
+  { id: 27, practice_id: 11, name: 'Calm exits', active: true },
+  { id: 28, practice_id: 11, name: 'Leash tension awareness', active: true },
+  { id: 29, practice_id: 11, name: 'Greetings practice', active: true },
+  { id: 30, practice_id: 11, name: 'Direction changes', active: true },
+]
+
+// Helper to get behaviors for a specific practice
+export function getBehaviorsForPractice(practiceId) {
+  return mockBehaviors.filter(b => b.practice_id === practiceId && b.active)
+}
 
 export const mockTargets = [
   { id: 1, name: 'The Shelf', status: 'active', habit_id: 1 },
@@ -327,11 +485,15 @@ export const mockEntries = [
     id: 901,
     type: 'habit',
     habit: 'Software',
+    habit_id: 1,
     practice: 'Architecture Planning',
     occurred_at: '2026-01-09T10:00:00',
     duration_minutes: 90,
     note: 'Worked on The Shelf frontend planning.',
     is_highlight: true,
+    warm_up_template_id: 1,
+    warm_up_note: 'Focus on the warm-up/cool-down feature redesign. Time-box to 90 minutes.',
+    cool_down_note: 'Got the spec updated. Next: update the React components.',
   },
   {
     id: 902,
@@ -353,42 +515,37 @@ export const mockEntries = [
   },
 ]
 
-// Mock preparations by date
+// Mock day preparations by date (day-level framing only)
 export const mockPreparations = {
   '2026-01-02': {
     id: 1,
-    period_type: 'day',
-    period_start: '2026-01-02',
+    occurred_at: '2026-01-02T08:00:00',
     note: 'Focus on balance today - some habit work, some social time.',
     rest_day: false,
   },
   '2026-01-04': {
     id: 2,
-    period_type: 'day',
-    period_start: '2026-01-04',
+    occurred_at: '2026-01-04T09:00:00',
     note: 'Moving day - no habit work expected.',
     rest_day: true,
   },
   '2026-01-06': {
     id: 3,
-    period_type: 'day',
-    period_start: '2026-01-06',
+    occurred_at: '2026-01-06T07:30:00',
     note: 'Back to routine. Gym, reading, software work.',
     rest_day: false,
   },
 }
 
-// Mock closures by date
+// Mock day closures by date (day-level ending only)
 export const mockClosures = {
   '2026-01-02': {
     id: 1,
-    scope: 'day',
     occurred_at: '2026-01-02T22:00:00',
     note: 'Solid balance of productivity and social time.',
   },
   '2026-01-04': {
     id: 2,
-    scope: 'day',
     occurred_at: '2026-01-04T21:00:00',
     note: 'Moving done. Exhausted but settled.',
   },
@@ -415,4 +572,35 @@ export function getEntriesForDate(dateStr) {
 // Helper to format date as YYYY-MM-DD
 export function formatDateKey(date) {
   return date.toISOString().split('T')[0]
+}
+
+// Helper to get last session for a habit (for dynamic warm-up elements)
+export function getLastSessionForHabit(habitName, beforeDate = null) {
+  const entries = mockEntries
+    .filter(e => e.type === 'habit' && e.habit === habitName && !e.archived_at)
+    .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
+
+  if (beforeDate) {
+    return entries.find(e => new Date(e.occurred_at) < new Date(beforeDate))
+  }
+  return entries[0] || null
+}
+
+// Helper to render warm-up template with dynamic elements
+export function renderWarmUpTemplate(template, habitName, currentDate) {
+  if (!template.has_dynamic_elements) {
+    return template.content
+  }
+
+  let content = template.content
+  const lastSession = getLastSessionForHabit(habitName, currentDate)
+
+  if (lastSession) {
+    const lastSessionInfo = `**Last session:** ${lastSession.note || 'No notes'}${lastSession.cool_down_note ? `\n\n**Next steps from last time:** ${lastSession.cool_down_note}` : ''}`
+    content = content.replace('{{last_session_note}}', lastSessionInfo)
+  } else {
+    content = content.replace('{{last_session_note}}', '*No previous sessions found.*')
+  }
+
+  return content
 }

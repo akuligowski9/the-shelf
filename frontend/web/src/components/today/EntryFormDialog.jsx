@@ -17,7 +17,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { mockHabits, getPracticesForHabit } from '@/data/mockData'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Separator } from '@/components/ui/separator'
+import { mockHabits, getPracticesForHabit, getBehaviorsForPractice } from '@/data/mockData'
 
 const ENTRY_TYPES = [
   { value: 'habit', label: 'Habit' },
@@ -25,10 +27,11 @@ const ENTRY_TYPES = [
   { value: 'caution', label: 'Caution' },
 ]
 
-export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingEntry }) {
+export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchive, editingEntry }) {
   const [entryType, setEntryType] = useState('habit')
   const [habitId, setHabitId] = useState('')
   const [practiceId, setPracticeId] = useState('')
+  const [selectedBehaviors, setSelectedBehaviors] = useState([])
   const [durationMinutes, setDurationMinutes] = useState('')
   const [note, setNote] = useState('')
 
@@ -38,6 +41,11 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
     if (!habitId) return []
     return getPracticesForHabit(Number(habitId))
   }, [habitId])
+
+  const behaviors = useMemo(() => {
+    if (!practiceId) return []
+    return getBehaviorsForPractice(Number(practiceId))
+  }, [practiceId])
 
   const selectedHabit = useMemo(() => {
     return activeHabits.find(h => h.id === Number(habitId))
@@ -53,13 +61,12 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
       setEntryType(editingEntry.type)
       setDurationMinutes(editingEntry.duration_minutes?.toString() || '')
       setNote(editingEntry.note || '')
+      setSelectedBehaviors(editingEntry.behaviors || [])
 
       if (editingEntry.type === 'habit') {
-        // Find habit ID by name
         const habit = activeHabits.find(h => h.name === editingEntry.habit)
         if (habit) {
           setHabitId(String(habit.id))
-          // Find practice ID by name after habit is set
           const habitPractices = getPracticesForHabit(habit.id)
           const practice = habitPractices.find(p => p.name === editingEntry.practice)
           if (practice) {
@@ -74,6 +81,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
     setEntryType('habit')
     setHabitId('')
     setPracticeId('')
+    setSelectedBehaviors([])
     setDurationMinutes('')
     setNote('')
   }
@@ -86,8 +94,11 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
       type: entryType,
       occurred_at: editingEntry?.occurred_at || new Date().toISOString(),
       duration_minutes: durationMinutes ? Number(durationMinutes) : null,
-      note: note || null,
       is_highlight: editingEntry?.is_highlight || false,
+      // Preserve warm-up/cool-down data when editing
+      warm_up_template_id: editingEntry?.warm_up_template_id || null,
+      warm_up_at: editingEntry?.warm_up_at || null,
+      cool_down_note: editingEntry?.cool_down_note || null,
     }
 
     if (entryType === 'habit') {
@@ -95,6 +106,10 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
       entry.practice = selectedPractice?.name || null
       entry.habit_id = habitId ? Number(habitId) : null
       entry.practice_id = practiceId ? Number(practiceId) : null
+      entry.behaviors = selectedBehaviors.length > 0 ? selectedBehaviors : null
+      entry.note = null // Habits don't have notes, use behaviors instead
+    } else {
+      entry.note = note || null
     }
 
     onSubmit(entry, !!editingEntry)
@@ -102,11 +117,27 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
     onOpenChange(false)
   }
 
+  const handleArchive = () => {
+    if (editingEntry && onArchive) {
+      onArchive(editingEntry.id)
+      resetForm()
+      onOpenChange(false)
+    }
+  }
+
   const handleOpenChange = (isOpen) => {
     if (!isOpen) {
       resetForm()
     }
     onOpenChange(isOpen)
+  }
+
+  const toggleBehavior = (behaviorName) => {
+    setSelectedBehaviors(prev =>
+      prev.includes(behaviorName)
+        ? prev.filter(b => b !== behaviorName)
+        : [...prev, behaviorName]
+    )
   }
 
   const canSubmit = () => {
@@ -131,6 +162,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
               setEntryType(value)
               setHabitId('')
               setPracticeId('')
+              setSelectedBehaviors([])
             }}>
               <SelectTrigger>
                 <SelectValue />
@@ -152,6 +184,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
               <Select value={habitId} onValueChange={(value) => {
                 setHabitId(value)
                 setPracticeId('')
+                setSelectedBehaviors([])
               }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a habit" />
@@ -171,7 +204,10 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
           {entryType === 'habit' && habitId && practices.length > 0 && (
             <div className="space-y-2">
               <Label>Practice <span className="text-muted-foreground text-xs">(optional)</span></Label>
-              <Select value={practiceId} onValueChange={setPracticeId}>
+              <Select value={practiceId} onValueChange={(value) => {
+                setPracticeId(value)
+                setSelectedBehaviors([])
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a practice" />
                 </SelectTrigger>
@@ -183,6 +219,30 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {/* Behaviors (only for habit type with practice selected) */}
+          {entryType === 'habit' && practiceId && behaviors.length > 0 && (
+            <div className="space-y-2">
+              <Label>What did you work on?</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {behaviors.map(behavior => (
+                  <div key={behavior.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`behavior-${behavior.id}`}
+                      checked={selectedBehaviors.includes(behavior.name)}
+                      onCheckedChange={() => toggleBehavior(behavior.name)}
+                    />
+                    <label
+                      htmlFor={`behavior-${behavior.id}`}
+                      className="text-sm cursor-pointer"
+                    >
+                      {behavior.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -198,22 +258,37 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, editingE
             />
           </div>
 
-          {/* Note */}
-          <div className="space-y-2">
-            <Label>Note <span className="text-muted-foreground text-xs">(optional)</span></Label>
-            <Textarea
-              placeholder={
-                entryType === 'habit'
-                  ? 'What did you work on?'
-                  : entryType === 'life'
-                  ? 'What happened? (e.g., Family time, errands, travel)'
-                  : 'What behavior to note? (e.g., Alcohol, poor sleep)'
-              }
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={3}
-            />
-          </div>
+          {/* Note (only for life/caution entries) */}
+          {entryType !== 'habit' && (
+            <div className="space-y-2">
+              <Label>Note</Label>
+              <Textarea
+                placeholder={
+                  entryType === 'life'
+                    ? 'What happened? (e.g., Family time, errands, travel)'
+                    : 'What behavior to note? (e.g., Alcohol, poor sleep)'
+                }
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={3}
+              />
+            </div>
+          )}
+
+          {/* Archive button (only when editing) */}
+          {editingEntry && onArchive && (
+            <>
+              <Separator />
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={handleArchive}
+              >
+                Archive this entry
+              </Button>
+            </>
+          )}
 
           <DialogFooter>
             <Button

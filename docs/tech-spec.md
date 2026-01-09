@@ -209,29 +209,78 @@ They are never hard-deleted.
 
 ### 3.5 Preparations & Closures
 
-Preparations and closures replace the idea of warm-ups and cool-downs.
+Preparations and closures are **intentional framing events**, not effort tracking.
 
-They are **intentional framing events**, not effort tracking.
+They exist at two levels:
 
-Preparations:
-- define what matters given reality
-- can be daily or session-scoped
+#### Day-Level Preparations & Closures
+- Frame the day as a whole
+- "What matters today given my reality?"
+- "The day is done. Here's how I'm stopping."
+- Standalone records, not attached to entries
 
-Closures:
-- mark stopping
-- provide psychological completion
-- can reference the last habit or practice worked on
+#### Habit-Level Warm-ups & Cool-downs
+- Frame a specific habit session
+- Attached directly to habit entries
+- Use saved templates from the Preparation & Closure Library
 
-Properties:
-- `scope`: day | session
-- optional `habit_id` / `practice_id`
+**Warm-ups** are rituals or scripts you invoke before starting a habit session:
+- Set intention, orient, recite permission pages
+- May include dynamic elements (e.g., "what you worked on last session")
+- Different habits may have different warm-up templates
+- Can create an entry (warm-up first) or attach to existing entry
+
+**Cool-downs** are rituals for ending a habit session cleanly:
+- Mark stopping, freeze work, capture next steps
+- Attached to the habit entry
+- Use saved templates or freeform notes
+
+Properties (day-level):
+- `scope`: day
 - `occurred_at`
 - `note`
+- `rest_day` (boolean, optional)
+
+Properties (habit-level, on entry):
+- `warm_up_template_id` (optional reference to saved template)
+- `warm_up_note` (captured during warm-up)
+- `cool_down_template_id` (optional reference to saved template)
+- `cool_down_note` (captured during cool-down)
 
 Counts of preparations and closures are meaningful indicators of:
 - intentionality
 - pacing
 - closure hygiene
+
+---
+
+### 3.5.1 Preparation & Closure Library
+
+The library stores reusable warm-up and cool-down templates per habit.
+
+**Warm-up Templates:**
+- Belong to a specific habit
+- Can have multiple templates per habit (different contexts)
+- Contain structured content: scripts, permission pages, prompts
+- May include dynamic placeholders (e.g., `{{last_session_note}}`)
+- Invoked when starting a habit session
+
+**Cool-down Templates:**
+- Belong to a specific habit
+- Structured prompts for ending cleanly
+- May include checklists, reflection prompts, next-step capture
+
+Properties:
+- `id`
+- `habit_id`
+- `type`: warm_up | cool_down
+- `name` (e.g., "PM Assist Invocation", "Quick Focus")
+- `content` (rich text / markdown)
+- `has_dynamic_elements` (boolean)
+- `active` (boolean)
+- `created_at`
+
+The library is managed in the Attention view alongside habits and practices.
 
 ---
 
@@ -486,14 +535,15 @@ It exists to:
 
 ### 5.2 Today (Action & Logging)
 
-**Purpose**  
+**Purpose**
 Today is where the day is assembled, lived, and closed.
 
 It is the **only place** where daily actions occur.
 
 **Displays**
-- today’s preparation (if present)
-- today’s entries in chronological order
+- today's preparation (if present)
+- today's entries in chronological order
+- warm-up/cool-down status on habit entries
 - highlights surfaced inline
 - closure status
 
@@ -502,15 +552,41 @@ It is the **only place** where daily actions occur.
 - add life or caution entries
 - add/edit notes
 - edit or archive entries (including past days)
-- add preparation (day or session)
-- add closure (day or session)
+- add preparation (day-level framing)
+- add closure (day-level ending)
 - toggle highlight
 - mark intentional rest
+- **warm-up flow**: invoke warm-up → creates habit entry automatically
+- **warm-up on entry**: attach warm-up to existing habit entry
+- **cool-down on entry**: complete habit session with cool-down
+
+**Warm-up/Cool-down on Entries**
+
+Habit entries can have warm-ups and cool-downs attached:
+
+1. **Warm-up first (creates entry)**:
+   - User selects "Start [Habit] session"
+   - System shows saved warm-up template for that habit
+   - User reads/follows warm-up script
+   - Entry is created with warm-up attached
+   - User works, then returns to add duration/notes/cool-down
+
+2. **Entry first (attach warm-up)**:
+   - User creates habit entry (after the fact)
+   - Optionally attaches warm-up note
+   - Less common but supported
+
+3. **Cool-down**:
+   - User selects "End session" on a habit entry
+   - System shows saved cool-down template
+   - User captures closing notes, next steps
+   - Cool-down attached to entry
 
 **Notes**
 - supports imperfect memory
 - corrections are allowed
 - encourages return throughout the day
+- warm-up/cool-down are per-entry for habits, not standalone records
 
 ---
 
@@ -577,7 +653,7 @@ It answers:
 
 ### 5.5 Attention (Targets & Habits)
 
-**Purpose**  
+**Purpose**
 Attention is where structure is managed.
 
 This is where you decide **what gets attention at all**.
@@ -589,6 +665,7 @@ This is where you decide **what gets attention at all**.
 - target timelines
 - calendar view of targets
 - transition window status
+- Preparation & Closure Library (warm-up/cool-down templates per habit)
 
 **Interactions**
 - add/edit/archive targets
@@ -596,11 +673,15 @@ This is where you decide **what gets attention at all**.
 - manage practices
 - enter/exit transition windows
 - adjust target dates
+- create/edit/delete warm-up templates per habit
+- create/edit/delete cool-down templates per habit
+- preview templates with dynamic elements
 
 **Notes**
 - structural changes happen here
 - transitions are initiated here
 - changes explain future metrics
+- warm-up/cool-down templates are authored here, used in Today view
 
 ---
 

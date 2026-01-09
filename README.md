@@ -73,11 +73,17 @@ These terms are used consistently throughout the project:
 - **Target**  
   The thing I’m working on (project / milestone / idea). Targets can be active, parked, or planned.
 
-- **Preparation**  
-  A daily/weekly framing note (soft intention). Preparation is used during start-of-day planning.
+- **Preparation**
+  A daily framing note (soft intention). Preparation is used during start-of-day planning.
 
-- **Entry**  
-  A record of what actually happened (logged event).
+- **Warm-up**
+  A ritual or script invoked before starting a habit session. Saved as templates per habit, attached to entries when used.
+
+- **Cool-down**
+  A ritual for ending a habit session cleanly. Captures closure, next steps, and reflection. Attached to entries.
+
+- **Entry**
+  A record of what actually happened (logged event). Habit entries can have warm-ups and cool-downs attached.
 
 - **Highlight**  
   A celebratory flag on an entry.
@@ -323,10 +329,10 @@ The system is designed as a classic three-tier application, containerized for co
 The user interface is broken down into five distinct views, each with a single responsibility:
 
 1.  **Shelf (Home)**: The orientation view. Shows active habits and targets, providing a calm anchor to start or end the day.
-2.  **Today (Logging)**: The action view. This is the only place where daily events are logged, edited, and closed out.
+2.  **Today (Logging)**: The action view. This is the only place where daily events are logged, edited, and closed out. Habit entries can include warm-ups (before) and cool-downs (after).
 3.  **Progress (Analysis)**: The analytical view. Makes attention visible through two lenses: **Balance** (distribution of effort) and **Patterns** (trends over time). This view is read-only.
 4.  **Review (Reflection)**: The meaning-making view. Surfaced accomplishments and saved narrative reflections on patterns and progress.
-5.  **Attention (Structure)**: The management view. This is where the underlying structure of habits, practices, and targets is defined and adjusted.
+5.  **Attention (Structure)**: The management view. This is where the underlying structure of habits, practices, targets, and **warm-up/cool-down templates** is defined and adjusted.
 
 #### Data Model & Integrity
 

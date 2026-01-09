@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -18,19 +19,22 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
 
     const closure = {
       id: Date.now(),
-      scope: 'day',
       occurred_at: new Date().toISOString(),
       note: note.trim() || null,
     }
 
     onSubmit(closure)
-    setNote('')
+    resetForm()
     onOpenChange(false)
+  }
+
+  const resetForm = () => {
+    setNote('')
   }
 
   const handleOpenChange = (isOpen) => {
     if (!isOpen) {
-      setNote('')
+      resetForm()
     }
     onOpenChange(isOpen)
   }
@@ -40,6 +44,9 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Close the Day</DialogTitle>
+          <DialogDescription>
+            Mark the end of your day. This is about stopping cleanly, not perfectly.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,13 +71,12 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
             </div>
           )}
 
-          <p className="text-sm text-muted-foreground">
-            Mark the end of your day. This is about stopping cleanly, not perfectly.
-          </p>
-
           {/* Note */}
           <div className="space-y-2">
-            <Label>Closing thoughts <span className="text-muted-foreground text-xs">(optional)</span></Label>
+            <Label>
+              Closing thoughts
+              <span className="text-muted-foreground text-xs ml-1">(optional)</span>
+            </Label>
             <Textarea
               placeholder="How did today feel? Anything to note for tomorrow?"
               value={note}
