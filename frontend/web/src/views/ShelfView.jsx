@@ -1,13 +1,23 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Sun, Moon, ChevronRight } from 'lucide-react'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { Sun, Moon, ChevronRight, ChevronDown } from 'lucide-react'
 import {
   getHabitBadgeClassesByColor,
-  getDayPromptClasses,
   getDayPromptIconClass,
   statusColors,
 } from '@/lib/colors'
@@ -18,9 +28,9 @@ import {
   mockClosures,
   mockTargets,
   formatDateKey,
+  getPracticesForHabit,
+  getBehaviorsForPractice,
 } from '@/data/mockData'
-import PreparationDialog from '@/components/today/PreparationDialog'
-import ClosureDialog from '@/components/today/ClosureDialog'
 
 export default function ShelfView() {
   const navigate = useNavigate()
@@ -28,21 +38,13 @@ export default function ShelfView() {
   // Use shared habits from context
   const { habits, activeHabits } = useHabits()
 
-  // Dialog states
-  const [prepDialogOpen, setPrepDialogOpen] = useState(false)
-  const [closureDialogOpen, setClosureDialogOpen] = useState(false)
-
-  // Data states
-  const [preparations, setPreparations] = useState(mockPreparations)
-  const [closures, setClosures] = useState(mockClosures)
-
   // Today's date key
   const today = new Date()
   const todayKey = formatDateKey(today)
 
-  // Get preparation and closure for today
-  const dayPreparation = preparations[todayKey] || null
-  const dayClosure = closures[todayKey] || null
+  // Get preparation and closure for today (read-only, managed in Today view)
+  const dayPreparation = mockPreparations[todayKey] || null
+  const dayClosure = mockClosures[todayKey] || null
 
   // Calculate today's stats
   const todayStats = useMemo(() => {
@@ -54,8 +56,8 @@ export default function ShelfView() {
       habits: todayEntries.filter(e => e.type === 'habit').length,
       life: todayEntries.filter(e => e.type === 'life').length,
       caution: todayEntries.filter(e => e.type === 'caution').length,
+      transitions: todayEntries.filter(e => e.warm_up_at && e.cool_down_note).length,
       minutes: todayEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
-      total: todayEntries.length,
     }
   }, [todayKey])
 
@@ -71,10 +73,38 @@ export default function ShelfView() {
     return {
       habits: weekEntries.filter(e => e.type === 'habit').length,
       life: weekEntries.filter(e => e.type === 'life').length,
+      caution: weekEntries.filter(e => e.type === 'caution').length,
+      transitions: weekEntries.filter(e => e.warm_up_at && e.cool_down_note).length,
+      highlights: weekEntries.filter(e => e.highlight).length,
       minutes: weekEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
-      total: weekEntries.length,
     }
   }, [today])
+
+  // Calculate this month's stats
+  const monthStats = useMemo(() => {
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+
+    const monthEntries = mockEntries.filter(entry => {
+      const entryDate = new Date(entry.occurred_at)
+      return entryDate >= monthStart && !entry.archived_at
+    })
+    return {
+      habits: monthEntries.filter(e => e.type === 'habit').length,
+      life: monthEntries.filter(e => e.type === 'life').length,
+      caution: monthEntries.filter(e => e.type === 'caution').length,
+      transitions: monthEntries.filter(e => e.warm_up_at && e.cool_down_note).length,
+      highlights: monthEntries.filter(e => e.highlight).length,
+      minutes: monthEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
+    }
+  }, [today])
+
+  // Get recent highlights
+  const recentHighlights = useMemo(() => {
+    return mockEntries
+      .filter(e => e.highlight && !e.archived_at)
+      .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
+      .slice(0, 3)
+  }, [])
 
   // Group targets by status
   const targets = useMemo(() => {
@@ -84,15 +114,6 @@ export default function ShelfView() {
       parked: mockTargets.filter(t => t.status === 'parked'),
     }
   }, [])
-
-  // Handlers
-  const handlePreparationSubmit = (prep) => {
-    setPreparations(prev => ({ ...prev, [todayKey]: prep }))
-  }
-
-  const handleClosureSubmit = (close) => {
-    setClosures(prev => ({ ...prev, [todayKey]: close }))
-  }
 
   const goToToday = () => {
     navigate('/today')
@@ -112,82 +133,106 @@ export default function ShelfView() {
         </p>
       </div>
 
-      {/* Day Prompts */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-3">
-            {dayPreparation ? (
-              <div className={`flex-1 rounded-md p-3 ${getDayPromptClasses('start')} border`}>
-                <div className="flex items-center gap-2">
-                  <Sun className={`h-4 w-4 ${getDayPromptIconClass('start')}`} />
-                  <span className="text-sm font-medium">Day started</span>
-                </div>
-                {dayPreparation.note && (
-                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{dayPreparation.note}</p>
-                )}
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                className={`flex-1 shadow-none ${getDayPromptClasses('start')}`}
-                onClick={() => setPrepDialogOpen(true)}
-              >
-                <Sun className={`h-4 w-4 mr-2 ${getDayPromptIconClass('start')}`} />
-                Start your day?
-              </Button>
-            )}
-            {dayClosure ? (
-              <div className={`flex-1 rounded-md p-3 ${getDayPromptClasses('end')} border`}>
-                <div className="flex items-center gap-2">
-                  <Moon className={`h-4 w-4 ${getDayPromptIconClass('end')}`} />
-                  <span className="text-sm font-medium">Day closed</span>
-                </div>
-                {dayClosure.note && (
-                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{dayClosure.note}</p>
-                )}
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                className={`flex-1 shadow-none ${getDayPromptClasses('end')}`}
-                onClick={() => setClosureDialogOpen(true)}
-              >
-                <Moon className={`h-4 w-4 mr-2 ${getDayPromptIconClass('end')}`} />
-                Done for the day?
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Habits Summary */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Habits</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Habits</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              onClick={() => navigate('/attention#habits')}
+            >
+              Go to Habits
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-baseline gap-2 mb-4">
             <span className="text-3xl font-semibold">{activeHabits.length}</span>
             <span className="text-muted-foreground">/ {habits.length} active</span>
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {activeHabits.map(habit => (
-              <Badge
-                key={habit.id}
-                variant="outline"
-                className={getHabitBadgeClassesByColor(habit.color || 'forest')}
-              >
-                {habit.name}
-              </Badge>
-            ))}
-          </div>
+          <Accordion type="single" collapsible className="w-full">
+            {activeHabits.map(habit => {
+              const practices = getPracticesForHabit(habit.id)
+              const behaviorCount = practices.reduce((acc, p) => acc + getBehaviorsForPractice(p.id).length, 0)
+              return (
+                <AccordionItem key={habit.id} value={`habit-${habit.id}`} className="border-b-0">
+                  <AccordionTrigger className="py-2 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <Badge
+                        variant="outline"
+                        className={getHabitBadgeClassesByColor(habit.color || 'forest')}
+                      >
+                        {habit.name}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {practices.length} {practices.length === 1 ? 'practice' : 'practices'}
+                        {behaviorCount > 0 && ` · ${behaviorCount} ${behaviorCount === 1 ? 'behavior' : 'behaviors'}`}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="pl-2 space-y-1">
+                      {practices.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No practices yet</p>
+                      ) : (
+                        practices.map(practice => {
+                          const behaviors = getBehaviorsForPractice(practice.id)
+
+                          if (behaviors.length === 0) {
+                            return (
+                              <p key={practice.id} className="text-sm py-1">{practice.name}</p>
+                            )
+                          }
+
+                          return (
+                            <Collapsible key={practice.id}>
+                              <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium py-1 hover:text-foreground/80 [&[data-state=open]>svg]:rotate-180">
+                                <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
+                                {practice.name}
+                                <span className="text-xs text-muted-foreground font-normal">({behaviors.length})</span>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <ul className="ml-4 space-y-0.5 pb-1">
+                                  {behaviors.map(behavior => (
+                                    <li key={behavior.id} className="text-sm text-muted-foreground flex items-center gap-2">
+                                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                                      {behavior.name}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          )
+                        })
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )
+            })}
+          </Accordion>
         </CardContent>
       </Card>
 
       {/* Targets */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Targets</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Targets</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              onClick={() => navigate('/attention#targets')}
+            >
+              Go to Targets
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Active */}
@@ -277,7 +322,7 @@ export default function ShelfView() {
           {/* Today */}
           <div>
             <h4 className="text-sm font-medium mb-2">Today</h4>
-            {todayStats.total === 0 ? (
+            {(todayStats.habits + todayStats.life + todayStats.caution) === 0 ? (
               <p className="text-sm text-muted-foreground">No entries yet</p>
             ) : (
               <div className="flex items-center gap-2 text-sm">
@@ -296,6 +341,12 @@ export default function ShelfView() {
                 {todayStats.caution > 0 && (
                   <>
                     <span>{todayStats.caution} caution</span>
+                    <span className="text-muted-foreground">·</span>
+                  </>
+                )}
+                {todayStats.transitions > 0 && (
+                  <>
+                    <span>{todayStats.transitions} {todayStats.transitions === 1 ? 'transition' : 'transitions'}</span>
                     <span className="text-muted-foreground">·</span>
                   </>
                 )}
@@ -321,37 +372,73 @@ export default function ShelfView() {
           {/* This Week */}
           <div>
             <h4 className="text-sm font-medium mb-2">This Week</h4>
-            {weekStats.total === 0 ? (
+            {(weekStats.habits + weekStats.life + weekStats.caution) === 0 ? (
               <p className="text-sm text-muted-foreground">No entries this week</p>
             ) : (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{weekStats.total} entries</span>
-                <span>·</span>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
                 <span>{weekStats.habits} habits</span>
                 <span>·</span>
                 <span>{weekStats.life} life</span>
+                <span>·</span>
+                <span>{weekStats.caution} caution</span>
+                <span>·</span>
+                <span>{weekStats.transitions} transitions</span>
+                <span>·</span>
+                <span>{weekStats.highlights} highlights</span>
                 <span>·</span>
                 <span>{Math.round(weekStats.minutes / 60)}h {weekStats.minutes % 60}m</span>
               </div>
             )}
           </div>
+
+          <Separator />
+
+          {/* This Month */}
+          <div>
+            <h4 className="text-sm font-medium mb-2">This Month</h4>
+            {(monthStats.habits + monthStats.life + monthStats.caution) === 0 ? (
+              <p className="text-sm text-muted-foreground">No entries this month</p>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                <span>{monthStats.habits} habits</span>
+                <span>·</span>
+                <span>{monthStats.life} life</span>
+                <span>·</span>
+                <span>{monthStats.caution} caution</span>
+                <span>·</span>
+                <span>{monthStats.transitions} transitions</span>
+                <span>·</span>
+                <span>{monthStats.highlights} highlights</span>
+                <span>·</span>
+                <span>{Math.round(monthStats.minutes / 60)}h {monthStats.minutes % 60}m</span>
+              </div>
+            )}
+          </div>
+
+          {/* Recent Highlights */}
+          {recentHighlights.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-medium mb-2">Recent Highlights</h4>
+                <ul className="space-y-1.5">
+                  {recentHighlights.map(entry => (
+                    <li key={entry.id} className="text-sm">
+                      <span className="text-amber-600 dark:text-amber-400">{entry.habit || entry.type}</span>
+                      {entry.practice && (
+                        <span className="text-muted-foreground"> · {entry.practice}</span>
+                      )}
+                      {entry.note && (
+                        <p className="text-muted-foreground text-xs line-clamp-1 mt-0.5">{entry.note}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
-
-      {/* Dialogs */}
-      <PreparationDialog
-        open={prepDialogOpen}
-        onOpenChange={setPrepDialogOpen}
-        onSubmit={handlePreparationSubmit}
-        existingPreparation={dayPreparation}
-      />
-
-      <ClosureDialog
-        open={closureDialogOpen}
-        onOpenChange={setClosureDialogOpen}
-        onSubmit={handleClosureSubmit}
-        todayStats={todayStats}
-      />
     </div>
   )
 }
