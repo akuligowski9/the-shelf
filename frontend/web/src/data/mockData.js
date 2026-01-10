@@ -1,11 +1,11 @@
 // Mock data for development - mirrors expected API structure
 
 export const mockHabits = [
-  { id: 1, name: 'Software', active: true, target_minutes: 120 },
-  { id: 2, name: 'Spanish', active: true, target_minutes: 30 },
-  { id: 3, name: 'Exercise', active: true, target_minutes: 60 },
-  { id: 4, name: 'Dog Training', active: true, target_minutes: 30 },
-  { id: 5, name: 'Reading', active: false, target_minutes: 30 },
+  { id: 1, name: 'Software', active: true, target_minutes: 120, color: 'cobalt' },
+  { id: 2, name: 'Spanish', active: true, target_minutes: 30, color: 'coral' },
+  { id: 3, name: 'Exercise', active: true, target_minutes: 60, color: 'forest' },
+  { id: 4, name: 'Dog Training', active: true, target_minutes: 30, color: 'violet' },
+  { id: 5, name: 'Reading', active: false, target_minutes: 30, color: 'sienna' },
 ]
 
 // Warm-up and cool-down templates per habit
@@ -569,9 +569,19 @@ export function getEntriesForDate(dateStr) {
   })
 }
 
-// Helper to format date as YYYY-MM-DD
+// Helper to format date as YYYY-MM-DD in EST timezone
 export function formatDateKey(date) {
-  return date.toISOString().split('T')[0]
+  const estDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }))
+  const year = estDate.getFullYear()
+  const month = String(estDate.getMonth() + 1).padStart(2, '0')
+  const day = String(estDate.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// Helper to get current hour in EST (for time-based features)
+export function getESTHour() {
+  const estDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }))
+  return estDate.getHours()
 }
 
 // Helper to get last session for a habit (for dynamic warm-up elements)

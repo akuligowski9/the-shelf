@@ -6,7 +6,6 @@ import { Separator } from '@/components/ui/separator'
 import EntryFormDialog from '@/components/today/EntryFormDialog'
 import PreparationDialog from '@/components/today/PreparationDialog'
 import ClosureDialog from '@/components/today/ClosureDialog'
-import StartSessionDialog from '@/components/today/StartSessionDialog'
 import WarmUpDialog from '@/components/today/WarmUpDialog'
 import CoolDownDialog from '@/components/today/CoolDownDialog'
 import DateNavigator from '@/components/today/DateNavigator'
@@ -23,8 +22,19 @@ import {
   mockClosures,
   formatDateKey,
 } from '@/data/mockData'
+import { useHabits } from '@/context/HabitsContext'
+import {
+  getHabitBadgeClassesByColor,
+  entryTypeColors,
+  getDayPromptClasses,
+  getDayPromptIconClass,
+  highlightColors,
+} from '@/lib/colors'
 
 export default function TodayView() {
+  // Shared habits from context
+  const { getHabitByName } = useHabits()
+
   // Date state
   const [selectedDate, setSelectedDate] = useState(new Date())
   const dateKey = formatDateKey(selectedDate)
@@ -33,7 +43,6 @@ export default function TodayView() {
   const [entryDialogOpen, setEntryDialogOpen] = useState(false)
   const [prepDialogOpen, setPrepDialogOpen] = useState(false)
   const [closureDialogOpen, setClosureDialogOpen] = useState(false)
-  const [startSessionDialogOpen, setStartSessionDialogOpen] = useState(false)
   const [warmUpDialogOpen, setWarmUpDialogOpen] = useState(false)
   const [coolDownDialogOpen, setCoolDownDialogOpen] = useState(false)
   const [editingEntry, setEditingEntry] = useState(null)
@@ -89,11 +98,6 @@ export default function TodayView() {
       setAllEntries(prev => [...prev, entry])
     }
     setEditingEntry(null)
-  }
-
-  const handleStartSessionSubmit = (entry) => {
-    entry.occurred_at = `${dateKey}T${new Date().toTimeString().slice(0, 8)}`
-    setAllEntries(prev => [...prev, entry])
   }
 
   const handleEditEntry = (entry) => {
@@ -178,24 +182,47 @@ export default function TodayView() {
     (a, b) => new Date(b.occurred_at) - new Date(a.occurred_at)
   )
 
-  const getBadgeVariant = (type) => {
-    switch (type) {
-      case 'habit':
-        return 'default'
-      case 'life':
-        return 'secondary'
-      case 'caution':
-        return 'destructive'
-      default:
-        return 'secondary'
-    }
-  }
-
   const getEntryLabel = (entry) => {
     if (entry.type === 'habit') {
       return entry.habit
     }
     return entry.type.charAt(0).toUpperCase() + entry.type.slice(1)
+  }
+
+  // Get badge style for entry - looks up habit colors from context
+  const getEntryBadgeStyle = (entry) => {
+    if (entry.type === 'habit' && entry.habit) {
+      const habit = getHabitByName(entry.habit)
+      const colorKey = habit?.color || 'sage'
+      return {
+        variant: 'outline',
+        className: getHabitBadgeClassesByColor(colorKey)
+      }
+    }
+
+    const colors = entryTypeColors[entry.type]
+    if (colors) {
+      return {
+        variant: 'outline',
+        className: `${colors.bg} ${colors.text} ${colors.border}`
+      }
+    }
+
+    return { variant: 'secondary', className: '' }
+  }
+
+  // Get left border color class for entry card (by entry type)
+  const getEntryBorderClass = (entry) => {
+    if (entry.type === 'habit') {
+      return 'border-l-4 border-l-[hsl(var(--color-eucalyptus))]'
+    }
+    if (entry.type === 'life') {
+      return 'border-l-4 border-l-[hsl(var(--color-sky))]'
+    }
+    if (entry.type === 'caution') {
+      return 'border-l-4 border-l-[hsl(var(--color-terracotta))]'
+    }
+    return ''
   }
 
   return (
@@ -218,26 +245,26 @@ export default function TodayView() {
         />
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={() => setStartSessionDialogOpen(true)}>
-          <Sunrise className="h-4 w-4 mr-2" />
-          Start Session
-        </Button>
-        <Button onClick={() => setEntryDialogOpen(true)}>
+      {/* Action Button */}
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          className="border-[hsl(var(--color-eucalyptus))] text-[hsl(var(--color-eucalyptus))] hover:bg-[hsl(var(--color-eucalyptus-light))]"
+          onClick={() => setEntryDialogOpen(true)}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Entry
         </Button>
       </div>
 
       {/* Day Preparation Card */}
-      <Card className={dayPreparation ? 'border-primary/30 bg-primary/5' : 'border-dashed'}>
+      <Card className={dayPreparation ? `${getDayPromptClasses('start')} border` : 'border-dashed'}>
         <CardContent className="pt-4 pb-4">
           {dayPreparation ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Sun className="h-4 w-4 text-primary" />
+                  <Sun className={`h-4 w-4 ${getDayPromptIconClass('start')}`} />
                   <span className="text-sm font-medium">Day Started</span>
                   {dayPreparation.rest_day && (
                     <Badge variant="outline" className="text-xs">Rest Day</Badge>
@@ -257,11 +284,11 @@ export default function TodayView() {
             </div>
           ) : (
             <Button
-              variant="ghost"
-              className="w-full justify-start text-muted-foreground"
+              variant="outline"
+              className={`w-full justify-start ${getDayPromptClasses('start')}`}
               onClick={() => setPrepDialogOpen(true)}
             >
-              <Sun className="h-4 w-4 mr-2" />
+              <Sun className={`h-4 w-4 mr-2 ${getDayPromptIconClass('start')}`} />
               {isToday ? 'Start your day with intention?' : 'Add preparation note'}
             </Button>
           )}
@@ -294,13 +321,16 @@ export default function TodayView() {
           sortedEntries.map(entry => (
             <Card
               key={entry.id}
-              className={entry.is_highlight ? 'border-primary/30 bg-primary/5' : ''}
+              className={`${getEntryBorderClass(entry)} ${entry.is_highlight ? highlightColors.bg : ''}`}
             >
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1 flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant={getBadgeVariant(entry.type)}>
+                      <Badge
+                        variant={getEntryBadgeStyle(entry).variant}
+                        className={getEntryBadgeStyle(entry).className}
+                      >
                         {getEntryLabel(entry)}
                       </Badge>
                       {entry.practice && (
@@ -309,7 +339,7 @@ export default function TodayView() {
                         </span>
                       )}
                       {entry.is_highlight && (
-                        <Star className="h-4 w-4 text-primary fill-primary" />
+                        <Star className="h-4 w-4 text-[hsl(var(--color-amber))] fill-[hsl(var(--color-amber))]" />
                       )}
                       {entry.warm_up_at && (
                         <Sunrise className="h-3 w-3 text-muted-foreground" title="Warmed up" />
@@ -392,12 +422,12 @@ export default function TodayView() {
 
       {/* Day Closure Card */}
       <Separator />
-      <Card className={dayClosure ? 'border-primary/30 bg-primary/5' : ''}>
+      <Card className={dayClosure ? `${getDayPromptClasses('end')} border` : ''}>
         <CardContent className="pt-4 pb-4">
           {dayClosure ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Moon className="h-4 w-4 text-primary" />
+                <Moon className={`h-4 w-4 ${getDayPromptIconClass('end')}`} />
                 <span className="text-sm font-medium">Day Closed</span>
               </div>
               {dayClosure.note && (
@@ -406,11 +436,11 @@ export default function TodayView() {
             </div>
           ) : (
             <Button
-              variant="secondary"
-              className="w-full"
+              variant="outline"
+              className={`w-full ${getDayPromptClasses('end')}`}
               onClick={() => setClosureDialogOpen(true)}
             >
-              <Moon className="h-4 w-4 mr-2" />
+              <Moon className={`h-4 w-4 mr-2 ${getDayPromptIconClass('end')}`} />
               {isToday ? 'Close the day?' : 'Add closure note'}
             </Button>
           )}
@@ -438,12 +468,6 @@ export default function TodayView() {
         onOpenChange={setClosureDialogOpen}
         onSubmit={handleClosureSubmit}
         todayStats={dayStats}
-      />
-
-      <StartSessionDialog
-        open={startSessionDialogOpen}
-        onOpenChange={setStartSessionDialogOpen}
-        onSubmit={handleStartSessionSubmit}
       />
 
       <WarmUpDialog

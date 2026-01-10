@@ -2,16 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Sun, Moon } from 'lucide-react'
+import {
+  getHabitBadgeClassesByColor,
+  getDayPromptClasses,
+  getDayPromptIconClass,
+  statusColors,
+} from '@/lib/colors'
+import { useHabits } from '@/context/HabitsContext'
 
 export default function ShelfView() {
-  // Mock data - will be replaced with hooks
-  const habits = [
-    { id: 1, name: 'Software', active: true },
-    { id: 2, name: 'Spanish', active: true },
-    { id: 3, name: 'Exercise', active: true },
-    { id: 4, name: 'Dog Training', active: true },
-    { id: 5, name: 'Reading', active: false },
-  ]
+  // Use shared habits from context
+  const { habits, activeHabits } = useHabits()
 
   const targets = {
     active: [{ id: 1, name: 'The Shelf' }],
@@ -19,7 +21,6 @@ export default function ShelfView() {
     parked: [{ id: 3, name: 'Home Renovation Ideas' }],
   }
 
-  const activeHabits = habits.filter(h => h.active)
   const todayEntryCount = 0
 
   return (
@@ -40,10 +41,12 @@ export default function ShelfView() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1">
+            <Button variant="outline" className={`flex-1 ${getDayPromptClasses('start')}`}>
+              <Sun className={`h-4 w-4 mr-2 ${getDayPromptIconClass('start')}`} />
               Start your day?
             </Button>
-            <Button variant="secondary" className="flex-1">
+            <Button variant="outline" className={`flex-1 ${getDayPromptClasses('end')}`}>
+              <Moon className={`h-4 w-4 mr-2 ${getDayPromptIconClass('end')}`} />
               Done for the day?
             </Button>
           </div>
@@ -62,7 +65,11 @@ export default function ShelfView() {
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {activeHabits.map(habit => (
-              <Badge key={habit.id} variant="secondary">
+              <Badge
+                key={habit.id}
+                variant="outline"
+                className={getHabitBadgeClassesByColor(habit.color || 'forest')}
+              >
                 {habit.name}
               </Badge>
             ))}
@@ -78,7 +85,10 @@ export default function ShelfView() {
         <CardContent className="space-y-4">
           {/* Active */}
           <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">Active</h4>
+            <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${statusColors.active.dot}`}></span>
+              <span className={statusColors.active.text}>Active</span>
+            </h4>
             {targets.active.length === 0 ? (
               <p className="text-sm text-muted-foreground/60">No active targets</p>
             ) : (
@@ -94,7 +104,10 @@ export default function ShelfView() {
 
           {/* Planned */}
           <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">Planned</h4>
+            <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${statusColors.planned.dot}`}></span>
+              <span className={statusColors.planned.text}>Planned</span>
+            </h4>
             {targets.planned.length === 0 ? (
               <p className="text-sm text-muted-foreground/60">Nothing planned</p>
             ) : (
@@ -110,10 +123,11 @@ export default function ShelfView() {
 
           {/* Parked */}
           <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-              Parking Lot
+            <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${statusColors.parked.dot}`}></span>
+              <span className={statusColors.parked.text}>Parking Lot</span>
               {targets.parked.length > 0 && (
-                <span className="ml-2 text-muted-foreground/60">
+                <span className="text-muted-foreground/60">
                   ({targets.parked.length})
                 </span>
               )}

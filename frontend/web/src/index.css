@@ -4,66 +4,197 @@
 
 @layer base {
   :root {
-    /* Earth-tone palette - Warm neutrals with muted green accents */
-    --background: 40 20% 98%;
-    --foreground: 30 10% 20%;
+    /* Warm eucalyptus, cream, sand palette */
+    --background: 35 25% 88%;
+    --foreground: 25 35% 15%;
 
-    --card: 40 15% 96%;
-    --card-foreground: 30 10% 20%;
+    --card: 38 35% 96%;
+    --card-foreground: 25 35% 15%;
 
-    --popover: 40 15% 96%;
-    --popover-foreground: 30 10% 20%;
+    --popover: 38 35% 96%;
+    --popover-foreground: 25 35% 15%;
 
-    --primary: 140 25% 35%;
-    --primary-foreground: 40 20% 98%;
+    /* Warm eucalyptus primary */
+    --primary: 165 25% 45%;
+    --primary-foreground: 40 35% 98%;
 
-    --secondary: 35 20% 90%;
-    --secondary-foreground: 30 10% 25%;
+    /* Warm cream secondary */
+    --secondary: 40 30% 92%;
+    --secondary-foreground: 25 35% 20%;
 
-    --muted: 35 15% 92%;
-    --muted-foreground: 30 10% 45%;
+    /* Soft sand muted */
+    --muted: 35 25% 85%;
+    --muted-foreground: 25 25% 42%;
 
-    --accent: 140 20% 90%;
-    --accent-foreground: 140 25% 25%;
+    /* Soft eucalyptus for highlights */
+    --accent: 165 20% 92%;
+    --accent-foreground: 165 30% 25%;
 
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 40 20% 98%;
+    /* Warm coral for destructive */
+    --destructive: 12 50% 55%;
+    --destructive-foreground: 40 35% 98%;
 
-    --border: 35 15% 88%;
-    --input: 35 15% 88%;
-    --ring: 140 25% 35%;
+    --border: 35 20% 78%;
+    --input: 38 35% 96%;
+    --ring: 165 25% 45%;
 
     --radius: 0.5rem;
+
+    /* Nature color palette - richer saturation for visual interest */
+    --color-eucalyptus: 165 35% 42%;
+    --color-eucalyptus-light: 165 25% 91%;
+    --color-forest: 150 40% 35%;
+    --color-forest-light: 150 30% 90%;
+    --color-sky: 200 45% 48%;
+    --color-sky-light: 200 35% 91%;
+    --color-ocean: 180 40% 40%;
+    --color-ocean-light: 180 30% 90%;
+    --color-coral: 12 55% 55%;
+    --color-coral-light: 12 45% 91%;
+    --color-sand: 38 50% 52%;
+    --color-sand-light: 38 40% 90%;
+    --color-terracotta: 20 50% 48%;
+    --color-terracotta-light: 20 40% 90%;
+    --color-lavender: 270 35% 55%;
+    --color-lavender-light: 270 25% 91%;
+    --color-plum: 320 35% 45%;
+    --color-plum-light: 320 25% 91%;
+
+    /* Day prompts */
+    --color-amber: 38 70% 50%;
+    --color-amber-light: 38 50% 92%;
+    --color-slate: 215 20% 55%;
+    --color-slate-light: 215 15% 92%;
+
+    /* Habit colors - 15 distinct nature tones */
+    /* Greens */
+    --color-sage: 110 25% 45%;
+    --color-sage-light: 110 20% 90%;
+    --color-forest: 145 40% 35%;
+    --color-forest-light: 145 30% 90%;
+    /* Blues */
+    --color-teal: 180 45% 40%;
+    --color-teal-light: 180 35% 90%;
+    --color-ocean: 195 50% 42%;
+    --color-ocean-light: 195 40% 90%;
+    --color-cobalt: 230 50% 50%;
+    --color-cobalt-light: 230 40% 90%;
+    --color-indigo: 250 45% 48%;
+    --color-indigo-light: 250 35% 90%;
+    /* Purples */
+    --color-violet: 275 40% 50%;
+    --color-violet-light: 275 30% 90%;
+    --color-plum: 300 35% 45%;
+    --color-plum-light: 300 25% 90%;
+    --color-orchid: 320 40% 55%;
+    --color-orchid-light: 320 30% 90%;
+    /* Pinks/Reds */
+    --color-berry: 340 45% 48%;
+    --color-berry-light: 340 35% 90%;
+    --color-rose: 355 40% 55%;
+    --color-rose-light: 355 30% 90%;
+    --color-coral: 8 55% 58%;
+    --color-coral-light: 8 45% 90%;
+    /* Warm tones */
+    --color-sienna: 15 50% 45%;
+    --color-sienna-light: 15 40% 90%;
+    --color-copper: 28 55% 48%;
+    --color-copper-light: 28 45% 90%;
+    --color-marigold: 48 65% 50%;
+    --color-marigold-light: 48 55% 90%;
   }
 
   .dark {
-    --background: 30 15% 12%;
-    --foreground: 40 15% 90%;
+    /* Warm dark theme - cozy evening feel */
+    --background: 30 20% 10%;
+    --foreground: 38 20% 88%;
 
-    --card: 30 15% 15%;
-    --card-foreground: 40 15% 90%;
+    --card: 30 18% 14%;
+    --card-foreground: 38 20% 88%;
 
-    --popover: 30 15% 15%;
-    --popover-foreground: 40 15% 90%;
+    --popover: 30 18% 14%;
+    --popover-foreground: 38 20% 88%;
 
-    --primary: 140 30% 45%;
-    --primary-foreground: 30 15% 10%;
+    /* Eucalyptus stays vibrant in dark mode */
+    --primary: 165 35% 50%;
+    --primary-foreground: 30 20% 10%;
 
-    --secondary: 30 15% 20%;
-    --secondary-foreground: 40 15% 85%;
+    --secondary: 30 15% 18%;
+    --secondary-foreground: 38 20% 82%;
 
-    --muted: 30 15% 18%;
-    --muted-foreground: 40 10% 60%;
+    --muted: 30 12% 16%;
+    --muted-foreground: 38 15% 55%;
 
-    --accent: 140 20% 25%;
-    --accent-foreground: 140 30% 85%;
+    --accent: 165 25% 20%;
+    --accent-foreground: 165 35% 85%;
 
-    --destructive: 0 60% 40%;
-    --destructive-foreground: 40 15% 90%;
+    --destructive: 12 50% 45%;
+    --destructive-foreground: 38 20% 90%;
 
-    --border: 30 15% 22%;
-    --input: 30 15% 22%;
-    --ring: 140 30% 45%;
+    --border: 30 15% 20%;
+    --input: 30 15% 18%;
+    --ring: 165 35% 50%;
+
+    /* Colors stay similar but slightly brighter for dark bg */
+    --color-eucalyptus: 165 40% 50%;
+    --color-eucalyptus-light: 165 30% 20%;
+    --color-forest: 150 45% 42%;
+    --color-forest-light: 150 35% 18%;
+    --color-sky: 200 50% 55%;
+    --color-sky-light: 200 40% 18%;
+    --color-ocean: 180 45% 48%;
+    --color-ocean-light: 180 35% 18%;
+    --color-coral: 12 55% 58%;
+    --color-coral-light: 12 45% 18%;
+    --color-sand: 38 55% 55%;
+    --color-sand-light: 38 45% 18%;
+    --color-terracotta: 20 55% 52%;
+    --color-terracotta-light: 20 45% 18%;
+    --color-lavender: 270 40% 60%;
+    --color-lavender-light: 270 30% 20%;
+    --color-plum: 320 40% 52%;
+    --color-plum-light: 320 30% 18%;
+    --color-amber: 38 70% 55%;
+    --color-amber-light: 38 50% 18%;
+    --color-slate: 215 25% 60%;
+    --color-slate-light: 215 20% 20%;
+
+    /* Habit colors - brighter for dark mode */
+    /* Greens */
+    --color-sage: 110 30% 52%;
+    --color-sage-light: 110 25% 18%;
+    --color-forest: 145 45% 42%;
+    --color-forest-light: 145 35% 18%;
+    /* Blues */
+    --color-teal: 180 50% 48%;
+    --color-teal-light: 180 40% 18%;
+    --color-ocean: 195 55% 50%;
+    --color-ocean-light: 195 45% 18%;
+    --color-cobalt: 230 55% 58%;
+    --color-cobalt-light: 230 45% 18%;
+    --color-indigo: 250 50% 55%;
+    --color-indigo-light: 250 40% 18%;
+    /* Purples */
+    --color-violet: 275 45% 58%;
+    --color-violet-light: 275 35% 18%;
+    --color-plum: 300 40% 52%;
+    --color-plum-light: 300 30% 18%;
+    --color-orchid: 320 45% 60%;
+    --color-orchid-light: 320 35% 18%;
+    /* Pinks/Reds */
+    --color-berry: 340 50% 55%;
+    --color-berry-light: 340 40% 18%;
+    --color-rose: 355 45% 60%;
+    --color-rose-light: 355 35% 18%;
+    --color-coral: 8 60% 62%;
+    --color-coral-light: 8 50% 18%;
+    /* Warm tones */
+    --color-sienna: 15 55% 52%;
+    --color-sienna-light: 15 45% 18%;
+    --color-copper: 28 60% 55%;
+    --color-copper-light: 28 50% 18%;
+    --color-marigold: 48 70% 55%;
+    --color-marigold-light: 48 60% 18%;
   }
 }
 

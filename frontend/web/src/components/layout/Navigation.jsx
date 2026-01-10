@@ -22,7 +22,7 @@ export default function Navigation() {
               className={({ isActive }) =>
                 `flex flex-col items-center px-3 py-2 text-xs transition-colors ${
                   isActive
-                    ? 'text-primary'
+                    ? 'text-[hsl(var(--color-eucalyptus))]'
                     : 'text-muted-foreground hover:text-foreground'
                 }`
               }
