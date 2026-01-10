@@ -818,8 +818,8 @@ Dropdowns and hover states use `--secondary` (neutral) to distinguish from conte
 Habits can be assigned distinct colors for visual differentiation:
 
 **Greens:** sage, forest
-**Blues:** teal, ocean, cobalt, indigo
-**Purples:** violet, plum, orchid
+**Blues:** teal, ocean, sky, dusk
+**Purples:** lavender, plum, orchid
 **Pinks/Reds:** berry, rose, coral
 **Warm tones:** sienna, copper, marigold
 
@@ -827,19 +827,70 @@ Each color has a base and light variant for badges.
 
 ---
 
-### 8.3 Shadows & Borders
+### 8.3 Color System (Dark Mode)
+
+Dark mode activates automatically 6 PM - 6 AM EST. The palette shifts to warm, cozy evening tones.
+
+#### Foundation Colors
+
+| Variable | HSL Value | Purpose |
+|----------|-----------|---------|
+| `--background` | 30 20% 10% | Page background (warm dark) |
+| `--card` | 30 18% 14% | Card backgrounds |
+| `--border` | 30 15% 20% | Card borders |
+| `--primary` | 165 40% 50% | Primary actions (eucalyptus) |
+
+#### Text Hierarchy (3-Tier System)
+
+Text uses warm cream tones on hue 38:
+
+| Tier | Variable | HSL Value | Usage |
+|------|----------|-----------|-------|
+| **Brightest** | `--foreground` | 38 20% 88% | Headers, stats, practice names |
+| **Medium** | `--content-foreground` | 38 20% 72% | Notes, behaviors, timestamps, durations |
+| **Dimmest** | `--muted-foreground` | 38 18% 58% | Actions (Edit, Highlight), secondary text |
+
+#### UI Accent
+
+| Purpose | Variable | Color |
+|---------|----------|-------|
+| UI interactions | `--color-ui-accent` | Eucalyptus (165 40% 50%) |
+| Content highlights | `--accent` | Muted eucalyptus (165 25% 20%) |
+
+#### Day Prompt Colors (Dark Mode)
+
+| Prompt | Background | Icon Color |
+|--------|------------|------------|
+| Start your day | Amber light (40 55% 22%) | Amber (38 70% 55%) |
+| Close the day | Slate light (215 20% 20%) | Slate (215 25% 60%) |
+
+#### Dark Mode Input Styling
+
+- Inputs use warm dark background: `hsl(30 18% 22%)`
+- Visible borders for definition: `hsl(30 20% 32%)`
+- Button variants (outline, secondary, ghost) have visible borders
+
+---
+
+### 8.4 Shadows & Borders
 
 - Cards use `shadow-sm` for subtle depth
 - Buttons use `shadow-sm` for consistency
-- Borders are warm-toned (hue 35) at 72% lightness
+- Borders are warm-toned (hue 35) at 72% lightness in light mode
 - Day prompt buttons inside cards use `shadow-none` to avoid doubling
 
 ---
 
-### 8.4 Input Fields
+### 8.5 Input Fields
 
+**Light mode:**
 - Input and textarea backgrounds use `bg-white/80` for contrast against card backgrounds
-- Focus rings use the primary evergreen color
+
+**Dark mode:**
+- Warm dark background (`hsl(30 18% 22%)`) instead of white
+- Visible borders (`hsl(30 20% 32%)`) for definition
+
+Focus rings use the primary color (evergreen in light, eucalyptus in dark).
 
 ---
 
