@@ -78,10 +78,11 @@ export default function TodayView() {
     return selectedDate.toDateString() === today.toDateString()
   }, [selectedDate])
 
-  // Computed stats
+  // Computed stats by entry type
   const dayStats = useMemo(() => ({
-    entries: entries.length,
-    highlights: entries.filter(e => e.is_highlight).length,
+    habits: entries.filter(e => e.type === 'habit').length,
+    life: entries.filter(e => e.type === 'life').length,
+    caution: entries.filter(e => e.type === 'caution').length,
     minutes: entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
   }), [entries])
 
@@ -295,10 +296,38 @@ export default function TodayView() {
       </Card>
 
       {/* Summary */}
-      <div className="flex gap-4 text-sm text-foreground">
-        <span>{dayStats.entries} {dayStats.entries === 1 ? 'entry' : 'entries'}</span>
-        <span>{dayStats.highlights} highlights</span>
-        <span>{dayStats.minutes} min total</span>
+      <div className="flex items-center gap-2 text-sm text-foreground">
+        {dayStats.habits > 0 && (
+          <>
+            <span>{dayStats.habits} {dayStats.habits === 1 ? 'habit' : 'habits'}</span>
+            <span className="text-muted-foreground">·</span>
+          </>
+        )}
+        {dayStats.life > 0 && (
+          <>
+            <span>{dayStats.life} life</span>
+            <span className="text-muted-foreground">·</span>
+          </>
+        )}
+        {dayStats.caution > 0 && (
+          <>
+            <span>{dayStats.caution} caution</span>
+            <span className="text-muted-foreground">·</span>
+          </>
+        )}
+        <span>{dayStats.minutes} min</span>
+        {dayPreparation && (
+          <>
+            <span className="text-muted-foreground">·</span>
+            <Sun className={`h-4 w-4 ${getDayPromptIconClass('start')}`} />
+          </>
+        )}
+        {dayClosure && (
+          <>
+            <span className="text-muted-foreground">·</span>
+            <Moon className={`h-4 w-4 ${getDayPromptIconClass('end')}`} />
+          </>
+        )}
       </div>
 
       {/* Entry List */}

@@ -56,12 +56,12 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
               <p className="text-sm font-medium">Today's Activity</p>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
-                  <div className="text-2xl font-semibold">{todayStats.entries}</div>
-                  <div className="text-xs text-muted-foreground">entries</div>
+                  <div className="text-2xl font-semibold">{todayStats.habits}</div>
+                  <div className="text-xs text-muted-foreground">habits</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-semibold">{todayStats.highlights}</div>
-                  <div className="text-xs text-muted-foreground">highlights</div>
+                  <div className="text-2xl font-semibold">{todayStats.life}</div>
+                  <div className="text-xs text-muted-foreground">life</div>
                 </div>
                 <div>
                   <div className="text-2xl font-semibold">{todayStats.minutes}</div>
