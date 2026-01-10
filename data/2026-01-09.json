@@ -1,0 +1,50 @@
+{
+  "date": "2026-01-09",
+  "entries": [
+    {
+      "occurred_at": "2026-01-09T10:00:00Z",
+      "type": "habit",
+      "habit": "Software",
+      "practice": "Personal Project Development",
+      "note": "Worked on The Shelf frontend planning.",
+      "duration_minutes": 90,
+      "target": "The Shelf",
+      "source": "manual",
+      "is_highlight": true
+    },
+    {
+      "occurred_at": "2026-01-09T12:48:00Z",
+      "type": "habit",
+      "habit": "Dog Training",
+      "practice": "Loose-Leash Drills",
+      "note": "Warm-up, crate, leaving house, name recall drills - all prior to going to the vet.",
+      "duration_minutes": 30,
+      "target": null,
+      "source": "manual",
+      "is_highlight": false
+    },
+    {
+      "occurred_at": "2026-01-09T14:00:00Z",
+      "type": "habit",
+      "habit": "Exercise",
+      "practice": "Walking",
+      "note": "Afternoon walk with the dogs.",
+      "duration_minutes": 45,
+      "target": null,
+      "source": "manual",
+      "is_highlight": false
+    },
+    {
+      "occurred_at": "2026-01-09T16:00:00Z",
+      "type": "habit",
+      "habit": "Exercise",
+      "practice": "Gym",
+      "note": "Gym while dogs are getting cleaned.",
+      "duration_minutes": 60,
+      "target": null,
+      "source": "manual",
+      "is_highlight": false
+    }
+  ],
+  "reflections": []
+}

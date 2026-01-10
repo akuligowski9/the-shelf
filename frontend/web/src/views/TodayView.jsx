@@ -214,7 +214,7 @@ export default function TodayView() {
   // Get left border color class for entry card (by entry type)
   const getEntryBorderClass = (entry) => {
     if (entry.type === 'habit') {
-      return 'border-l-4 border-l-[hsl(var(--color-eucalyptus))]'
+      return 'border-l-4 border-l-[hsl(var(--color-ui-accent))]'
     }
     if (entry.type === 'life') {
       return 'border-l-4 border-l-[hsl(var(--color-sky))]'
@@ -248,8 +248,7 @@ export default function TodayView() {
       {/* Action Button */}
       <div className="flex justify-end">
         <Button
-          variant="outline"
-          className="border-[hsl(var(--color-eucalyptus))] text-[hsl(var(--color-eucalyptus))] hover:bg-[hsl(var(--color-eucalyptus-light))]"
+          className="bg-[hsl(var(--color-ui-accent))] text-white hover:bg-[hsl(var(--color-ui-accent))]/90"
           onClick={() => setEntryDialogOpen(true)}
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -258,7 +257,7 @@ export default function TodayView() {
       </div>
 
       {/* Day Preparation Card */}
-      <Card className={dayPreparation ? `${getDayPromptClasses('start')} border` : 'border-dashed'}>
+      <Card className={dayPreparation ? `${getDayPromptClasses('start')} border` : ''}>
         <CardContent className="pt-4 pb-4">
           {dayPreparation ? (
             <div className="space-y-2">
@@ -339,7 +338,7 @@ export default function TodayView() {
                         </span>
                       )}
                       {entry.is_highlight && (
-                        <Star className="h-4 w-4 text-[hsl(var(--color-amber))] fill-[hsl(var(--color-amber))]" />
+                        <Star className="h-4 w-4 text-[hsl(var(--color-ui-accent))] fill-[hsl(var(--color-ui-accent))]" />
                       )}
                       {entry.warm_up_at && (
                         <Sunrise className="h-3 w-3 text-muted-foreground" title="Warmed up" />
@@ -383,7 +382,7 @@ export default function TodayView() {
                     <div className="flex gap-2 mt-1 justify-end">
                       <button
                         onClick={() => handleEditEntry(entry)}
-                        className="text-xs text-muted-foreground/60 hover:text-foreground"
+                        className="text-xs text-muted-foreground/60 hover:text-primary"
                       >
                         Edit
                       </button>
@@ -421,7 +420,7 @@ export default function TodayView() {
       </div>
 
       {/* Day Closure Card */}
-      <Separator />
+      <Separator className="bg-border" />
       <Card className={dayClosure ? `${getDayPromptClasses('end')} border` : ''}>
         <CardContent className="pt-4 pb-4">
           {dayClosure ? (

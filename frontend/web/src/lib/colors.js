@@ -201,8 +201,8 @@ export function getDayPromptIconClass(type) {
 // Status colors (for targets)
 export const statusColors = {
   active: {
-    dot: 'bg-[hsl(var(--color-eucalyptus))]',
-    text: 'text-[hsl(var(--color-eucalyptus))]',
+    dot: 'bg-[hsl(var(--color-ui-accent))]',
+    text: 'text-[hsl(var(--color-ui-accent))]',
   },
   planned: {
     dot: 'bg-[hsl(var(--color-sky))]',

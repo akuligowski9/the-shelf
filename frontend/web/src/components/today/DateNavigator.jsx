@@ -72,10 +72,10 @@ export default function DateNavigator({ selectedDate, onDateChange }) {
     <div className="flex items-center gap-2">
       {/* Previous Day */}
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon"
         onClick={goToPreviousDay}
-        className="h-8 w-8"
+        className="h-8 w-8 bg-card"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
@@ -86,7 +86,7 @@ export default function DateNavigator({ selectedDate, onDateChange }) {
           <Button
             variant="outline"
             className={cn(
-              'min-w-[140px] justify-center font-normal',
+              'min-w-[140px] justify-center font-normal bg-card',
               !isToday(selectedDate) && 'text-muted-foreground'
             )}
           >
@@ -127,11 +127,11 @@ export default function DateNavigator({ selectedDate, onDateChange }) {
 
       {/* Next Day */}
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon"
         onClick={goToNextDay}
         disabled={isToday(selectedDate) || isFuture(selectedDate)}
-        className="h-8 w-8"
+        className="h-8 w-8 bg-card"
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
