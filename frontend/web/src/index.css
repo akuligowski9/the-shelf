@@ -6,13 +6,13 @@
   :root {
     /* Soft warm cream palette - gentle and inviting */
     --background: 38 25% 94%;
-    --foreground: 25 35% 15%;
+    --foreground: 20 45% 20%;
 
     --card: 40 28% 97%;
-    --card-foreground: 25 35% 15%;
+    --card-foreground: 20 45% 20%;
 
     --popover: 38 35% 96%;
-    --popover-foreground: 25 35% 15%;
+    --popover-foreground: 20 40% 18%;
 
     /* Evergreen primary for light mode - rich deep green against cream */
     --primary: 160 38% 32%;
@@ -24,11 +24,14 @@
 
     /* Warm cream secondary */
     --secondary: 40 30% 92%;
-    --secondary-foreground: 25 35% 20%;
+    --secondary-foreground: 20 40% 20%;
 
     /* Soft sand muted */
     --muted: 35 25% 85%;
-    --muted-foreground: 25 30% 38%;
+    --muted-foreground: 20 30% 48%;
+
+    /* Content text - medium brown for notes/behaviors */
+    --content-foreground: 20 35% 35%;
 
     /* Soft sage highlight - muted green that harmonizes with warm cream */
     --accent: 150 34% 86%;
@@ -38,8 +41,8 @@
     --destructive: 12 50% 55%;
     --destructive-foreground: 40 35% 98%;
 
-    --border: 35 20% 78%;
-    --input: 35 20% 78%;
+    --border: 35 25% 72%;
+    --input: 35 25% 72%;
     --ring: 160 38% 32%;
 
     --radius: 0.5rem;

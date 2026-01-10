@@ -748,22 +748,98 @@ Tests validate continuity and correctness, not performance.
 
 ## 8. Visual Design Guidelines
 
-Tone:
+### 8.1 Tone
+
 - calm
 - welcoming
 - grounded
 
-Palette:
-- earth tones
-- soft neutrals
-- muted green accents
+The app should feel safe to return to.
 
 UI avoids:
 - alarms
 - badges
 - streak warnings
 
-The app should feel safe to return to.
+---
+
+### 8.2 Color System (Light Mode)
+
+The color palette uses warm earth tones with muted green accents. All colors are defined as HSL CSS variables.
+
+#### Foundation Colors
+
+| Variable | HSL Value | Purpose |
+|----------|-----------|---------|
+| `--background` | 38 25% 94% | Page background (warm sand) |
+| `--card` | 40 28% 97% | Card backgrounds (soft cream) |
+| `--border` | 35 25% 72% | Card and input borders |
+| `--primary` | 160 38% 32% | Primary actions (evergreen) |
+
+#### Text Hierarchy (3-Tier Brown System)
+
+Text uses a coordinated brown palette on hue 20 (warm terracotta-brown):
+
+| Tier | Variable | HSL Value | Usage |
+|------|----------|-----------|-------|
+| **Darkest** | `--foreground` | 20 45% 20% | Headers, stats, practice names |
+| **Medium** | `--content-foreground` | 20 35% 35% | Notes, behaviors, timestamps, durations |
+| **Lightest** | `--muted-foreground` | 20 30% 48% | Actions (Edit, Highlight), warm-up/cool-down notes |
+
+The hierarchy creates clear visual layers while maintaining warmth and cohesion.
+
+#### UI Accent vs Content Accent
+
+| Purpose | Variable | Color |
+|---------|----------|-------|
+| UI interactions | `--color-ui-accent` | Evergreen (160 38% 32%) |
+| Content highlights | `--accent` | Sage (150 34% 86%) |
+| Secondary interactions | `--secondary` | Warm cream (40 30% 92%) |
+
+Dropdowns and hover states use `--secondary` (neutral) to distinguish from content highlights.
+
+#### Entry Type Colors (Left Border)
+
+| Entry Type | Color | Variable |
+|------------|-------|----------|
+| Habit | Evergreen | `--color-ui-accent` |
+| Life | Sky blue | `--color-sky` (200 45% 48%) |
+| Caution | Terracotta | `--color-terracotta` (20 50% 48%) |
+
+#### Day Prompt Colors
+
+| Prompt | Background | Icon Color |
+|--------|------------|------------|
+| Start your day | Amber light | Amber (45 90% 50%) |
+| Close the day | Slate light | Slate (200 30% 55%) |
+
+#### Habit Badge Colors (15 Nature Tones)
+
+Habits can be assigned distinct colors for visual differentiation:
+
+**Greens:** sage, forest
+**Blues:** teal, ocean, cobalt, indigo
+**Purples:** violet, plum, orchid
+**Pinks/Reds:** berry, rose, coral
+**Warm tones:** sienna, copper, marigold
+
+Each color has a base and light variant for badges.
+
+---
+
+### 8.3 Shadows & Borders
+
+- Cards use `shadow-sm` for subtle depth
+- Buttons use `shadow-sm` for consistency
+- Borders are warm-toned (hue 35) at 72% lightness
+- Day prompt buttons inside cards use `shadow-none` to avoid doubling
+
+---
+
+### 8.4 Input Fields
+
+- Input and textarea backgrounds use `bg-white/80` for contrast against card backgrounds
+- Focus rings use the primary evergreen color
 
 ---
 

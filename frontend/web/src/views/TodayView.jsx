@@ -284,7 +284,7 @@ export default function TodayView() {
           ) : (
             <Button
               variant="outline"
-              className={`w-full justify-start ${getDayPromptClasses('start')}`}
+              className={`w-full justify-start shadow-none ${getDayPromptClasses('start')}`}
               onClick={() => setPrepDialogOpen(true)}
             >
               <Sun className={`h-4 w-4 mr-2 ${getDayPromptIconClass('start')}`} />
@@ -295,7 +295,7 @@ export default function TodayView() {
       </Card>
 
       {/* Summary */}
-      <div className="flex gap-4 text-sm text-muted-foreground">
+      <div className="flex gap-4 text-sm text-foreground">
         <span>{dayStats.entries} {dayStats.entries === 1 ? 'entry' : 'entries'}</span>
         <span>{dayStats.highlights} highlights</span>
         <span>{dayStats.minutes} min total</span>
@@ -324,7 +324,7 @@ export default function TodayView() {
             >
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1 flex-1 min-w-0">
+                  <div className="space-y-2 flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge
                         variant={getEntryBadgeStyle(entry).variant}
@@ -333,7 +333,7 @@ export default function TodayView() {
                         {getEntryLabel(entry)}
                       </Badge>
                       {entry.practice && (
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-foreground">
                           {entry.practice}
                         </span>
                       )}
@@ -347,13 +347,13 @@ export default function TodayView() {
 
                     {/* Behaviors as comma-separated text */}
                     {entry.behaviors && entry.behaviors.length > 0 && (
-                      <p className="text-sm text-foreground">
+                      <p className="text-sm text-[hsl(var(--content-foreground))]">
                         {entry.behaviors.join(', ')}
                       </p>
                     )}
 
                     {entry.note && (
-                      <p className="text-sm text-foreground">{entry.note}</p>
+                      <p className="text-sm text-[hsl(var(--content-foreground))]">{entry.note}</p>
                     )}
 
                     {/* Warm-up and Cool-down notes */}
@@ -374,28 +374,28 @@ export default function TodayView() {
                       </div>
                     )}
                   </div>
-                  <div className="text-right text-sm text-muted-foreground shrink-0">
-                    <div>{formatTime(entry.occurred_at)}</div>
+                  <div className="text-right text-sm shrink-0">
+                    <div className="text-[hsl(var(--content-foreground))]">{formatTime(entry.occurred_at)}</div>
                     {entry.duration_minutes && (
-                      <div>{entry.duration_minutes} min</div>
+                      <div className="text-[hsl(var(--content-foreground))]">{entry.duration_minutes} min</div>
                     )}
                     <div className="flex gap-2 mt-1 justify-end">
                       <button
                         onClick={() => handleEditEntry(entry)}
-                        className="text-xs text-muted-foreground/60 hover:text-primary"
+                        className="text-xs text-muted-foreground/80 hover:text-primary"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => toggleHighlight(entry.id)}
-                        className="text-xs text-muted-foreground/60 hover:text-primary"
+                        className="text-xs text-muted-foreground/80 hover:text-primary"
                       >
                         {entry.is_highlight ? 'Unhighlight' : 'Highlight'}
                       </button>
                       {/* Session menu for habit entries */}
                       {entry.type === 'habit' && (
                         <DropdownMenu>
-                          <DropdownMenuTrigger className="text-xs text-muted-foreground/60 hover:text-primary">
+                          <DropdownMenuTrigger className="text-xs text-muted-foreground/80 hover:text-primary">
                             Session
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -436,7 +436,7 @@ export default function TodayView() {
           ) : (
             <Button
               variant="outline"
-              className={`w-full ${getDayPromptClasses('end')}`}
+              className={`w-full shadow-none ${getDayPromptClasses('end')}`}
               onClick={() => setClosureDialogOpen(true)}
             >
               <Moon className={`h-4 w-4 mr-2 ${getDayPromptIconClass('end')}`} />
