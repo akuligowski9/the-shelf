@@ -56,7 +56,7 @@ export default function ShelfView() {
       habits: todayEntries.filter(e => e.type === 'habit').length,
       life: todayEntries.filter(e => e.type === 'life').length,
       caution: todayEntries.filter(e => e.type === 'caution').length,
-      transitions: todayEntries.filter(e => e.warm_up_at && e.cool_down_note).length,
+      transitions: todayEntries.filter(e => e.type === 'transition').length,
       minutes: todayEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
     }
   }, [todayKey])
@@ -74,7 +74,7 @@ export default function ShelfView() {
       habits: weekEntries.filter(e => e.type === 'habit').length,
       life: weekEntries.filter(e => e.type === 'life').length,
       caution: weekEntries.filter(e => e.type === 'caution').length,
-      transitions: weekEntries.filter(e => e.warm_up_at && e.cool_down_note).length,
+      transitions: weekEntries.filter(e => e.type === 'transition').length,
       highlights: weekEntries.filter(e => e.highlight).length,
       minutes: weekEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
     }
@@ -92,7 +92,7 @@ export default function ShelfView() {
       habits: monthEntries.filter(e => e.type === 'habit').length,
       life: monthEntries.filter(e => e.type === 'life').length,
       caution: monthEntries.filter(e => e.type === 'caution').length,
-      transitions: monthEntries.filter(e => e.warm_up_at && e.cool_down_note).length,
+      transitions: monthEntries.filter(e => e.type === 'transition').length,
       highlights: monthEntries.filter(e => e.highlight).length,
       minutes: monthEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
     }

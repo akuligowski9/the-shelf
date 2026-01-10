@@ -224,7 +224,7 @@ Decide on minimal visual identity elements (spacing, tone, maybe one accent colo
 
 ## 15. "Today / Yesterday" Accomplishment View
 
-**Description**  
+**Description**
 Provide a quick view of recent accomplishments for motivation and closure.
 
 **Acceptance Criteria**
@@ -232,7 +232,26 @@ Provide a quick view of recent accomplishments for motivation and closure.
 - Highlights emphasized gently
 - No pressure language
 
-**Priority**: P2  
+**Priority**: P2
 **Story Points**: 3
+
+---
+
+## 16. Settings: Import/Export Functionality
+
+**Description**
+Implement functional import and export in the Settings view. Currently UI placeholders exist but the actual functionality requires backend support for data persistence.
+
+**Acceptance Criteria**
+- Export downloads all data as JSON (habits, practices, behaviors, targets, entries, preparations, closures, reflections)
+- Import accepts JSON file and validates structure
+- Import is forgiving (unknown fields ignored, partial data accepted)
+- Import/export respects the format defined in `docs/import-spec.md`
+- Confirmation dialog before import (to prevent accidental overwrites)
+
+**Priority**: P2 (blocked on backend)
+**Story Points**: 5
+
+**Note**: Revisit when backend persistence is further along.
 
 ---

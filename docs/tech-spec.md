@@ -542,7 +542,7 @@ It exists to:
 - day prompts ("Start your day?" / "Done for the day?") live in Today view only
 - prep/closure status shown via sun/moon icons in Activity
 - calm, grounded, safe to return to
-- transitions = entries with both warm-up and cool-down completed
+- transitions = structural changes to attention allocation (see README for definition)
 
 ---
 
