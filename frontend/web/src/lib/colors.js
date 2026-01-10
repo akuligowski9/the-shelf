@@ -33,27 +33,27 @@ export const colorPalette = {
     border: 'border-[hsl(var(--color-ocean))]',
     dot: 'bg-[hsl(var(--color-ocean))]',
   },
-  cobalt: {
-    name: 'Cobalt',
-    bg: 'bg-[hsl(var(--color-cobalt-light))]',
-    text: 'text-[hsl(var(--color-cobalt))]',
-    border: 'border-[hsl(var(--color-cobalt))]',
-    dot: 'bg-[hsl(var(--color-cobalt))]',
+  sky: {
+    name: 'Sky',
+    bg: 'bg-[hsl(var(--color-sky-light))]',
+    text: 'text-[hsl(var(--color-sky))]',
+    border: 'border-[hsl(var(--color-sky))]',
+    dot: 'bg-[hsl(var(--color-sky))]',
   },
-  indigo: {
-    name: 'Indigo',
-    bg: 'bg-[hsl(var(--color-indigo-light))]',
-    text: 'text-[hsl(var(--color-indigo))]',
-    border: 'border-[hsl(var(--color-indigo))]',
-    dot: 'bg-[hsl(var(--color-indigo))]',
+  dusk: {
+    name: 'Dusk',
+    bg: 'bg-[hsl(var(--color-dusk-light))]',
+    text: 'text-[hsl(var(--color-dusk))]',
+    border: 'border-[hsl(var(--color-dusk))]',
+    dot: 'bg-[hsl(var(--color-dusk))]',
   },
   // Purples
-  violet: {
-    name: 'Violet',
-    bg: 'bg-[hsl(var(--color-violet-light))]',
-    text: 'text-[hsl(var(--color-violet))]',
-    border: 'border-[hsl(var(--color-violet))]',
-    dot: 'bg-[hsl(var(--color-violet))]',
+  lavender: {
+    name: 'Lavender',
+    bg: 'bg-[hsl(var(--color-lavender-light))]',
+    text: 'text-[hsl(var(--color-lavender))]',
+    border: 'border-[hsl(var(--color-lavender))]',
+    dot: 'bg-[hsl(var(--color-lavender))]',
   },
   plum: {
     name: 'Plum',

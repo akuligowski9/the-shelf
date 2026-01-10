@@ -248,7 +248,7 @@ export default function TodayView() {
       {/* Action Button */}
       <div className="flex justify-end">
         <Button
-          className="bg-[hsl(var(--color-ui-accent))] text-white hover:bg-[hsl(var(--color-ui-accent))]/90"
+          className="bg-[hsl(var(--color-ui-accent))] text-white hover:bg-[hsl(var(--color-ui-accent))]/90 dark:bg-transparent dark:border dark:border-[hsl(var(--color-ui-accent))] dark:text-[hsl(var(--color-ui-accent))] dark:hover:bg-[hsl(var(--color-ui-accent))]/10"
           onClick={() => setEntryDialogOpen(true)}
         >
           <Plus className="h-4 w-4 mr-2" />

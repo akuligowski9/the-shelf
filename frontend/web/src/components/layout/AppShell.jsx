@@ -6,21 +6,19 @@ import { getESTHour } from '@/data/mockData'
 
 export default function AppShell() {
   // Time-based dark mode (6 PM - 6 AM EST)
-  // TEMP: Forcing light mode for testing
   useEffect(() => {
-    document.documentElement.classList.remove('dark')
-    // const applyTheme = () => {
-    //   const hour = getESTHour()
-    //   const isDarkTime = hour >= 18 || hour < 6 // 6 PM to 6 AM
-    //   if (isDarkTime) {
-    //     document.documentElement.classList.add('dark')
-    //   } else {
-    //     document.documentElement.classList.remove('dark')
-    //   }
-    // }
-    // applyTheme()
-    // const interval = setInterval(applyTheme, 60000)
-    // return () => clearInterval(interval)
+    const applyTheme = () => {
+      const hour = getESTHour()
+      const isDarkTime = hour >= 18 || hour < 6 // 6 PM to 6 AM
+      if (isDarkTime) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+    applyTheme()
+    const interval = setInterval(applyTheme, 60000)
+    return () => clearInterval(interval)
   }, [])
 
   return (

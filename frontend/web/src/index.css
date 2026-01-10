@@ -77,37 +77,37 @@
     /* Greens */
     --color-sage: 110 25% 45%;
     --color-sage-light: 110 20% 90%;
-    --color-forest: 145 40% 35%;
-    --color-forest-light: 145 30% 90%;
+    --color-forest: 145 35% 32%;
+    --color-forest-light: 145 25% 90%;
     /* Blues */
-    --color-teal: 180 45% 40%;
-    --color-teal-light: 180 35% 90%;
-    --color-ocean: 195 50% 42%;
-    --color-ocean-light: 195 40% 90%;
-    --color-cobalt: 230 50% 50%;
-    --color-cobalt-light: 230 40% 90%;
-    --color-indigo: 250 45% 48%;
-    --color-indigo-light: 250 35% 90%;
+    --color-teal: 175 40% 38%;
+    --color-teal-light: 175 30% 90%;
+    --color-ocean: 200 45% 40%;
+    --color-ocean-light: 200 35% 90%;
+    --color-sky: 210 35% 52%;
+    --color-sky-light: 210 28% 90%;
+    --color-dusk: 235 30% 45%;
+    --color-dusk-light: 235 22% 90%;
     /* Purples */
-    --color-violet: 275 40% 50%;
-    --color-violet-light: 275 30% 90%;
-    --color-plum: 300 35% 45%;
-    --color-plum-light: 300 25% 90%;
-    --color-orchid: 320 40% 55%;
-    --color-orchid-light: 320 30% 90%;
+    --color-lavender: 270 30% 52%;
+    --color-lavender-light: 270 22% 90%;
+    --color-plum: 295 30% 42%;
+    --color-plum-light: 295 22% 90%;
+    --color-orchid: 330 35% 50%;
+    --color-orchid-light: 330 25% 90%;
     /* Pinks/Reds */
-    --color-berry: 340 45% 48%;
-    --color-berry-light: 340 35% 90%;
-    --color-rose: 355 40% 55%;
-    --color-rose-light: 355 30% 90%;
-    --color-coral: 8 55% 58%;
-    --color-coral-light: 8 45% 90%;
+    --color-berry: 345 40% 45%;
+    --color-berry-light: 345 30% 90%;
+    --color-rose: 355 35% 52%;
+    --color-rose-light: 355 25% 90%;
+    --color-coral: 12 50% 55%;
+    --color-coral-light: 12 40% 90%;
     /* Warm tones */
-    --color-sienna: 15 50% 45%;
-    --color-sienna-light: 15 40% 90%;
-    --color-copper: 28 55% 48%;
-    --color-copper-light: 28 45% 90%;
-    --color-marigold: 48 65% 50%;
+    --color-sienna: 18 45% 42%;
+    --color-sienna-light: 18 35% 90%;
+    --color-copper: 30 50% 45%;
+    --color-copper-light: 30 40% 90%;
+    --color-marigold: 45 55% 48%;
     --color-marigold-light: 48 55% 90%;
   }
 
@@ -134,7 +134,10 @@
     --secondary-foreground: 38 20% 82%;
 
     --muted: 30 12% 16%;
-    --muted-foreground: 38 15% 55%;
+    --muted-foreground: 38 18% 58%;
+
+    /* Content text - medium tone for notes/behaviors in dark mode */
+    --content-foreground: 38 20% 72%;
 
     --accent: 165 25% 20%;
     --accent-foreground: 165 35% 85%;
@@ -166,46 +169,46 @@
     --color-plum: 320 40% 52%;
     --color-plum-light: 320 30% 18%;
     --color-amber: 38 70% 55%;
-    --color-amber-light: 38 50% 18%;
+    --color-amber-light: 40 55% 22%;
     --color-slate: 215 25% 60%;
     --color-slate-light: 215 20% 20%;
 
     /* Habit colors - brighter for dark mode */
     /* Greens */
-    --color-sage: 110 30% 52%;
+    --color-sage: 110 30% 55%;
     --color-sage-light: 110 25% 18%;
-    --color-forest: 145 45% 42%;
-    --color-forest-light: 145 35% 18%;
+    --color-forest: 145 40% 42%;
+    --color-forest-light: 145 30% 18%;
     /* Blues */
-    --color-teal: 180 50% 48%;
-    --color-teal-light: 180 40% 18%;
-    --color-ocean: 195 55% 50%;
-    --color-ocean-light: 195 45% 18%;
-    --color-cobalt: 230 55% 58%;
-    --color-cobalt-light: 230 45% 18%;
-    --color-indigo: 250 50% 55%;
-    --color-indigo-light: 250 40% 18%;
+    --color-teal: 175 45% 48%;
+    --color-teal-light: 175 35% 18%;
+    --color-ocean: 200 50% 52%;
+    --color-ocean-light: 200 40% 18%;
+    --color-sky: 210 40% 60%;
+    --color-sky-light: 210 32% 18%;
+    --color-dusk: 235 35% 55%;
+    --color-dusk-light: 235 28% 18%;
     /* Purples */
-    --color-violet: 275 45% 58%;
-    --color-violet-light: 275 35% 18%;
-    --color-plum: 300 40% 52%;
-    --color-plum-light: 300 30% 18%;
-    --color-orchid: 320 45% 60%;
-    --color-orchid-light: 320 35% 18%;
+    --color-lavender: 270 35% 62%;
+    --color-lavender-light: 270 28% 18%;
+    --color-plum: 295 35% 52%;
+    --color-plum-light: 295 28% 18%;
+    --color-orchid: 330 40% 58%;
+    --color-orchid-light: 330 30% 18%;
     /* Pinks/Reds */
-    --color-berry: 340 50% 55%;
-    --color-berry-light: 340 40% 18%;
-    --color-rose: 355 45% 60%;
-    --color-rose-light: 355 35% 18%;
-    --color-coral: 8 60% 62%;
-    --color-coral-light: 8 50% 18%;
+    --color-berry: 345 45% 55%;
+    --color-berry-light: 345 35% 18%;
+    --color-rose: 355 40% 60%;
+    --color-rose-light: 355 30% 18%;
+    --color-coral: 12 55% 60%;
+    --color-coral-light: 12 45% 18%;
     /* Warm tones */
-    --color-sienna: 15 55% 52%;
-    --color-sienna-light: 15 45% 18%;
-    --color-copper: 28 60% 55%;
-    --color-copper-light: 28 50% 18%;
-    --color-marigold: 48 70% 55%;
-    --color-marigold-light: 48 60% 18%;
+    --color-sienna: 18 50% 52%;
+    --color-sienna-light: 18 40% 18%;
+    --color-copper: 30 55% 55%;
+    --color-copper-light: 30 45% 18%;
+    --color-marigold: 45 60% 55%;
+    --color-marigold-light: 45 50% 18%;
   }
 }
 

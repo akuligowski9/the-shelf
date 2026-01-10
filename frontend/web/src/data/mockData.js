@@ -1,10 +1,10 @@
 // Mock data for development - mirrors expected API structure
 
 export const mockHabits = [
-  { id: 1, name: 'Software', active: true, target_minutes: 120, color: 'cobalt' },
+  { id: 1, name: 'Software', active: true, target_minutes: 120, color: 'dusk' },
   { id: 2, name: 'Spanish', active: true, target_minutes: 30, color: 'coral' },
   { id: 3, name: 'Exercise', active: true, target_minutes: 60, color: 'forest' },
-  { id: 4, name: 'Dog Training', active: true, target_minutes: 30, color: 'violet' },
+  { id: 4, name: 'Dog Training', active: true, target_minutes: 30, color: 'lavender' },
   { id: 5, name: 'Reading', active: false, target_minutes: 30, color: 'sienna' },
 ]
 
