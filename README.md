@@ -324,15 +324,16 @@ This section provides a high-level summary of the system's architecture and tech
 
 The system is designed as a classic three-tier application, containerized for consistent and easy local development. The architecture emphasizes long-term data integrity and a clear separation of concerns between its primary UI views.
 
-#### UI Views (The 5 Core Surfaces)
+#### UI Views (The 6 Core Surfaces)
 
-The user interface is broken down into five distinct views, each with a single responsibility:
+The user interface is broken down into six distinct views, each with a single responsibility:
 
-1.  **Shelf (Home)**: The orientation view. Shows active habits and targets, providing a calm anchor to start or end the day.
-2.  **Today (Logging)**: The action view. This is the only place where daily events are logged, edited, and closed out. Habit entries can include warm-ups (before) and cool-downs (after).
+1.  **Shelf (Home)**: The orientation dashboard. Shows active habits (expandable with practices/behaviors), targets by status, and activity stats (Today/Week/Month with habits, life, caution, transitions, highlights). Read-only.
+2.  **Today (Logging)**: The action view. This is the only place where daily events are logged, edited, and closed out. Includes day prompts ("Start your day?" / "Done for the day?"). Habit entries can include warm-ups (before) and cool-downs (after).
 3.  **Progress (Analysis)**: The analytical view. Makes attention visible through two lenses: **Balance** (distribution of effort) and **Patterns** (trends over time). This view is read-only.
 4.  **Review (Reflection)**: The meaning-making view. Surfaced accomplishments and saved narrative reflections on patterns and progress.
 5.  **Attention (Structure)**: The management view. This is where the underlying structure of habits, practices, targets, and **warm-up/cool-down templates** is defined and adjusted.
+6.  **Settings**: System preferences, data import/export, and data health overview.
 
 #### Data Model & Integrity
 

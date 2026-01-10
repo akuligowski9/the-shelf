@@ -502,34 +502,47 @@ No view tries to do everything.
 
 ### 5.1 Shelf (Macro Attention Surface)
 
-**Purpose**  
-The Shelf is the home view and emotional anchor.
+**Purpose**
+The Shelf is the home view and emotional anchor — a dashboard for orientation, not action.
 
 It exists to:
 - orient you
-- remind you what’s active
-- invite intentional start and stop
+- remind you what's active
+- show where attention has gone
 
 **Displays**
-- active habits (e.g. 5 / 8)
-- active targets
-- planned targets (upcoming)
-- parked targets count
-- transition window indicator
-- last touched summaries
-- today / week entry counts
-- rest-day context (neutral)
+
+*Habits Card*
+- active habits count (e.g. 4 / 5 active)
+- expandable accordion per habit showing:
+  - practice/behavior counts (e.g. "3 practices · 7 behaviors")
+  - nested collapsible per practice to reveal behaviors
+- "Go to Habits" navigation → Attention view
+
+*Targets Card*
+- targets grouped by status: Active, Planned, Parking Lot
+- parked targets show count and truncated list (+N more)
+- "Go to Targets" navigation → Attention view
+
+*Activity Card*
+- Today: habits · life · caution · transitions · time · sun/moon icons for prep/closure status
+- This Week: habits · life · caution · transitions · highlights · time (all counts shown, including 0s)
+- This Month: habits · life · caution · transitions · highlights · time (all counts shown, including 0s)
+- Recent Highlights: up to 3 most recent highlighted entries with habit, practice, and note preview
+- "Go to Today" navigation → Today view
 
 **Interactions**
-- expand habits or targets to view context
-- navigate to related views
-- “Start your day?”
-- “Done for the day?”
+- expand habits to view practices and behaviors (accordion)
+- expand practices to view behaviors (collapsible)
+- navigate to Attention view (habits or targets section)
+- navigate to Today view
 
 **Notes**
-- no editing occurs here
-- calm, read-only by default
-- designed to be safe to return to
+- no editing occurs here — Shelf is read-only
+- day prompts ("Start your day?" / "Done for the day?") live in Today view only
+- prep/closure status shown via sun/moon icons in Activity
+- calm, grounded, safe to return to
+- transitions = entries with both warm-up and cool-down completed
 
 ---
 
@@ -682,6 +695,7 @@ This is where you decide **what gets attention at all**.
 - transitions are initiated here
 - changes explain future metrics
 - warm-up/cool-down templates are authored here, used in Today view
+- supports hash navigation from Shelf: `/attention#habits` and `/attention#targets` scroll to respective sections
 
 ---
 
