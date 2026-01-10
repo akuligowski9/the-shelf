@@ -130,7 +130,7 @@ export default function WarmUpDialog({
 
               {/* Template Content */}
               {selectedTemplate && (
-                <div className="rounded-md border bg-muted/30 h-[200px] overflow-y-auto p-4">
+                <div className="rounded-md border bg-muted/30 dark:bg-[hsl(30_18%_18%)] dark:border-[hsl(30_20%_28%)] h-[200px] overflow-y-auto p-4">
                   <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm">
                     {renderedTemplate}
                   </div>

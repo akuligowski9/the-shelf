@@ -102,7 +102,7 @@ export default function CoolDownDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-hidden flex flex-col">
           {/* Session Summary */}
-          <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+          <div className="bg-muted/50 dark:bg-[hsl(30_18%_18%)] dark:border dark:border-[hsl(30_20%_28%)] rounded-lg p-3 space-y-1">
             <p className="text-sm font-medium">{entry.habit}</p>
             {entry.practice && (
               <p className="text-sm text-muted-foreground">{entry.practice}</p>
@@ -152,7 +152,7 @@ export default function CoolDownDialog({
                 </Button>
               </div>
               {showTemplate && (
-                <div className="rounded-md border bg-muted/30 h-[150px] overflow-y-auto p-4">
+                <div className="rounded-md border bg-muted/30 dark:bg-[hsl(30_18%_18%)] dark:border-[hsl(30_20%_28%)] h-[150px] overflow-y-auto p-4">
                   <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm">
                     {selectedTemplate.content}
                   </div>
