@@ -3,6 +3,7 @@ import {
   mockHabits as initialHabits,
   mockPractices as initialPractices,
   mockBehaviors as initialBehaviors,
+  mockTargets as initialTargets,
 } from '@/data/mockData'
 
 const HabitsContext = createContext(null)
@@ -11,6 +12,7 @@ export function HabitsProvider({ children }) {
   const [habits, setHabits] = useState(initialHabits)
   const [practices, setPractices] = useState(initialPractices)
   const [behaviors, setBehaviors] = useState(initialBehaviors)
+  const [targets, setTargets] = useState(initialTargets)
 
   // Update a habit's color
   const updateHabitColor = (habitId, colorKey) => {
@@ -106,12 +108,80 @@ export function HabitsProvider({ children }) {
     )
   }
 
+  // ---- Target management ----
+
+  // Get targets by status
+  const getTargetsByStatus = (status) => {
+    return targets.filter(t => t.status === status)
+  }
+
+  // Update target status
+  const updateTargetStatus = (targetId, newStatus) => {
+    setTargets(prev =>
+      prev.map(t => t.id === targetId ? { ...t, status: newStatus } : t)
+    )
+  }
+
+  // Add a new target
+  const addTarget = (name, habitId = null, status = 'planned') => {
+    const newId = Math.max(...targets.map(t => t.id), 0) + 1
+    setTargets(prev => [
+      ...prev,
+      { id: newId, name, habit_id: habitId, status }
+    ])
+    return newId
+  }
+
+  // Update target name
+  const updateTargetName = (targetId, name) => {
+    setTargets(prev =>
+      prev.map(t => t.id === targetId ? { ...t, name } : t)
+    )
+  }
+
+  // Update target habit association
+  const updateTargetHabit = (targetId, habitId) => {
+    setTargets(prev =>
+      prev.map(t => t.id === targetId ? { ...t, habit_id: habitId } : t)
+    )
+  }
+
+  // ---- Habit management ----
+
+  // Add a new habit
+  const addHabit = (name, targetMinutes = 30, color = 'sage') => {
+    const newId = Math.max(...habits.map(h => h.id), 0) + 1
+    setHabits(prev => [
+      ...prev,
+      { id: newId, name, active: true, target_minutes: targetMinutes, color }
+    ])
+    return newId
+  }
+
+  // Update habit name
+  const updateHabitName = (habitId, name) => {
+    setHabits(prev =>
+      prev.map(h => h.id === habitId ? { ...h, name } : h)
+    )
+  }
+
+  // Update habit target minutes
+  const updateHabitTargetMinutes = (habitId, targetMinutes) => {
+    setHabits(prev =>
+      prev.map(h => h.id === habitId ? { ...h, target_minutes: targetMinutes } : h)
+    )
+  }
+
   const value = {
+    // Habits
     habits,
     activeHabits,
     updateHabitColor,
     toggleHabitActive,
     getHabitByName,
+    addHabit,
+    updateHabitName,
+    updateHabitTargetMinutes,
     // Practices
     practices,
     getPracticesForHabit,
@@ -126,6 +196,13 @@ export function HabitsProvider({ children }) {
     toggleBehaviorActive,
     addBehavior,
     updateBehaviorName,
+    // Targets
+    targets,
+    getTargetsByStatus,
+    updateTargetStatus,
+    addTarget,
+    updateTargetName,
+    updateTargetHabit,
   }
 
   return (

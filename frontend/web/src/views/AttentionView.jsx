@@ -18,20 +18,31 @@ import {
 import { ChevronDown, Plus } from 'lucide-react'
 import { colorPalette, getHabitBadgeClassesByColor } from '@/lib/colors'
 import { useHabits } from '@/context/HabitsContext'
+import HabitEditDialog from '@/components/attention/HabitEditDialog'
+import PracticeEditDialog from '@/components/attention/PracticeEditDialog'
+import BehaviorEditDialog from '@/components/attention/BehaviorEditDialog'
 
 export default function AttentionView() {
-  // Shared habits state from context
+  // Shared state from context
   const {
     habits,
     updateHabitColor,
     toggleHabitActive,
     getHabitByName,
+    updateHabitName,
+    updateHabitTargetMinutes,
     getPracticesForHabit,
     togglePracticeActive,
     addPractice,
+    updatePracticeName,
     getBehaviorsForPractice,
     toggleBehaviorActive,
     addBehavior,
+    updateBehaviorName,
+    addHabit,
+    getTargetsByStatus,
+    updateTargetStatus,
+    addTarget,
   } = useHabits()
 
   // Track which habit is showing the add practice input
@@ -42,17 +53,24 @@ export default function AttentionView() {
   const [addingBehaviorFor, setAddingBehaviorFor] = useState(null)
   const [newBehaviorName, setNewBehaviorName] = useState('')
 
-  const targets = {
-    active: [
-      { id: 1, name: 'The Shelf', habit: 'Software' },
-    ],
-    planned: [
-      { id: 2, name: 'Spanish B1 Certification', habit: 'Spanish' },
-    ],
-    parked: [
-      { id: 3, name: 'Home Renovation Ideas', habit: null },
-    ],
-  }
+  // Track adding new target/habit
+  const [addingTarget, setAddingTarget] = useState(false)
+  const [newTargetName, setNewTargetName] = useState('')
+  const [addingHabit, setAddingHabit] = useState(false)
+  const [newHabitName, setNewHabitName] = useState('')
+
+  // Edit dialogs state
+  const [editingHabit, setEditingHabit] = useState(null)
+  const [editingPractice, setEditingPractice] = useState(null)
+  const [editingPracticeHabitName, setEditingPracticeHabitName] = useState('')
+  const [editingBehavior, setEditingBehavior] = useState(null)
+  const [editingBehaviorPracticeName, setEditingBehaviorPracticeName] = useState('')
+
+  // Get targets by status from context
+  const activeTargets = getTargetsByStatus('active')
+  const plannedTargets = getTargetsByStatus('planned')
+  const parkedTargets = getTargetsByStatus('parked')
+  const completedTargets = getTargetsByStatus('completed')
 
   // Get habit color classes by habit name
   const getHabitColorByName = (habitName) => {
@@ -87,6 +105,69 @@ export default function AttentionView() {
     setAddingBehaviorFor(null)
   }
 
+  const handleAddTarget = () => {
+    if (newTargetName.trim()) {
+      addTarget(newTargetName.trim(), null, 'planned')
+      setNewTargetName('')
+      setAddingTarget(false)
+    }
+  }
+
+  const handleCancelAddTarget = () => {
+    setNewTargetName('')
+    setAddingTarget(false)
+  }
+
+  const handleAddHabit = () => {
+    if (newHabitName.trim()) {
+      addHabit(newHabitName.trim())
+      setNewHabitName('')
+      setAddingHabit(false)
+    }
+  }
+
+  const handleCancelAddHabit = () => {
+    setNewHabitName('')
+    setAddingHabit(false)
+  }
+
+  // Helper to get habit name from habit_id
+  const getHabitNameById = (habitId) => {
+    const habit = habits.find(h => h.id === habitId)
+    return habit?.name || null
+  }
+
+  // Edit handlers
+  const handleSaveHabit = (updates) => {
+    if (editingHabit) {
+      updateHabitName(editingHabit.id, updates.name)
+      updateHabitTargetMinutes(editingHabit.id, updates.target_minutes)
+      updateHabitColor(editingHabit.id, updates.color)
+    }
+  }
+
+  const handleSavePractice = (updates) => {
+    if (editingPractice) {
+      updatePracticeName(editingPractice.id, updates.name)
+    }
+  }
+
+  const handleSaveBehavior = (updates) => {
+    if (editingBehavior) {
+      updateBehaviorName(editingBehavior.id, updates.name)
+    }
+  }
+
+  const openPracticeEdit = (practice, habitName) => {
+    setEditingPractice(practice)
+    setEditingPracticeHabitName(habitName)
+  }
+
+  const openBehaviorEdit = (behavior, practiceName) => {
+    setEditingBehavior(behavior)
+    setEditingBehaviorPracticeName(practiceName)
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -107,7 +188,31 @@ export default function AttentionView() {
       <Card>
         <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Habits</CardTitle>
-          <Button variant="outline" size="sm">Add Habit</Button>
+          {addingHabit ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={newHabitName}
+                onChange={(e) => setNewHabitName(e.target.value)}
+                placeholder="Habit name"
+                className="h-8 text-sm w-40"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddHabit()
+                  if (e.key === 'Escape') handleCancelAddHabit()
+                }}
+              />
+              <Button size="sm" variant="ghost" className="h-8" onClick={handleAddHabit}>
+                Add
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8" onClick={handleCancelAddHabit}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setAddingHabit(true)}>
+              Add Habit
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="space-y-1">
           {habits.map(habit => {
@@ -153,18 +258,12 @@ export default function AttentionView() {
                       <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
                     </CollapsibleTrigger>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      {habit.target_minutes} min
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleHabitActive(habit.id)}
-                    >
-                      {habit.active ? 'Deactivate' : 'Activate'}
-                    </Button>
-                  </div>
+                  <button
+                    onClick={() => setEditingHabit(habit)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Edit
+                  </button>
                 </div>
 
                 <CollapsibleContent>
@@ -193,10 +292,10 @@ export default function AttentionView() {
                                 )}
                               </CollapsibleTrigger>
                               <button
-                                onClick={() => togglePracticeActive(practice.id)}
+                                onClick={() => openPracticeEdit(practice, habit.name)}
                                 className="text-xs text-muted-foreground hover:text-foreground"
                               >
-                                {practice.active ? 'Deactivate' : 'Activate'}
+                                Edit
                               </button>
                             </div>
 
@@ -211,10 +310,10 @@ export default function AttentionView() {
                                       {behavior.name}
                                     </span>
                                     <button
-                                      onClick={() => toggleBehaviorActive(behavior.id)}
+                                      onClick={() => openBehaviorEdit(behavior, practice.name)}
                                       className="text-xs text-muted-foreground hover:text-foreground"
                                     >
-                                      {behavior.active ? 'Deactivate' : 'Activate'}
+                                      Edit
                                     </button>
                                   </div>
                                 ))}
@@ -318,7 +417,31 @@ export default function AttentionView() {
       <Card>
         <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Targets</CardTitle>
-          <Button variant="outline" size="sm">Add Target</Button>
+          {addingTarget ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={newTargetName}
+                onChange={(e) => setNewTargetName(e.target.value)}
+                placeholder="Target name"
+                className="h-8 text-sm w-48"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddTarget()
+                  if (e.key === 'Escape') handleCancelAddTarget()
+                }}
+              />
+              <Button size="sm" variant="ghost" className="h-8" onClick={handleAddTarget}>
+                Add
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8" onClick={handleCancelAddTarget}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setAddingTarget(true)}>
+              Add Target
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Active */}
@@ -326,22 +449,44 @@ export default function AttentionView() {
             <h4 className="text-sm font-medium text-muted-foreground mb-2">
               Active
             </h4>
-            {targets.active.map(target => (
-              <div
-                key={target.id}
-                className="flex items-center justify-between py-2"
-              >
-                <div>
-                  <span>{target.name}</span>
-                  {target.habit && (
-                    <Badge variant="outline" className={`ml-2 ${getHabitColorByName(target.habit)}`}>
-                      {target.habit}
-                    </Badge>
-                  )}
-                </div>
-                <Button variant="ghost" size="sm">Park</Button>
-              </div>
-            ))}
+            {activeTargets.length === 0 ? (
+              <p className="text-sm text-muted-foreground/60 py-1">No active targets</p>
+            ) : (
+              activeTargets.map(target => {
+                const habitName = getHabitNameById(target.habit_id)
+                return (
+                  <div
+                    key={target.id}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <div>
+                      <span>{target.name}</span>
+                      {habitName && (
+                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
+                          {habitName}
+                        </Badge>
+                      )}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">Move</Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'completed')}>
+                          Complete
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'parked')}>
+                          Park
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'planned')}>
+                          Back to Planned
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )
+              })
+            )}
           </div>
 
           <Separator />
@@ -351,22 +496,41 @@ export default function AttentionView() {
             <h4 className="text-sm font-medium text-muted-foreground mb-2">
               Planned
             </h4>
-            {targets.planned.map(target => (
-              <div
-                key={target.id}
-                className="flex items-center justify-between py-2"
-              >
-                <div>
-                  <span className="text-muted-foreground">{target.name}</span>
-                  {target.habit && (
-                    <Badge variant="outline" className={`ml-2 ${getHabitColorByName(target.habit)}`}>
-                      {target.habit}
-                    </Badge>
-                  )}
-                </div>
-                <Button variant="ghost" size="sm">Activate</Button>
-              </div>
-            ))}
+            {plannedTargets.length === 0 ? (
+              <p className="text-sm text-muted-foreground/60 py-1">Nothing planned</p>
+            ) : (
+              plannedTargets.map(target => {
+                const habitName = getHabitNameById(target.habit_id)
+                return (
+                  <div
+                    key={target.id}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <div>
+                      <span className="text-muted-foreground">{target.name}</span>
+                      {habitName && (
+                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
+                          {habitName}
+                        </Badge>
+                      )}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">Move</Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'active')}>
+                          Activate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'parked')}>
+                          Park
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )
+              })
+            )}
           </div>
 
           <Separator />
@@ -376,18 +540,108 @@ export default function AttentionView() {
             <h4 className="text-sm font-medium text-muted-foreground mb-2">
               Parking Lot
             </h4>
-            {targets.parked.map(target => (
-              <div
-                key={target.id}
-                className="flex items-center justify-between py-2"
-              >
-                <span className="text-muted-foreground">{target.name}</span>
-                <Button variant="ghost" size="sm">Activate</Button>
-              </div>
-            ))}
+            {parkedTargets.length === 0 ? (
+              <p className="text-sm text-muted-foreground/60 py-1">Empty</p>
+            ) : (
+              parkedTargets.map(target => {
+                const habitName = getHabitNameById(target.habit_id)
+                return (
+                  <div
+                    key={target.id}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <div>
+                      <span className="text-muted-foreground">{target.name}</span>
+                      {habitName && (
+                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
+                          {habitName}
+                        </Badge>
+                      )}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">Move</Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'active')}>
+                          Activate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'planned')}>
+                          Back to Planned
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )
+              })
+            )}
           </div>
+
+          {/* Completed */}
+          {completedTargets.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                  Completed
+                </h4>
+                {completedTargets.map(target => {
+                  const habitName = getHabitNameById(target.habit_id)
+                  return (
+                    <div
+                      key={target.id}
+                      className="flex items-center justify-between py-2"
+                    >
+                      <div>
+                        <span className="text-muted-foreground line-through">{target.name}</span>
+                        {habitName && (
+                          <Badge variant="outline" className={`ml-2 opacity-50 ${getHabitColorByName(habitName)}`}>
+                            {habitName}
+                          </Badge>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => updateTargetStatus(target.id, 'active')}
+                      >
+                        Reopen
+                      </Button>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
+
+      {/* Edit Dialogs */}
+      <HabitEditDialog
+        open={!!editingHabit}
+        onOpenChange={(open) => !open && setEditingHabit(null)}
+        habit={editingHabit}
+        onSave={handleSaveHabit}
+        onToggleActive={() => editingHabit && toggleHabitActive(editingHabit.id)}
+      />
+
+      <PracticeEditDialog
+        open={!!editingPractice}
+        onOpenChange={(open) => !open && setEditingPractice(null)}
+        practice={editingPractice}
+        habitName={editingPracticeHabitName}
+        onSave={handleSavePractice}
+        onToggleActive={() => editingPractice && togglePracticeActive(editingPractice.id)}
+      />
+
+      <BehaviorEditDialog
+        open={!!editingBehavior}
+        onOpenChange={(open) => !open && setEditingBehavior(null)}
+        behavior={editingBehavior}
+        practiceName={editingBehaviorPracticeName}
+        onSave={handleSaveBehavior}
+        onToggleActive={() => editingBehavior && toggleBehaviorActive(editingBehavior.id)}
+      />
     </div>
   )
 }
