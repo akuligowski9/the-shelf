@@ -6,9 +6,21 @@ Tasks organized by priority and area. Each task includes its source.
 
 ## Frontend — High Priority
 
+### NEXT SESSION: Bridge Targets Gap
+**Targets feel disconnected from daily flow.** Revisit these options:
+1. **Link entries to targets** — When logging a habit entry, optionally select which target you're working toward
+4. **Practice → Target mapping** — Link a practice to a target; entries automatically count toward target
+
+Pick one approach and implement. This connects intention (targets) to action (entries).
+
+---
+
 ### AttentionView
-- [ ] **Warm-up/Cool-down Template Library** — Create UI to manage warm-up and cool-down templates per habit. Users should be able to create, edit, delete, and preview templates with dynamic elements.
+- [x] **Warm-up/Cool-down Template Library** — Manage templates per habit in HabitEditDialog.
   - Source: tech-spec.md (Section 3.5.1, 5.5)
+
+- [ ] **Attention Calendar** — Single calendar view showing target timelines (gantt-style bars) and light activity indicators (dots for days with entries). Consolidates calendar needs in one place.
+  - Source: design decision (one calendar, in Attention)
 
 - [ ] **Transition Window Flow** — Implement enter/exit transition window. When in a transition window, track habit changes as a single transition event.
   - Source: README.md (Transitions section), tech-spec.md (Section 3.8)
@@ -50,23 +62,23 @@ Tasks organized by priority and area. Each task includes its source.
 - [x] **Habit Deep Dive** — Habit-specific patterns: avg session, days since last, longest gap, session counts.
   - Source: conversation context
 
-- [ ] **Calendar View** — Compact composition indicator per day, clicking drills into entries.
-  - Source: tech-spec.md (Section 4.4)
+- [x] ~~**Calendar View**~~ — Moved to AttentionView. Charts already show daily composition; calendar would duplicate data.
+  - Source: design decision (consolidate to one calendar)
 
-- [ ] **Practice Breakdowns** — Drill down into practice-level data within habits.
+- [ ] **Practice Breakdowns** — Drill down into practice-level data within habits. (Deferred: post-backend)
   - Source: tech-spec.md (Section 5.3)
 
 - [ ] **Transition & Caution Markers** — Overlay markers on charts for transitions and caution spikes.
   - Source: tech-spec.md (Section 4.4)
 
 ### ReviewView
-- [ ] **Functional Reflection Editor** — Save reflections to state/storage, load past reflections.
+- [x] **Functional Reflection Editor** — Save reflections to state/storage, load past reflections.
   - Source: tech-spec.md (Section 5.4)
 
-- [ ] **Real Accomplishments Data** — Surface highlighted entries and completed targets from context.
+- [x] **Real Accomplishments Data** — Surface highlighted entries and completed targets from context.
   - Source: tech-spec.md (Section 5.4)
 
-- [ ] **Time Range Selector** — Filter accomplishments and reflections by time period.
+- [x] **Time Range Selector** — Filter accomplishments and reflections by time period.
   - Source: tech-spec.md (Section 5.4)
 
 - [ ] **Contextual Metrics** — Show relevant metrics alongside reflections.

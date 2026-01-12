@@ -3,72 +3,255 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { mockEntries, mockReflections } from '@/data/mockData'
+import { mockEntries, mockReflections, mockPreparations } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
-import { Star, Target, ChevronDown, ChevronUp, Filter } from 'lucide-react'
+import { Star, Target, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-
-// Helper to get date range boundaries
-function getDateRange(rangeType) {
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-  switch (rangeType) {
-    case 'this-week': {
-      const dayOfWeek = today.getDay()
-      const startOfWeek = new Date(today)
-      startOfWeek.setDate(today.getDate() - dayOfWeek)
-      const endOfWeek = new Date(startOfWeek)
-      endOfWeek.setDate(startOfWeek.getDate() + 6)
-      return { start: startOfWeek, end: endOfWeek, label: 'This Week' }
-    }
-    case 'last-week': {
-      const dayOfWeek = today.getDay()
-      const startOfLastWeek = new Date(today)
-      startOfLastWeek.setDate(today.getDate() - dayOfWeek - 7)
-      const endOfLastWeek = new Date(startOfLastWeek)
-      endOfLastWeek.setDate(startOfLastWeek.getDate() + 6)
-      return { start: startOfLastWeek, end: endOfLastWeek, label: 'Last Week' }
-    }
-    case 'this-month': {
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-      return { start: startOfMonth, end: endOfMonth, label: 'This Month' }
-    }
-    case 'last-month': {
-      const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-      const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0)
-      return { start: startOfLastMonth, end: endOfLastMonth, label: 'Last Month' }
-    }
-    case 'all-time': {
-      return { start: new Date(2020, 0, 1), end: today, label: 'All Time' }
-    }
-    default:
-      return { start: today, end: today, label: 'Today' }
-  }
-}
+import PeriodSelector, { getDateRange } from '@/components/shared/PeriodSelector'
 
 function formatDate(dateStr) {
   const date = new Date(dateStr)
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+// Calculate metrics for a date range
+function calculatePeriodMetrics(entries, preparations, dateRange, activeHabits) {
+  const periodEntries = entries.filter(entry => {
+    const entryDate = new Date(entry.occurred_at)
+    return entryDate >= dateRange.start && entryDate <= dateRange.end && !entry.archived_at
+  })
+
+  // Total minutes
+  const totalMinutes = periodEntries.reduce((sum, e) => sum + (e.duration_minutes || 0), 0)
+
+  // Habit breakdown
+  const habitBreakdown = {}
+  periodEntries.filter(e => e.type === 'habit').forEach(entry => {
+    const habitName = entry.habit || 'Unknown'
+    if (!habitBreakdown[habitName]) {
+      habitBreakdown[habitName] = { minutes: 0, count: 0 }
+    }
+    habitBreakdown[habitName].minutes += entry.duration_minutes || 0
+    habitBreakdown[habitName].count += 1
+  })
+
+  // Count by type
+  const habitEntries = periodEntries.filter(e => e.type === 'habit').length
+  const lifeEntries = periodEntries.filter(e => e.type === 'life').length
+  const cautionEntries = periodEntries.filter(e => e.type === 'caution').length
+
+  // Highlights
+  const highlights = periodEntries.filter(e => e.is_highlight).length
+
+  // Rest days (days with rest_day preparation)
+  const restDays = Object.entries(preparations).filter(([dateKey, prep]) => {
+    const prepDate = new Date(dateKey)
+    return prepDate >= dateRange.start && prepDate <= dateRange.end && prep.rest_day
+  }).length
+
+  // Days with entries
+  const daysWithEntries = new Set(
+    periodEntries.map(e => e.occurred_at.split('T')[0])
+  ).size
+
+  // Total days in period
+  const totalDays = Math.ceil((dateRange.end - dateRange.start) / (1000 * 60 * 60 * 24)) + 1
+
+  // Which active habits had no entries
+  const habitsWithEntries = new Set(Object.keys(habitBreakdown))
+  const missingHabits = activeHabits
+    .filter(h => !habitsWithEntries.has(h.name))
+    .map(h => h.name)
+
+  // Dominant habit (if any is >50%)
+  const habitMinutes = Object.values(habitBreakdown).reduce((sum, h) => sum + h.minutes, 0)
+  let dominantHabit = null
+  if (habitMinutes > 0) {
+    const sorted = Object.entries(habitBreakdown).sort((a, b) => b[1].minutes - a[1].minutes)
+    if (sorted.length > 0) {
+      const topPercent = (sorted[0][1].minutes / habitMinutes) * 100
+      if (topPercent >= 50) {
+        dominantHabit = { name: sorted[0][0], percent: Math.round(topPercent) }
+      }
+    }
+  }
+
+  // Daily habit (logged every day)
+  const dailyHabits = Object.entries(habitBreakdown)
+    .filter(([name, data]) => data.count >= daysWithEntries && daysWithEntries >= 3)
+    .map(([name]) => name)
+
+  return {
+    totalMinutes,
+    totalHours: Math.round(totalMinutes / 60 * 10) / 10,
+    habitBreakdown,
+    habitEntries,
+    lifeEntries,
+    cautionEntries,
+    highlights,
+    restDays,
+    daysWithEntries,
+    totalDays,
+    missingHabits,
+    dominantHabit,
+    dailyHabits,
+  }
+}
+
+// Generate reflection prompts based on period data
+function generateReflectionPrompts(currentMetrics, previousMetrics, periodLabel) {
+  const prompts = []
+
+  // Dominant habit prompt
+  if (currentMetrics.dominantHabit) {
+    prompts.push({
+      id: 'dominant',
+      text: `${currentMetrics.dominantHabit.name} was ${currentMetrics.dominantHabit.percent}% of your time — how did that balance feel?`,
+      type: 'balance',
+    })
+  }
+
+  // Missing habits prompt
+  if (currentMetrics.missingHabits.length === 1) {
+    prompts.push({
+      id: 'missing',
+      text: `No ${currentMetrics.missingHabits[0]} this period — intentional rest?`,
+      type: 'absence',
+    })
+  } else if (currentMetrics.missingHabits.length > 1) {
+    prompts.push({
+      id: 'missing',
+      text: `${currentMetrics.missingHabits.join(' and ')} had no entries — was that intentional?`,
+      type: 'absence',
+    })
+  }
+
+  // Highlights prompt
+  if (currentMetrics.highlights > 0) {
+    prompts.push({
+      id: 'highlights',
+      text: currentMetrics.highlights === 1
+        ? `You marked 1 highlight — what made it stand out?`
+        : `You marked ${currentMetrics.highlights} highlights — what made them stand out?`,
+      type: 'highlights',
+    })
+  }
+
+  // Rest days prompt
+  if (currentMetrics.restDays > 0) {
+    prompts.push({
+      id: 'rest',
+      text: currentMetrics.restDays === 1
+        ? `You took 1 rest day — how did it feel?`
+        : `You took ${currentMetrics.restDays} rest days — how did they feel?`,
+      type: 'rest',
+    })
+  }
+
+  // Daily habit prompt
+  if (currentMetrics.dailyHabits.length > 0) {
+    const habitList = currentMetrics.dailyHabits.join(', ')
+    prompts.push({
+      id: 'daily',
+      text: currentMetrics.dailyHabits.length === 1
+        ? `You practiced ${habitList} consistently — what kept you going?`
+        : `${habitList} showed up consistently — what kept you going?`,
+      type: 'consistency',
+    })
+  }
+
+  // Comparison prompt (if we have previous data)
+  if (previousMetrics && previousMetrics.totalMinutes > 0) {
+    const diff = currentMetrics.totalMinutes - previousMetrics.totalMinutes
+    const percentChange = Math.abs(Math.round((diff / previousMetrics.totalMinutes) * 100))
+
+    if (percentChange >= 25) {
+      if (diff > 0) {
+        prompts.push({
+          id: 'comparison',
+          text: `This was a fuller period than last (${currentMetrics.totalHours}hrs vs ${previousMetrics.totalHours}hrs) — what changed?`,
+          type: 'comparison',
+        })
+      } else {
+        prompts.push({
+          id: 'comparison',
+          text: `This was lighter than last period (${currentMetrics.totalHours}hrs vs ${previousMetrics.totalHours}hrs) — what changed?`,
+          type: 'comparison',
+        })
+      }
+    }
+  }
+
+  // Caution entries prompt
+  if (currentMetrics.cautionEntries > 0) {
+    prompts.push({
+      id: 'caution',
+      text: currentMetrics.cautionEntries === 1
+        ? `You logged 1 caution — anything to learn from it?`
+        : `You logged ${currentMetrics.cautionEntries} cautions — any patterns to notice?`,
+      type: 'caution',
+    })
+  }
+
+  // Limit to 3-4 most relevant prompts
+  return prompts.slice(0, 4)
+}
+
+// Get previous period range for comparison
+function getPreviousPeriodRange(timeRange, periodOffset) {
+  return getDateRange(timeRange, periodOffset - 1)
+}
+
+// Get period label for reflections
+function getPeriodLabel(timeRange, periodOffset) {
+  const today = new Date()
+
+  if (timeRange === 'month') {
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + periodOffset, 1)
+    return targetMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  }
+
+  if (timeRange === 'year') {
+    return (today.getFullYear() + periodOffset).toString()
+  }
+
+  // Week view
+  const dateRange = getDateRange(timeRange, periodOffset)
+  const formatOpts = { month: 'short', day: 'numeric' }
+  const year = dateRange.end.getFullYear()
+  return `${dateRange.start.toLocaleDateString('en-US', formatOpts)} - ${dateRange.end.toLocaleDateString('en-US', formatOpts)}, ${year}`
+}
+
 export default function ReviewView() {
   const { targets, habits } = useHabits()
-  const [timeRange, setTimeRange] = useState('this-week')
+  const [timeRange, setTimeRange] = useState('week') // 'week' | 'month'
+  const [periodOffset, setPeriodOffset] = useState(0)
   const [highlightFilter, setHighlightFilter] = useState('all')
   const [reflectionText, setReflectionText] = useState('')
   const [reflections, setReflections] = useState(mockReflections)
   const [expandedReflection, setExpandedReflection] = useState(null)
 
-  const dateRange = useMemo(() => getDateRange(timeRange), [timeRange])
+  const dateRange = useMemo(() => getDateRange(timeRange, periodOffset), [timeRange, periodOffset])
+  const previousDateRange = useMemo(() => getPreviousPeriodRange(timeRange, periodOffset), [timeRange, periodOffset])
+  const periodLabel = useMemo(() => getPeriodLabel(timeRange, periodOffset), [timeRange, periodOffset])
+
+  // Get active habits for missing habit detection
+  const activeHabits = useMemo(() => habits.filter(h => h.active), [habits])
+
+  // Calculate metrics for current and previous periods
+  const currentMetrics = useMemo(() => {
+    return calculatePeriodMetrics(mockEntries, mockPreparations, dateRange, activeHabits)
+  }, [dateRange, activeHabits])
+
+  const previousMetrics = useMemo(() => {
+    if (!previousDateRange) return null
+    return calculatePeriodMetrics(mockEntries, mockPreparations, previousDateRange, activeHabits)
+  }, [previousDateRange, activeHabits])
+
+  // Generate reflection prompts
+  const reflectionPrompts = useMemo(() => {
+    return generateReflectionPrompts(currentMetrics, previousMetrics, periodLabel)
+  }, [currentMetrics, previousMetrics, periodLabel])
 
   // Get highlighted entries within the date range, filtered by type
   const highlights = useMemo(() => {
@@ -108,16 +291,24 @@ export default function ReviewView() {
     return habit?.name || 'Unknown'
   }
 
+  // Helper to format date as YYYY-MM-DD
+  const formatDateKey = (date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   // Save a new reflection
   const handleSaveReflection = () => {
     if (!reflectionText.trim()) return
 
     const newReflection = {
       id: Math.max(...reflections.map(r => r.id), 0) + 1,
-      type: timeRange.includes('week') ? 'weekly' : 'monthly',
-      period_start: dateRange.start.toISOString().split('T')[0],
-      period_end: dateRange.end.toISOString().split('T')[0],
-      period_label: dateRange.label,
+      type: timeRange === 'week' ? 'weekly' : 'monthly',
+      period_start: formatDateKey(dateRange.start),
+      period_end: formatDateKey(dateRange.end),
+      period_label: periodLabel,
       note: reflectionText.trim(),
       created_at: new Date().toISOString(),
     }
@@ -134,26 +325,13 @@ export default function ReviewView() {
         <p className="text-muted-foreground">Reflect on what happened</p>
       </div>
 
-      {/* Time Range Selector */}
-      <Card>
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Period</span>
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="this-week">This Week</SelectItem>
-                <SelectItem value="last-week">Last Week</SelectItem>
-                <SelectItem value="this-month">This Month</SelectItem>
-                <SelectItem value="last-month">Last Month</SelectItem>
-                <SelectItem value="all-time">All Time</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Period Selector */}
+      <PeriodSelector
+        timeRange={timeRange}
+        periodOffset={periodOffset}
+        onTimeRangeChange={setTimeRange}
+        onPeriodOffsetChange={setPeriodOffset}
+      />
 
       {/* Accomplishments */}
       <Card>
@@ -238,6 +416,31 @@ export default function ReviewView() {
         </CardContent>
       </Card>
 
+      {/* Reflection Prompts */}
+      {reflectionPrompts.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-amber-500" />
+              Things to think about
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Based on what happened this period
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {reflectionPrompts.map(prompt => (
+              <div
+                key={prompt.id}
+                className="flex items-start gap-3 py-2 px-3 rounded-md bg-muted/50"
+              >
+                <span className="text-sm text-foreground">{prompt.text}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* New Reflection */}
       <Card>
         <CardHeader className="pb-3">
@@ -255,7 +458,7 @@ export default function ReviewView() {
           />
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              For: {dateRange.label}
+              For: {periodLabel}
             </span>
             <Button
               variant="secondary"
