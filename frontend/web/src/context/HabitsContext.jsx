@@ -4,6 +4,7 @@ import {
   mockPractices as initialPractices,
   mockBehaviors as initialBehaviors,
   mockTargets as initialTargets,
+  mockScheduledPractices as initialScheduledPractices,
 } from '@/data/mockData'
 
 const HabitsContext = createContext(null)
@@ -13,6 +14,7 @@ export function HabitsProvider({ children }) {
   const [practices, setPractices] = useState(initialPractices)
   const [behaviors, setBehaviors] = useState(initialBehaviors)
   const [targets, setTargets] = useState(initialTargets)
+  const [scheduledPractices, setScheduledPractices] = useState(initialScheduledPractices)
 
   // Update a habit's color
   const updateHabitColor = (habitId, colorKey) => {
@@ -69,6 +71,52 @@ export function HabitsProvider({ children }) {
   const updatePracticeName = (practiceId, name) => {
     setPractices(prev =>
       prev.map(p => p.id === practiceId ? { ...p, name } : p)
+    )
+  }
+
+  // Update practice details (rich text content)
+  const updatePracticeDetails = (practiceId, details) => {
+    setPractices(prev =>
+      prev.map(p => p.id === practiceId ? { ...p, details } : p)
+    )
+  }
+
+  // Get practice by id
+  const getPracticeById = (practiceId) => {
+    return practices.find(p => p.id === practiceId)
+  }
+
+  // ---- Scheduled Practices management ----
+
+  // Get scheduled practices for a specific date
+  const getScheduledPracticesForDate = (dateStr) => {
+    return scheduledPractices
+      .filter(sp => sp.date === dateStr)
+      .map(sp => ({
+        ...sp,
+        practice: practices.find(p => p.id === sp.practice_id)
+      }))
+  }
+
+  // Schedule a practice on specific dates
+  const schedulePractice = (practiceId, dates) => {
+    const newScheduled = dates.map((date, idx) => ({
+      id: Math.max(...scheduledPractices.map(sp => sp.id), 0) + idx + 1,
+      practice_id: practiceId,
+      date,
+    }))
+    setScheduledPractices(prev => [...prev, ...newScheduled])
+  }
+
+  // Remove a scheduled practice
+  const removeScheduledPractice = (scheduledId) => {
+    setScheduledPractices(prev => prev.filter(sp => sp.id !== scheduledId))
+  }
+
+  // Remove all scheduled practices for a practice on a specific date
+  const unschedulePracticeFromDate = (practiceId, dateStr) => {
+    setScheduledPractices(prev =>
+      prev.filter(sp => !(sp.practice_id === practiceId && sp.date === dateStr))
     )
   }
 
@@ -146,6 +194,13 @@ export function HabitsProvider({ children }) {
     )
   }
 
+  // Update target dates
+  const updateTargetDates = (targetId, startDate, endDate) => {
+    setTargets(prev =>
+      prev.map(t => t.id === targetId ? { ...t, start_date: startDate, end_date: endDate } : t)
+    )
+  }
+
   // ---- Habit management ----
 
   // Add a new habit
@@ -189,6 +244,14 @@ export function HabitsProvider({ children }) {
     togglePracticeActive,
     addPractice,
     updatePracticeName,
+    updatePracticeDetails,
+    getPracticeById,
+    // Scheduled Practices
+    scheduledPractices,
+    getScheduledPracticesForDate,
+    schedulePractice,
+    removeScheduledPractice,
+    unschedulePracticeFromDate,
     // Behaviors
     behaviors,
     getBehaviorsForPractice,
@@ -203,6 +266,7 @@ export function HabitsProvider({ children }) {
     addTarget,
     updateTargetName,
     updateTargetHabit,
+    updateTargetDates,
   }
 
   return (

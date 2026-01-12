@@ -1,6 +1,31 @@
 // Centralized color utilities for The Shelf
 // Change colors here to update across all screens
 
+// Raw HSL values for use in JS (e.g., conic gradients)
+// These should match the CSS variables in index.css
+export const colorHslValues = {
+  sage: '110 25% 45%',
+  forest: '140 25% 35%',
+  teal: '170 40% 40%',
+  ocean: '200 50% 45%',
+  sky: '210 60% 50%',
+  dusk: '230 35% 55%',
+  lavender: '260 40% 60%',
+  plum: '280 35% 45%',
+  orchid: '290 45% 55%',
+  berry: '330 50% 45%',
+  rose: '350 55% 55%',
+  coral: '15 65% 55%',
+  sienna: '25 50% 45%',
+  copper: '30 55% 50%',
+  marigold: '40 70% 50%',
+}
+
+// Get raw HSL color string for a habit color key
+export function getHabitColorHsl(colorKey) {
+  return colorHslValues[colorKey] || colorHslValues.sage
+}
+
 // Available color palette for habits - 15 distinct nature tones
 export const colorPalette = {
   // Greens

@@ -15,12 +15,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ChevronDown, Plus } from 'lucide-react'
+import { ChevronDown, Plus, ArrowRightLeft } from 'lucide-react'
 import { colorPalette, getHabitBadgeClassesByColor } from '@/lib/colors'
 import { useHabits } from '@/context/HabitsContext'
+import { mockEntries } from '@/data/mockData'
 import HabitEditDialog from '@/components/attention/HabitEditDialog'
 import PracticeEditDialog from '@/components/attention/PracticeEditDialog'
 import BehaviorEditDialog from '@/components/attention/BehaviorEditDialog'
+import TargetEditDialog from '@/components/attention/TargetEditDialog'
+import AttentionCalendar from '@/components/attention/AttentionCalendar'
 
 export default function AttentionView() {
   // Shared state from context
@@ -32,17 +35,26 @@ export default function AttentionView() {
     updateHabitName,
     updateHabitTargetMinutes,
     getPracticesForHabit,
+    practices,
     togglePracticeActive,
     addPractice,
     updatePracticeName,
+    updatePracticeDetails,
+    scheduledPractices,
+    schedulePractice,
+    removeScheduledPractice,
     getBehaviorsForPractice,
     toggleBehaviorActive,
     addBehavior,
     updateBehaviorName,
     addHabit,
+    targets,
     getTargetsByStatus,
     updateTargetStatus,
     addTarget,
+    updateTargetName,
+    updateTargetHabit,
+    updateTargetDates,
   } = useHabits()
 
   // Track which habit is showing the add practice input
@@ -65,6 +77,7 @@ export default function AttentionView() {
   const [editingPracticeHabitName, setEditingPracticeHabitName] = useState('')
   const [editingBehavior, setEditingBehavior] = useState(null)
   const [editingBehaviorPracticeName, setEditingBehaviorPracticeName] = useState('')
+  const [editingTarget, setEditingTarget] = useState(null)
 
   // Get targets by status from context
   const activeTargets = getTargetsByStatus('active')
@@ -149,12 +162,21 @@ export default function AttentionView() {
   const handleSavePractice = (updates) => {
     if (editingPractice) {
       updatePracticeName(editingPractice.id, updates.name)
+      updatePracticeDetails(editingPractice.id, updates.details)
     }
   }
 
   const handleSaveBehavior = (updates) => {
     if (editingBehavior) {
       updateBehaviorName(editingBehavior.id, updates.name)
+    }
+  }
+
+  const handleSaveTarget = (updates) => {
+    if (editingTarget) {
+      updateTargetName(editingTarget.id, updates.name)
+      updateTargetHabit(editingTarget.id, updates.habit_id)
+      updateTargetDates(editingTarget.id, updates.start_date, updates.end_date)
     }
   }
 
@@ -176,11 +198,249 @@ export default function AttentionView() {
         <p className="text-muted-foreground">Manage what gets your attention</p>
       </div>
 
-      {/* Transition Window Indicator */}
+      {/* Calendar */}
+      <AttentionCalendar
+        targets={targets}
+        entries={mockEntries}
+        habits={habits}
+        practices={practices}
+        scheduledPractices={scheduledPractices}
+        onSchedulePractice={schedulePractice}
+        onUnschedulePractice={removeScheduledPractice}
+      />
+
+      {/* Targets */}
       <Card>
-        <CardContent className="pt-4 pb-4 flex items-center justify-between">
-          <span className="text-sm">Not in a transition window</span>
-          <Button variant="outline" size="sm">Enter Transition</Button>
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">Targets</CardTitle>
+          {addingTarget ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={newTargetName}
+                onChange={(e) => setNewTargetName(e.target.value)}
+                placeholder="Target name"
+                className="h-8 text-sm w-48"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddTarget()
+                  if (e.key === 'Escape') handleCancelAddTarget()
+                }}
+              />
+              <Button size="sm" variant="ghost" className="h-8" onClick={handleAddTarget}>
+                Add
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8" onClick={handleCancelAddTarget}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setAddingTarget(true)}>
+              Add Target
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Active */}
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-2">
+              Active
+            </h4>
+            {activeTargets.length === 0 ? (
+              <p className="text-sm text-muted-foreground/60 py-1">No active targets</p>
+            ) : (
+              activeTargets.map(target => {
+                const habitName = getHabitNameById(target.habit_id)
+                return (
+                  <div
+                    key={target.id}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <div>
+                      <span>{target.name}</span>
+                      {habitName && (
+                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
+                          {habitName}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setEditingTarget(target)}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Edit
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">Move</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'completed')}>
+                            Complete
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'parked')}>
+                            Park
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'planned')}>
+                            Back to Planned
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Planned */}
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-2">
+              Planned
+            </h4>
+            {plannedTargets.length === 0 ? (
+              <p className="text-sm text-muted-foreground/60 py-1">Nothing planned</p>
+            ) : (
+              plannedTargets.map(target => {
+                const habitName = getHabitNameById(target.habit_id)
+                return (
+                  <div
+                    key={target.id}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <div>
+                      <span className="text-muted-foreground">{target.name}</span>
+                      {habitName && (
+                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
+                          {habitName}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setEditingTarget(target)}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Edit
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">Move</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'active')}>
+                            Activate
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'parked')}>
+                            Park
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Parked */}
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-2">
+              Parking Lot
+            </h4>
+            {parkedTargets.length === 0 ? (
+              <p className="text-sm text-muted-foreground/60 py-1">Empty</p>
+            ) : (
+              parkedTargets.map(target => {
+                const habitName = getHabitNameById(target.habit_id)
+                return (
+                  <div
+                    key={target.id}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <div>
+                      <span className="text-muted-foreground">{target.name}</span>
+                      {habitName && (
+                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
+                          {habitName}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setEditingTarget(target)}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Edit
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">Move</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'active')}>
+                            Activate
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'planned')}>
+                            Back to Planned
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          {/* Completed */}
+          {completedTargets.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                  Completed
+                </h4>
+                {completedTargets.map(target => {
+                  const habitName = getHabitNameById(target.habit_id)
+                  return (
+                    <div
+                      key={target.id}
+                      className="flex items-center justify-between py-2"
+                    >
+                      <div>
+                        <span className="text-muted-foreground line-through">{target.name}</span>
+                        {habitName && (
+                          <Badge variant="outline" className={`ml-2 opacity-50 ${getHabitColorByName(habitName)}`}>
+                            {habitName}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setEditingTarget(target)}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          Edit
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => updateTargetStatus(target.id, 'active')}
+                        >
+                          Reopen
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -413,208 +673,13 @@ export default function AttentionView() {
         </CardContent>
       </Card>
 
-      {/* Targets */}
-      <Card>
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Targets</CardTitle>
-          {addingTarget ? (
-            <div className="flex items-center gap-2">
-              <Input
-                value={newTargetName}
-                onChange={(e) => setNewTargetName(e.target.value)}
-                placeholder="Target name"
-                className="h-8 text-sm w-48"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleAddTarget()
-                  if (e.key === 'Escape') handleCancelAddTarget()
-                }}
-              />
-              <Button size="sm" variant="ghost" className="h-8" onClick={handleAddTarget}>
-                Add
-              </Button>
-              <Button size="sm" variant="ghost" className="h-8" onClick={handleCancelAddTarget}>
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <Button variant="outline" size="sm" onClick={() => setAddingTarget(true)}>
-              Add Target
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Active */}
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-              Active
-            </h4>
-            {activeTargets.length === 0 ? (
-              <p className="text-sm text-muted-foreground/60 py-1">No active targets</p>
-            ) : (
-              activeTargets.map(target => {
-                const habitName = getHabitNameById(target.habit_id)
-                return (
-                  <div
-                    key={target.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div>
-                      <span>{target.name}</span>
-                      {habitName && (
-                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
-                          {habitName}
-                        </Badge>
-                      )}
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">Move</Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'completed')}>
-                          Complete
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'parked')}>
-                          Park
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'planned')}>
-                          Back to Planned
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )
-              })
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Planned */}
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-              Planned
-            </h4>
-            {plannedTargets.length === 0 ? (
-              <p className="text-sm text-muted-foreground/60 py-1">Nothing planned</p>
-            ) : (
-              plannedTargets.map(target => {
-                const habitName = getHabitNameById(target.habit_id)
-                return (
-                  <div
-                    key={target.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div>
-                      <span className="text-muted-foreground">{target.name}</span>
-                      {habitName && (
-                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
-                          {habitName}
-                        </Badge>
-                      )}
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">Move</Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'active')}>
-                          Activate
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'parked')}>
-                          Park
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )
-              })
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Parked */}
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-              Parking Lot
-            </h4>
-            {parkedTargets.length === 0 ? (
-              <p className="text-sm text-muted-foreground/60 py-1">Empty</p>
-            ) : (
-              parkedTargets.map(target => {
-                const habitName = getHabitNameById(target.habit_id)
-                return (
-                  <div
-                    key={target.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div>
-                      <span className="text-muted-foreground">{target.name}</span>
-                      {habitName && (
-                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
-                          {habitName}
-                        </Badge>
-                      )}
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">Move</Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'active')}>
-                          Activate
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'planned')}>
-                          Back to Planned
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )
-              })
-            )}
-          </div>
-
-          {/* Completed */}
-          {completedTargets.length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Completed
-                </h4>
-                {completedTargets.map(target => {
-                  const habitName = getHabitNameById(target.habit_id)
-                  return (
-                    <div
-                      key={target.id}
-                      className="flex items-center justify-between py-2"
-                    >
-                      <div>
-                        <span className="text-muted-foreground line-through">{target.name}</span>
-                        {habitName && (
-                          <Badge variant="outline" className={`ml-2 opacity-50 ${getHabitColorByName(habitName)}`}>
-                            {habitName}
-                          </Badge>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => updateTargetStatus(target.id, 'active')}
-                      >
-                        Reopen
-                      </Button>
-                    </div>
-                  )
-                })}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      {/* Enter Transition - subtle link below habits */}
+      <div className="flex justify-center">
+        <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2">
+          <ArrowRightLeft className="h-4 w-4" />
+          Enter Transition
+        </button>
+      </div>
 
       {/* Edit Dialogs */}
       <HabitEditDialog
@@ -641,6 +706,14 @@ export default function AttentionView() {
         practiceName={editingBehaviorPracticeName}
         onSave={handleSaveBehavior}
         onToggleActive={() => editingBehavior && toggleBehaviorActive(editingBehavior.id)}
+      />
+
+      <TargetEditDialog
+        open={!!editingTarget}
+        onOpenChange={(open) => !open && setEditingTarget(null)}
+        target={editingTarget}
+        habits={habits}
+        onSave={handleSaveTarget}
       />
     </div>
   )

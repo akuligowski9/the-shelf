@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import RichTextEditor from '@/components/ui/rich-text-editor'
 
 export default function PracticeEditDialog({
   open,
@@ -20,16 +21,18 @@ export default function PracticeEditDialog({
   onToggleActive,
 }) {
   const [name, setName] = useState('')
+  const [details, setDetails] = useState('')
 
   useEffect(() => {
     if (practice) {
       setName(practice.name)
+      setDetails(practice.details || '')
     }
   }, [practice])
 
   const handleSave = () => {
     if (name.trim()) {
-      onSave({ name: name.trim() })
+      onSave({ name: name.trim(), details: details || null })
       onOpenChange(false)
     }
   }
@@ -43,7 +46,7 @@ export default function PracticeEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Practice</DialogTitle>
           {habitName && (
@@ -59,6 +62,20 @@ export default function PracticeEditDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Practice name"
+            />
+          </div>
+
+          {/* Details - Rich Text Editor */}
+          <div className="space-y-2">
+            <Label>Details</Label>
+            <p className="text-xs text-muted-foreground">
+              Add routine details, instructions, or notes that you want to reference when doing this practice.
+            </p>
+            <RichTextEditor
+              value={details}
+              onChange={setDetails}
+              placeholder="Add workout routine, instructions, steps..."
+              className="min-h-[200px]"
             />
           </div>
 

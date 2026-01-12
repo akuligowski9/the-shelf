@@ -119,26 +119,31 @@ export function getCoolDownTemplatesForHabit(habitId) {
 
 export const mockPractices = [
   // Software
-  { id: 1, habit_id: 1, name: 'Personal Project Development', active: true },
-  { id: 2, habit_id: 1, name: 'Architecture Planning', active: true },
-  { id: 3, habit_id: 1, name: 'Open Source', active: true },
+  { id: 1, habit_id: 1, name: 'Personal Project Development', active: true, details: null },
+  { id: 2, habit_id: 1, name: 'Architecture Planning', active: true, details: null },
+  { id: 3, habit_id: 1, name: 'Open Source', active: true, details: null },
   // Spanish
-  { id: 4, habit_id: 2, name: 'Textbook Learning', active: true },
-  { id: 5, habit_id: 2, name: 'Conversation', active: true },
+  { id: 4, habit_id: 2, name: 'Textbook Learning', active: true, details: null },
+  { id: 5, habit_id: 2, name: 'Conversation', active: true, details: null },
   // Exercise
-  { id: 6, habit_id: 3, name: 'Walking', active: true },
-  { id: 7, habit_id: 3, name: 'Outdoor Walking', active: true },
-  { id: 8, habit_id: 3, name: 'Gym', active: true },
-  { id: 9, habit_id: 3, name: 'Corrective Exercises', active: true },
-  { id: 15, habit_id: 3, name: 'Legs Workout', active: true },
-  { id: 16, habit_id: 3, name: 'Upper Body', active: true },
+  { id: 6, habit_id: 3, name: 'Walking', active: true, details: null },
+  { id: 7, habit_id: 3, name: 'Outdoor Walking', active: true, details: null },
+  { id: 8, habit_id: 3, name: 'Gym', active: true, details: null },
+  { id: 9, habit_id: 3, name: 'Corrective Exercises', active: true, details: null },
+  { id: 15, habit_id: 3, name: 'Legs Workout', active: true, details: null },
+  { id: 16, habit_id: 3, name: 'Upper Body', active: true, details: null },
   // Dog Training
-  { id: 10, habit_id: 4, name: 'Walk Training', active: true },
-  { id: 11, habit_id: 4, name: 'Loose-Leash Drills', active: true },
-  { id: 12, habit_id: 4, name: 'Miscellaneous Care', active: true },
+  { id: 10, habit_id: 4, name: 'Walk Training', active: true, details: null },
+  { id: 11, habit_id: 4, name: 'Loose-Leash Drills', active: true, details: null },
+  { id: 12, habit_id: 4, name: 'Miscellaneous Care', active: true, details: null },
   // Reading
-  { id: 13, habit_id: 5, name: 'Books', active: true },
-  { id: 14, habit_id: 5, name: 'Articles', active: true },
+  { id: 13, habit_id: 5, name: 'Books', active: true, details: null },
+  { id: 14, habit_id: 5, name: 'Articles', active: true, details: null },
+]
+
+// Scheduled practices - links practices to specific dates
+export const mockScheduledPractices = [
+  // Example: { id: 1, practice_id: 15, date: '2026-01-13' }
 ]
 
 // Behaviors/actions per practice (checkboxes for what you did)
@@ -189,18 +194,27 @@ export function getBehaviorsForPractice(practiceId) {
 }
 
 export const mockTargets = [
+  // Active
   { id: 1, name: 'The Shelf', status: 'active', habit_id: 1 },
+  { id: 4, name: 'Daily Walking Habit', status: 'active', habit_id: 3 },
+  // Planned
   { id: 2, name: 'Spanish B1 Certification', status: 'planned', habit_id: 2 },
+  { id: 5, name: 'Read 12 Books in 2026', status: 'planned', habit_id: 5 },
+  { id: 6, name: 'Marathon Training', status: 'planned', habit_id: 3 },
+  // Parked
   { id: 3, name: 'Home Renovation Ideas', status: 'parked', habit_id: null },
+  { id: 7, name: 'Learn Guitar', status: 'parked', habit_id: null },
 ]
 
 // Entries from multiple days (based on actual log data)
+// habit_id: 1=Software, 2=Spanish, 3=Exercise, 4=Dog Training, 5=Reading
 export const mockEntries = [
   // Jan 1
   {
     id: 101,
     type: 'habit',
     habit: 'Spanish',
+    habit_id: 2,
     practice: 'Textbook Learning',
     occurred_at: '2026-01-01T10:00:00',
     duration_minutes: 30,
@@ -211,6 +225,7 @@ export const mockEntries = [
     id: 102,
     type: 'habit',
     habit: 'Software',
+    habit_id: 1,
     practice: 'Architecture Planning',
     occurred_at: '2026-01-01T11:00:00',
     duration_minutes: 45,
@@ -221,6 +236,7 @@ export const mockEntries = [
     id: 103,
     type: 'habit',
     habit: 'Exercise',
+    habit_id: 3,
     practice: 'Outdoor Walking',
     occurred_at: '2026-01-01T15:30:00',
     duration_minutes: 60,
@@ -231,6 +247,7 @@ export const mockEntries = [
     id: 104,
     type: 'habit',
     habit: 'Dog Training',
+    habit_id: 4,
     practice: 'Loose-Leash Drills',
     occurred_at: '2026-01-01T17:30:00',
     duration_minutes: 25,
@@ -242,6 +259,7 @@ export const mockEntries = [
     id: 201,
     type: 'habit',
     habit: 'Spanish',
+    habit_id: 2,
     practice: 'Textbook Learning',
     occurred_at: '2026-01-02T09:00:00',
     duration_minutes: 30,
@@ -252,6 +270,7 @@ export const mockEntries = [
     id: 202,
     type: 'habit',
     habit: 'Exercise',
+    habit_id: 3,
     practice: 'Corrective Exercises',
     occurred_at: '2026-01-02T10:00:00',
     duration_minutes: 30,
@@ -262,6 +281,7 @@ export const mockEntries = [
     id: 203,
     type: 'habit',
     habit: 'Software',
+    habit_id: 1,
     practice: 'Personal Project Development',
     occurred_at: '2026-01-02T11:00:00',
     duration_minutes: 120,
@@ -297,6 +317,7 @@ export const mockEntries = [
     id: 301,
     type: 'habit',
     habit: 'Dog Training',
+    habit_id: 4,
     practice: 'Walk Training',
     occurred_at: '2026-01-03T09:00:00',
     duration_minutes: 60,
@@ -357,6 +378,7 @@ export const mockEntries = [
     id: 501,
     type: 'habit',
     habit: 'Exercise',
+    habit_id: 3,
     practice: 'Walking',
     occurred_at: '2026-01-05T09:00:00',
     duration_minutes: 60,
@@ -367,6 +389,7 @@ export const mockEntries = [
     id: 502,
     type: 'habit',
     habit: 'Software',
+    habit_id: 1,
     practice: 'Architecture Planning',
     occurred_at: '2026-01-05T10:30:00',
     duration_minutes: 90,
@@ -394,6 +417,7 @@ export const mockEntries = [
     id: 601,
     type: 'habit',
     habit: 'Exercise',
+    habit_id: 3,
     practice: 'Gym',
     occurred_at: '2026-01-06T09:00:00',
     duration_minutes: 60,
@@ -404,6 +428,7 @@ export const mockEntries = [
     id: 602,
     type: 'habit',
     habit: 'Reading',
+    habit_id: 5,
     practice: null,
     occurred_at: '2026-01-06T10:00:00',
     duration_minutes: 30,
@@ -414,6 +439,7 @@ export const mockEntries = [
     id: 603,
     type: 'habit',
     habit: 'Exercise',
+    habit_id: 3,
     practice: 'Walking',
     occurred_at: '2026-01-06T10:30:00',
     duration_minutes: 45,
@@ -424,6 +450,7 @@ export const mockEntries = [
     id: 604,
     type: 'habit',
     habit: 'Software',
+    habit_id: 1,
     practice: null,
     occurred_at: '2026-01-06T11:15:00',
     duration_minutes: 120,
@@ -443,6 +470,7 @@ export const mockEntries = [
     id: 701,
     type: 'habit',
     habit: 'Software',
+    habit_id: 1,
     practice: 'Personal Project Development',
     occurred_at: '2026-01-07T10:00:00',
     duration_minutes: 180,
@@ -453,6 +481,7 @@ export const mockEntries = [
     id: 702,
     type: 'habit',
     habit: 'Exercise',
+    habit_id: 3,
     practice: 'Walking',
     occurred_at: '2026-01-07T14:00:00',
     duration_minutes: 45,
@@ -464,6 +493,7 @@ export const mockEntries = [
     id: 801,
     type: 'habit',
     habit: 'Software',
+    habit_id: 1,
     practice: 'Personal Project Development',
     occurred_at: '2026-01-08T09:00:00',
     duration_minutes: 240,
@@ -474,13 +504,14 @@ export const mockEntries = [
     id: 802,
     type: 'habit',
     habit: 'Dog Training',
+    habit_id: 4,
     practice: 'Walk Training',
     occurred_at: '2026-01-08T15:00:00',
     duration_minutes: 30,
     note: 'Quick training session.',
     is_highlight: false,
   },
-  // Jan 9 (today in mock)
+  // Jan 9
   {
     id: 901,
     type: 'habit',
@@ -499,6 +530,7 @@ export const mockEntries = [
     id: 902,
     type: 'habit',
     habit: 'Exercise',
+    habit_id: 3,
     practice: 'Walking',
     occurred_at: '2026-01-09T14:00:00',
     duration_minutes: 45,
@@ -511,6 +543,85 @@ export const mockEntries = [
     occurred_at: '2026-01-09T16:00:00',
     duration_minutes: 60,
     note: 'Errands and groceries.',
+    is_highlight: false,
+  },
+  // Jan 10
+  {
+    id: 1001,
+    type: 'habit',
+    habit: 'Spanish',
+    habit_id: 2,
+    practice: 'Textbook Learning',
+    occurred_at: '2026-01-10T09:00:00',
+    duration_minutes: 45,
+    note: 'Grammar review and new vocabulary.',
+    is_highlight: false,
+  },
+  {
+    id: 1002,
+    type: 'habit',
+    habit: 'Software',
+    habit_id: 1,
+    practice: 'Personal Project Development',
+    occurred_at: '2026-01-10T10:00:00',
+    duration_minutes: 150,
+    note: 'Building the calendar component for AttentionView.',
+    is_highlight: true,
+  },
+  {
+    id: 1003,
+    type: 'habit',
+    habit: 'Exercise',
+    habit_id: 3,
+    practice: 'Gym',
+    occurred_at: '2026-01-10T14:00:00',
+    duration_minutes: 75,
+    note: 'Upper body workout.',
+    is_highlight: false,
+  },
+  {
+    id: 1004,
+    type: 'habit',
+    habit: 'Dog Training',
+    habit_id: 4,
+    practice: 'Loose-Leash Drills',
+    occurred_at: '2026-01-10T16:00:00',
+    duration_minutes: 30,
+    note: 'Evening walk practice.',
+    is_highlight: false,
+  },
+  // Jan 11 (today)
+  {
+    id: 1101,
+    type: 'habit',
+    habit: 'Software',
+    habit_id: 1,
+    practice: 'Personal Project Development',
+    occurred_at: '2026-01-11T09:00:00',
+    duration_minutes: 180,
+    note: 'Working on AttentionView calendar improvements.',
+    is_highlight: true,
+  },
+  {
+    id: 1102,
+    type: 'habit',
+    habit: 'Exercise',
+    habit_id: 3,
+    practice: 'Walking',
+    occurred_at: '2026-01-11T12:30:00',
+    duration_minutes: 45,
+    note: 'Midday walk break.',
+    is_highlight: false,
+  },
+  {
+    id: 1103,
+    type: 'habit',
+    habit: 'Spanish',
+    habit_id: 2,
+    practice: 'Conversation',
+    occurred_at: '2026-01-11T14:00:00',
+    duration_minutes: 30,
+    note: 'Speaking practice with language partner.',
     is_highlight: false,
   },
 ]
