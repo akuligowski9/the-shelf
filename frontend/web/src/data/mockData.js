@@ -204,6 +204,11 @@ export const mockTargets = [
   // Parked
   { id: 3, name: 'Home Renovation Ideas', status: 'parked', habit_id: null },
   { id: 7, name: 'Learn Guitar', status: 'parked', habit_id: null },
+  // Completed
+  { id: 8, name: 'Set Up Dev Environment', status: 'completed', habit_id: 1, done_at: '2026-01-03' },
+  { id: 9, name: '30-Day Spanish Streak', status: 'completed', habit_id: 2, done_at: '2025-12-15' },
+  { id: 10, name: 'ShelfView MVP', status: 'completed', habit_id: 1, done_at: '2026-01-08' },
+  { id: 11, name: 'Gym 3x This Week', status: 'completed', habit_id: 3, done_at: '2026-01-10' },
 ]
 
 // Entries from multiple days (based on actual log data)
@@ -476,6 +481,9 @@ export const mockEntries = [
     duration_minutes: 180,
     note: 'Frontend development for The Shelf.',
     is_highlight: true,
+    warm_up_template_id: 2,
+    warm_up_note: 'Goal: Finish the basic layout for ShelfView.',
+    cool_down_note: 'Layout done. Tomorrow: add interactivity and data binding.',
   },
   {
     id: 702,
@@ -499,6 +507,9 @@ export const mockEntries = [
     duration_minutes: 240,
     note: 'Full day of coding on The Shelf frontend with Claude.',
     is_highlight: true,
+    warm_up_template_id: 1,
+    warm_up_note: 'Big session today. Focus on TodayView and entry forms.',
+    cool_down_note: 'Great progress. Entry forms working. Next: warm-up/cool-down dialogs.',
   },
   {
     id: 802,
@@ -567,6 +578,9 @@ export const mockEntries = [
     duration_minutes: 150,
     note: 'Building the calendar component for AttentionView.',
     is_highlight: true,
+    warm_up_template_id: 2,
+    warm_up_note: 'Focus on AttentionView calendar. Time-box to 2.5 hours.',
+    cool_down_note: 'Calendar working. Need to add target timeline bars next.',
   },
   {
     id: 1003,
@@ -578,6 +592,9 @@ export const mockEntries = [
     duration_minutes: 75,
     note: 'Upper body workout.',
     is_highlight: false,
+    warm_up_template_id: 3,
+    warm_up_note: 'Focus on shoulders and back today. Take it easy on wrists.',
+    cool_down_note: 'Good session. Increased weight on rows. Stretch tomorrow.',
   },
   {
     id: 1004,
@@ -601,6 +618,8 @@ export const mockEntries = [
     duration_minutes: 180,
     note: 'Working on AttentionView calendar improvements.',
     is_highlight: true,
+    warm_up_template_id: 1,
+    warm_up_note: 'Continue calendar work. Add target bars and activity dots.',
   },
   {
     id: 1102,
@@ -640,10 +659,46 @@ export const mockPreparations = {
     note: 'Moving day - no habit work expected.',
     rest_day: true,
   },
+  '2026-01-05': {
+    id: 9,
+    occurred_at: '2026-01-05T08:30:00',
+    note: 'Sunday reset. Light day - walk, some software planning, groceries.',
+    rest_day: false,
+  },
   '2026-01-06': {
     id: 3,
     occurred_at: '2026-01-06T07:30:00',
     note: 'Back to routine. Gym, reading, software work.',
+    rest_day: false,
+  },
+  '2026-01-07': {
+    id: 4,
+    occurred_at: '2026-01-07T08:00:00',
+    note: 'Deep work day. Focus on The Shelf frontend.',
+    rest_day: false,
+  },
+  '2026-01-08': {
+    id: 5,
+    occurred_at: '2026-01-08T07:30:00',
+    note: 'Full coding day planned. Maybe squeeze in dog training.',
+    rest_day: false,
+  },
+  '2026-01-09': {
+    id: 6,
+    occurred_at: '2026-01-09T08:00:00',
+    note: 'Architecture planning session. Keep it focused.',
+    rest_day: false,
+  },
+  '2026-01-10': {
+    id: 7,
+    occurred_at: '2026-01-10T07:45:00',
+    note: 'Balance day - Spanish, software, gym, dog training.',
+    rest_day: false,
+  },
+  '2026-01-11': {
+    id: 8,
+    occurred_at: '2026-01-11T08:00:00',
+    note: 'Continue calendar work. Spanish conversation today.',
     rest_day: false,
   },
 }
@@ -659,6 +714,25 @@ export const mockReflections = [
     note: 'Good balance this week. Started The Shelf project with intention. Moving day disrupted the routine but I accepted it and got back on track.',
     created_at: '2026-01-07T20:00:00',
   },
+  {
+    id: 2,
+    type: 'habit',
+    habit_id: 1,
+    period_start: '2026-01-05',
+    period_end: '2026-01-11',
+    period_label: 'Software - Week of Jan 5',
+    note: 'Great momentum on The Shelf. ShelfView MVP done, now working on AttentionView. The warm-up rituals are helping me focus.',
+    created_at: '2026-01-10T21:00:00',
+  },
+  {
+    id: 3,
+    type: 'monthly',
+    period_start: '2025-12-01',
+    period_end: '2025-12-31',
+    period_label: 'December 2025',
+    note: 'December was about finishing up the year well. Spanish streak completed. Looking forward to diving into The Shelf in January.',
+    created_at: '2025-12-31T20:00:00',
+  },
 ]
 
 // Mock day closures by date (day-level ending only)
@@ -672,6 +746,36 @@ export const mockClosures = {
     id: 2,
     occurred_at: '2026-01-04T21:00:00',
     note: 'Moving done. Exhausted but settled.',
+  },
+  '2026-01-05': {
+    id: 7,
+    occurred_at: '2026-01-05T20:00:00',
+    note: 'Quiet Sunday. Good planning session.',
+  },
+  '2026-01-06': {
+    id: 8,
+    occurred_at: '2026-01-06T21:00:00',
+    note: 'Back in the groove. All habits touched.',
+  },
+  '2026-01-07': {
+    id: 3,
+    occurred_at: '2026-01-07T21:30:00',
+    note: 'Good deep work session. ShelfView layout is coming together.',
+  },
+  '2026-01-08': {
+    id: 4,
+    occurred_at: '2026-01-08T22:00:00',
+    note: 'Marathon coding day. Entry forms are functional now.',
+  },
+  '2026-01-09': {
+    id: 5,
+    occurred_at: '2026-01-09T20:30:00',
+    note: 'Shorter day but productive. Spec is updated.',
+  },
+  '2026-01-10': {
+    id: 6,
+    occurred_at: '2026-01-10T21:00:00',
+    note: 'Great balance day. Hit all four habits plus gym.',
   },
 }
 

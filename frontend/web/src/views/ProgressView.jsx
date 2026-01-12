@@ -22,7 +22,7 @@ import {
   Legend,
 } from 'recharts'
 import { useHabits } from '@/context/HabitsContext'
-import { mockEntries, mockPreparations, mockClosures, mockTransitions } from '@/data/mockData'
+import { mockEntries, mockPreparations, mockClosures, mockTransitions, mockTargets, mockReflections } from '@/data/mockData'
 import { colorPalette } from '@/lib/colors'
 
 // Info tooltip helper component
@@ -132,21 +132,29 @@ export default function ProgressView() {
     setPeriodOffset(0)
   }
 
+  // Helper to format date as YYYY-MM-DD without timezone issues
+  const formatDate = (date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   // Get date range based on selection and offset
   const dateRange = useMemo(() => {
     const today = new Date()
     const dates = []
 
     if (timeRange === 'week') {
-      // Calendar week starting Sunday
-      const dayOfWeek = today.getDay() // 0 = Sunday
-      const sunday = new Date(today)
-      sunday.setDate(today.getDate() - dayOfWeek + (periodOffset * 7))
+      // Calendar week: Sunday through Saturday
+      // Find the Sunday of the current week
+      const currentDay = today.getDay() // 0 = Sunday, 1 = Monday, etc.
+      const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - currentDay + (periodOffset * 7))
 
+      // Generate 7 days starting from Sunday
       for (let i = 0; i < 7; i++) {
-        const date = new Date(sunday)
-        date.setDate(sunday.getDate() + i)
-        dates.push(date.toISOString().split('T')[0])
+        const date = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i)
+        dates.push(formatDate(date))
       }
     } else if (timeRange === 'month') {
       // Calendar month (1st to last day)
@@ -157,16 +165,17 @@ export default function ProgressView() {
 
       for (let day = 1; day <= lastDay; day++) {
         const date = new Date(year, month, day)
-        dates.push(date.toISOString().split('T')[0])
+        dates.push(formatDate(date))
       }
     } else {
       // Calendar year (Jan 1 to Dec 31)
       const targetYear = today.getFullYear() + periodOffset
-      const startDate = new Date(targetYear, 0, 1) // Jan 1
-      const endDate = new Date(targetYear, 11, 31) // Dec 31
 
-      for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-        dates.push(date.toISOString().split('T')[0])
+      for (let month = 0; month < 12; month++) {
+        const lastDay = new Date(targetYear, month + 1, 0).getDate()
+        for (let day = 1; day <= lastDay; day++) {
+          dates.push(formatDate(new Date(targetYear, month, day)))
+        }
       }
     }
     return dates
@@ -338,11 +347,10 @@ export default function ProgressView() {
 
     const daysWithEntries = new Set(entriesInRange.map(e => e.occurred_at.split('T')[0])).size
 
-    // Rest days based on enabled filters only
-    const restDays = chartData.filter(day => {
-      const hasHours = habits.some(h => enabledHabitNames.has(h.name) && day[h.name] > 0)
-      const hasLifeHours = includeLife && day.life > 0
-      return !hasHours && !hasLifeHours
+    // Rest days - only count days explicitly marked as rest_day in preparations
+    const restDays = dateRange.filter(date => {
+      const prep = mockPreparations[date]
+      return prep && prep.rest_day === true
     }).length
 
     // Total hours based on enabled filters only
@@ -370,12 +378,35 @@ export default function ProgressView() {
 
     // Patterns metrics
     const datesInRange = new Set(dateRange)
+    const totalDaysInRange = dateRange.length
     const prepsInRange = Object.keys(mockPreparations).filter(d => datesInRange.has(d)).length
     const closuresInRange = Object.keys(mockClosures).filter(d => datesInRange.has(d)).length
-    const prepRate = daysWithEntries > 0 ? Math.round((prepsInRange / daysWithEntries) * 100) : 0
-    const closureRate = daysWithEntries > 0 ? Math.round((closuresInRange / daysWithEntries) * 100) : 0
+    const prepRate = totalDaysInRange > 0 ? Math.round((prepsInRange / totalDaysInRange) * 100) : 0
+    const closureRate = totalDaysInRange > 0 ? Math.round((closuresInRange / totalDaysInRange) * 100) : 0
+
+    // Session rituals (warm-up and cool-down rates for habit entries)
+    const habitEntriesInRange = entriesInRange.filter(e => e.type === 'habit')
+    const entriesWithWarmUp = habitEntriesInRange.filter(e => e.warm_up_template_id || e.warm_up_note).length
+    const entriesWithCoolDown = habitEntriesInRange.filter(e => e.cool_down_note).length
+    const warmUpRate = habitEntriesInRange.length > 0 ? Math.round((entriesWithWarmUp / habitEntriesInRange.length) * 100) : 0
+    const coolDownRate = habitEntriesInRange.length > 0 ? Math.round((entriesWithCoolDown / habitEntriesInRange.length) * 100) : 0
 
     const highlights = entriesInRange.filter(e => e.is_highlight).length
+
+    // Completed targets in range
+    const completedTargetsInRange = mockTargets.filter(t => {
+      if (t.status !== 'completed' || !t.done_at) return false
+      return dateRange.includes(t.done_at)
+    }).length
+
+    // Total completed targets (all time)
+    const totalCompletedTargets = mockTargets.filter(t => t.status === 'completed').length
+
+    // Reflections in range
+    const reflectionsInRange = mockReflections.filter(r => {
+      const reflectionDate = r.created_at.split('T')[0]
+      return dateRange.includes(reflectionDate)
+    }).length
 
     // Habit coverage for enabled habits only
     const habitCoverage = habits
@@ -470,7 +501,6 @@ export default function ProgressView() {
     const leastLoggedHabit = habitsWithTime.length > 1 ? habitsWithTime[habitsWithTime.length - 1] : null
 
     // Balance: Active days percentage
-    const totalDaysInRange = dateRange.length
     const activeDaysPercent = totalDaysInRange > 0 ? Math.round((daysWithEntries / totalDaysInRange) * 100) : 0
 
     // Balance: Neglected habits (enabled habits with 0 time this period)
@@ -547,10 +577,16 @@ export default function ProgressView() {
       // Patterns
       prepRate,
       closureRate,
+      warmUpRate,
+      coolDownRate,
       highlights,
       habitCoverage,
       periodOverPeriodChange,
       dayOfWeekData,
+      // Accomplishments
+      completedTargetsInRange,
+      totalCompletedTargets,
+      reflectionsInRange,
     }
   }, [chartData, dateRange, habits, timeRange, periodOffset, enabledFilters])
 
@@ -881,19 +917,21 @@ export default function ProgressView() {
             <CardContent>
               {/* Stacked bar showing all categories */}
               <div className="h-4 bg-muted rounded-full overflow-hidden flex">
-                {habits.map(habit => {
-                  const habitHours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
-                  const percent = stats.totalHours > 0 ? (habitHours / stats.totalHours) * 100 : 0
-                  if (percent === 0) return null
-                  return (
-                    <div
-                      key={habit.id}
-                      className="h-full"
-                      style={{ width: `${percent}%`, backgroundColor: getChartColor(habit.color) }}
-                    />
-                  )
-                })}
-                {stats.lifePercent > 0 && (
+                {habits
+                  .filter(h => enabledFilters.has(h.name))
+                  .map(habit => {
+                    const habitHours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
+                    const percent = stats.totalHours > 0 ? (habitHours / stats.totalHours) * 100 : 0
+                    if (percent === 0) return null
+                    return (
+                      <div
+                        key={habit.id}
+                        className="h-full"
+                        style={{ width: `${percent}%`, backgroundColor: getChartColor(habit.color) }}
+                      />
+                    )
+                  })}
+                {enabledFilters.has('Life') && stats.lifePercent > 0 && (
                   <div
                     className="h-full"
                     style={{ width: `${stats.lifePercent}%`, backgroundColor: 'hsl(200, 45%, 48%)' }}
@@ -902,22 +940,24 @@ export default function ProgressView() {
               </div>
               {/* Legend with percentages */}
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm">
-                {habits.map(habit => {
-                  const habitHours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
-                  const percent = stats.totalHours > 0 ? Math.round((habitHours / stats.totalHours) * 100) : 0
-                  if (percent === 0) return null
-                  return (
-                    <div key={habit.id} className="flex items-center gap-1.5">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: getChartColor(habit.color) }}
-                      />
-                      <span>{habit.name}</span>
-                      <span className="text-muted-foreground">{percent}%</span>
-                    </div>
-                  )
-                })}
-                {stats.lifePercent > 0 && (
+                {habits
+                  .filter(h => enabledFilters.has(h.name))
+                  .map(habit => {
+                    const habitHours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
+                    const percent = stats.totalHours > 0 ? Math.round((habitHours / stats.totalHours) * 100) : 0
+                    if (percent === 0) return null
+                    return (
+                      <div key={habit.id} className="flex items-center gap-1.5">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: getChartColor(habit.color) }}
+                        />
+                        <span>{habit.name}</span>
+                        <span className="text-muted-foreground">{percent}%</span>
+                      </div>
+                    )
+                  })}
+                {enabledFilters.has('Life') && stats.lifePercent > 0 && (
                   <div className="flex items-center gap-1.5">
                     <div
                       className="w-2.5 h-2.5 rounded-full"
@@ -1102,11 +1142,11 @@ export default function ProgressView() {
         </>
       ) : (
         <>
-          {/* Patterns: Habit Coverage - Core consistency metric (most important) */}
+          {/* Patterns: Habit Consistency - Core consistency metric (most important) */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Habit Coverage
+                Habit Consistency
                 <InfoTip text="Percentage of active days where each habit was logged. Shows consistency, not intensity." />
               </CardTitle>
             </CardHeader>
@@ -1126,64 +1166,7 @@ export default function ProgressView() {
             </CardContent>
           </Card>
 
-          {/* Patterns: Activity - Showing up */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Activity
-                <InfoTip text="How often you're showing up and logging sessions." />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-semibold">{stats.activeDaysPercent}%</div>
-                  <div className="text-xs text-muted-foreground">Active Days</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold">{stats.totalEntries}</div>
-                  <div className="text-xs text-muted-foreground">Sessions</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold">{stats.avgEntriesPerDay}</div>
-                  <div className="text-xs text-muted-foreground">Sessions/Day</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Patterns: Ritual metrics */}
-          <div className="grid grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="pt-4 pb-4 text-center">
-                <div className="text-2xl font-semibold">{stats.prepRate}%</div>
-                <div className="text-sm text-muted-foreground">
-                  Prep Rate
-                  <InfoTip text="How often you set intentions before starting. Tracks intentionality." />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 pb-4 text-center">
-                <div className="text-2xl font-semibold">{stats.closureRate}%</div>
-                <div className="text-sm text-muted-foreground">
-                  Closure Rate
-                  <InfoTip text="How often you explicitly ended your day. Tracks completion habits." />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 pb-4 text-center">
-                <div className="text-2xl font-semibold">{stats.highlights}</div>
-                <div className="text-sm text-muted-foreground">
-                  Highlights
-                  <InfoTip text="Entries you marked as noteworthy. Track meaningful moments." />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Patterns: Habit Deep Dive - Detailed exploration (interactive, so last) */}
+          {/* Patterns: Habit Deep Dive - Drill into specific habit */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -1220,34 +1203,142 @@ export default function ProgressView() {
                   <div>
                     <div className="text-xl font-semibold">{habitPatterns.sessionsInRange}</div>
                     <div className="text-xs text-muted-foreground">
-                      Sessions ({timeRange})
+                      Entries ({timeRange})
                     </div>
                   </div>
                   <div>
                     <div className="text-xl font-semibold">{habitPatterns.avgSessionLength}m</div>
                     <div className="text-xs text-muted-foreground">
-                      Avg Session
-                      <InfoTip text="Average duration per session, all time." />
+                      Avg Entry
+                      <InfoTip text="Average duration per entry, all time." />
                     </div>
                   </div>
                   <div>
                     <div className="text-xl font-semibold">{habitPatterns.daysSinceLast}d</div>
                     <div className="text-xs text-muted-foreground">
                       Since Last
-                      <InfoTip text="Days since your last session. Not a streak counter." />
+                      <InfoTip text="Days since your last entry. Not a streak counter." />
                     </div>
                   </div>
                   <div>
                     <div className="text-xl font-semibold">{habitPatterns.longestGap}d</div>
                     <div className="text-xs text-muted-foreground">
                       Longest Gap
-                      <InfoTip text="Longest break between sessions." />
+                      <InfoTip text="Longest break between entries." />
                     </div>
                   </div>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Patterns: Activity - Showing up */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Activity
+                <InfoTip text="How often you're showing up and logging entries." />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-semibold">{stats.activeDaysPercent}%</div>
+                  <div className="text-xs text-muted-foreground">Active Days</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-semibold">{stats.totalEntries}</div>
+                  <div className="text-xs text-muted-foreground">Entries</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-semibold">{stats.avgEntriesPerDay}</div>
+                  <div className="text-xs text-muted-foreground">Entries/Day</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Patterns: Accomplishments - Highlights, Targets, Reflections */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Accomplishments
+                <InfoTip text="Track meaningful moments, completed targets, and how often you're reflecting on your progress." />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-semibold">{stats.highlights}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Highlights
+                    <InfoTip text="Entries you marked as noteworthy this period." />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-semibold">{stats.completedTargetsInRange}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Targets Done
+                    <InfoTip text={`Targets completed this period. Total completed all time: ${stats.totalCompletedTargets}.`} />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-semibold">{stats.reflectionsInRange}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Reflections
+                    <InfoTip text="How often you're reviewing and reflecting on your progress." />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Patterns: Rituals and Sessions side by side */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Daily Rituals */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Rituals
+                  <InfoTip text="Daily rituals: how often you set intentions at start of day and close out at end of day." />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <div className="text-xl font-semibold">{stats.prepRate}%</div>
+                    <div className="text-xs text-muted-foreground">Prep</div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-semibold">{stats.closureRate}%</div>
+                    <div className="text-xs text-muted-foreground">Closure</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Session Rituals */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Sessions
+                  <InfoTip text="Entry-level rituals: how often you warm up before and cool down after habit entries." />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <div className="text-xl font-semibold">{stats.warmUpRate}%</div>
+                    <div className="text-xs text-muted-foreground">Warm-up</div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-semibold">{stats.coolDownRate}%</div>
+                    <div className="text-xs text-muted-foreground">Cool-down</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </>
       )}
     </div>
