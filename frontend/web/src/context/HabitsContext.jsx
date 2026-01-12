@@ -5,6 +5,8 @@ import {
   mockBehaviors as initialBehaviors,
   mockTargets as initialTargets,
   mockScheduledPractices as initialScheduledPractices,
+  mockWarmUpTemplates as initialWarmUpTemplates,
+  mockCoolDownTemplates as initialCoolDownTemplates,
 } from '@/data/mockData'
 
 const HabitsContext = createContext(null)
@@ -15,6 +17,8 @@ export function HabitsProvider({ children }) {
   const [behaviors, setBehaviors] = useState(initialBehaviors)
   const [targets, setTargets] = useState(initialTargets)
   const [scheduledPractices, setScheduledPractices] = useState(initialScheduledPractices)
+  const [warmUpTemplates, setWarmUpTemplates] = useState(initialWarmUpTemplates)
+  const [coolDownTemplates, setCoolDownTemplates] = useState(initialCoolDownTemplates)
 
   // Update a habit's color
   const updateHabitColor = (habitId, colorKey) => {
@@ -227,6 +231,76 @@ export function HabitsProvider({ children }) {
     )
   }
 
+  // ---- Template management ----
+
+  // Get warm-up templates for a habit
+  const getWarmUpTemplatesForHabit = (habitId) => {
+    return warmUpTemplates.filter(t => t.habit_id === habitId)
+  }
+
+  // Get cool-down templates for a habit
+  const getCoolDownTemplatesForHabit = (habitId) => {
+    return coolDownTemplates.filter(t => t.habit_id === habitId)
+  }
+
+  // Add a warm-up template
+  const addWarmUpTemplate = (habitId, name, content = '', hasDynamicElements = false) => {
+    const newId = Math.max(...warmUpTemplates.map(t => t.id), 0) + 1
+    setWarmUpTemplates(prev => [
+      ...prev,
+      { id: newId, habit_id: habitId, name, content, has_dynamic_elements: hasDynamicElements, active: true }
+    ])
+    return newId
+  }
+
+  // Add a cool-down template
+  const addCoolDownTemplate = (habitId, name, content = '', hasDynamicElements = false) => {
+    const newId = Math.max(...coolDownTemplates.map(t => t.id), 0) + 1
+    setCoolDownTemplates(prev => [
+      ...prev,
+      { id: newId, habit_id: habitId, name, content, has_dynamic_elements: hasDynamicElements, active: true }
+    ])
+    return newId
+  }
+
+  // Update a warm-up template
+  const updateWarmUpTemplate = (templateId, updates) => {
+    setWarmUpTemplates(prev =>
+      prev.map(t => t.id === templateId ? { ...t, ...updates } : t)
+    )
+  }
+
+  // Update a cool-down template
+  const updateCoolDownTemplate = (templateId, updates) => {
+    setCoolDownTemplates(prev =>
+      prev.map(t => t.id === templateId ? { ...t, ...updates } : t)
+    )
+  }
+
+  // Delete a warm-up template
+  const deleteWarmUpTemplate = (templateId) => {
+    setWarmUpTemplates(prev => prev.filter(t => t.id !== templateId))
+  }
+
+  // Delete a cool-down template
+  const deleteCoolDownTemplate = (templateId) => {
+    setCoolDownTemplates(prev => prev.filter(t => t.id !== templateId))
+  }
+
+  // Toggle warm-up template active status
+  const toggleWarmUpTemplateActive = (templateId) => {
+    setWarmUpTemplates(prev =>
+      prev.map(t => t.id === templateId ? { ...t, active: !t.active } : t)
+    )
+  }
+
+  // Toggle cool-down template active status
+  const toggleCoolDownTemplateActive = (templateId) => {
+    setCoolDownTemplates(prev =>
+      prev.map(t => t.id === templateId ? { ...t, active: !t.active } : t)
+    )
+  }
+
   const value = {
     // Habits
     habits,
@@ -267,6 +341,19 @@ export function HabitsProvider({ children }) {
     updateTargetName,
     updateTargetHabit,
     updateTargetDates,
+    // Templates
+    warmUpTemplates,
+    coolDownTemplates,
+    getWarmUpTemplatesForHabit,
+    getCoolDownTemplatesForHabit,
+    addWarmUpTemplate,
+    addCoolDownTemplate,
+    updateWarmUpTemplate,
+    updateCoolDownTemplate,
+    deleteWarmUpTemplate,
+    deleteCoolDownTemplate,
+    toggleWarmUpTemplateActive,
+    toggleCoolDownTemplateActive,
   }
 
   return (

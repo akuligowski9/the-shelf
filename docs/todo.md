@@ -20,22 +20,40 @@ Tasks organized by priority and area. Each task includes its source.
   - Source: tech-spec.md (Section 5.5)
 
 ### ProgressView
-- [ ] **Install Recharts** — Add recharts dependency for chart visualizations.
+- [x] **Install Recharts** — Add recharts dependency for chart visualizations.
   - Source: tech-spec.md (Section 4.4)
 
-- [ ] **Balance View — Stacked Bar Chart** — Daily stacked bars showing habits (color-coded), life entries, and caution behaviors.
+- [x] **Balance View — Stacked Bar Chart** — Daily stacked bars showing habits (color-coded), life entries, and caution behaviors.
   - Source: README.md (Metrics section), tech-spec.md (Section 4.4)
 
-- [ ] **Patterns View — Line Charts** — One line per habit with toggle on/off. Preserve continuity across rest days.
+- [x] **Patterns View — Line Charts** — One line per habit with toggle on/off. Clean lines without dots, activeDot on hover.
   - Source: tech-spec.md (Section 4.4)
+
+- [x] **Calendar-Based Navigation** — Week shows date range with year, month shows "January 2026", year shows "2026".
+  - Source: conversation context
+
+- [x] **Period Navigation Arrows** — Navigate between previous/next week/month/year.
+  - Source: conversation context
+
+- [x] **Custom Tooltips** — Dark mode compatible tooltips with habit colors, date ranges for year view.
+  - Source: conversation context
+
+- [x] **Habit/Life Toggles** — Functional toggles to show/hide habits and Life in charts.
+  - Source: tech-spec.md (Section 5.3)
+
+- [x] **Time Range Selector** — Functional week/month/year selector with calendar-based periods.
+  - Source: tech-spec.md (Section 5.3)
+
+- [x] **Summary Stats** — Distribution, averages, period comparison, habit coverage.
+  - Source: conversation context
+
+- [x] **Habit Deep Dive** — Habit-specific patterns: avg session, days since last, longest gap, session counts.
+  - Source: conversation context
 
 - [ ] **Calendar View** — Compact composition indicator per day, clicking drills into entries.
   - Source: tech-spec.md (Section 4.4)
 
-- [ ] **Habit/Practice Toggles** — Functional toggles to show/hide habits and drill into practice breakdowns.
-  - Source: tech-spec.md (Section 5.3)
-
-- [ ] **Time Range Selector** — Functional week/month/year selector.
+- [ ] **Practice Breakdowns** — Drill down into practice-level data within habits.
   - Source: tech-spec.md (Section 5.3)
 
 - [ ] **Transition & Caution Markers** — Overlay markers on charts for transitions and caution spikes.

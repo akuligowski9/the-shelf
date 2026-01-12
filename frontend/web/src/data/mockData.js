@@ -648,6 +648,19 @@ export const mockPreparations = {
   },
 }
 
+// Mock reflections for Review page
+export const mockReflections = [
+  {
+    id: 1,
+    type: 'weekly',
+    period_start: '2026-01-01',
+    period_end: '2026-01-07',
+    period_label: 'Jan 1-7, 2026',
+    note: 'Good balance this week. Started The Shelf project with intention. Moving day disrupted the routine but I accepted it and got back on track.',
+    created_at: '2026-01-07T20:00:00',
+  },
+]
+
 // Mock day closures by date (day-level ending only)
 export const mockClosures = {
   '2026-01-02': {
@@ -661,6 +674,28 @@ export const mockClosures = {
     note: 'Moving done. Exhausted but settled.',
   },
 }
+
+// Transitions - structural changes to habits (entering/exiting transition windows)
+export const mockTransitions = [
+  {
+    id: 1,
+    started_at: '2025-11-15T10:00:00',
+    ended_at: '2025-11-15T10:30:00',
+    note: 'Added Reading habit, set initial target to 30 min/day',
+  },
+  {
+    id: 2,
+    started_at: '2025-12-20T14:00:00',
+    ended_at: '2025-12-20T14:15:00',
+    note: 'Paused Reading habit for holidays, will resume in January',
+  },
+  {
+    id: 3,
+    started_at: '2026-01-05T09:00:00',
+    ended_at: '2026-01-05T09:20:00',
+    note: 'Added Dog Training habit after getting new puppy',
+  },
+]
 
 // Helper to get practices for a specific habit
 export function getPracticesForHabit(habitId) {

@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Plus, Star, Pencil, Sun, Moon, Sunrise, Sunset } from 'lucide-react'
+import { Plus, Star, Pencil, Sun, Moon, Sunrise, Sunset, Archive, RotateCcw, ChevronDown, ChevronRight, Coffee } from 'lucide-react'
 import {
   mockEntries,
   mockPreparations,
@@ -48,6 +48,7 @@ export default function TodayView() {
   const [editingEntry, setEditingEntry] = useState(null)
   const [warmUpEntry, setWarmUpEntry] = useState(null)
   const [coolDownEntry, setCoolDownEntry] = useState(null)
+  const [showArchived, setShowArchived] = useState(false)
 
   // Data states - initialize from mock data
   const [allEntries, setAllEntries] = useState(mockEntries)
@@ -59,6 +60,14 @@ export default function TodayView() {
     return allEntries.filter(entry => {
       const entryDate = entry.occurred_at.split('T')[0]
       return entryDate === dateKey && !entry.archived_at
+    })
+  }, [allEntries, dateKey])
+
+  // Get archived entries for selected date
+  const archivedEntries = useMemo(() => {
+    return allEntries.filter(entry => {
+      const entryDate = entry.occurred_at.split('T')[0]
+      return entryDate === dateKey && entry.archived_at
     })
   }, [allEntries, dateKey])
 
@@ -79,12 +88,14 @@ export default function TodayView() {
   }, [selectedDate])
 
   // Computed stats by entry type
-  const dayStats = useMemo(() => ({
-    habits: entries.filter(e => e.type === 'habit').length,
-    life: entries.filter(e => e.type === 'life').length,
-    caution: entries.filter(e => e.type === 'caution').length,
-    minutes: entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
-  }), [entries])
+  const dayStats = useMemo(() => {
+    return {
+      habits: entries.filter(e => e.type === 'habit').length,
+      life: entries.filter(e => e.type === 'life').length,
+      caution: entries.filter(e => e.type === 'caution').length,
+      minutes: entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
+    }
+  }, [entries])
 
   // Handlers
   const handleEntrySubmit = (entry, isEdit) => {
@@ -111,6 +122,16 @@ export default function TodayView() {
       prev.map(entry =>
         entry.id === entryId
           ? { ...entry, archived_at: new Date().toISOString() }
+          : entry
+      )
+    )
+  }
+
+  const handleUnarchiveEntry = (entryId) => {
+    setAllEntries(prev =>
+      prev.map(entry =>
+        entry.id === entryId
+          ? { ...entry, archived_at: null }
           : entry
       )
     )
@@ -296,38 +317,46 @@ export default function TodayView() {
       </Card>
 
       {/* Summary */}
-      <div className="flex items-center gap-2 text-sm text-foreground">
-        {dayStats.habits > 0 && (
-          <>
-            <span>{dayStats.habits} {dayStats.habits === 1 ? 'habit' : 'habits'}</span>
-            <span className="text-muted-foreground">·</span>
-          </>
-        )}
-        {dayStats.life > 0 && (
-          <>
-            <span>{dayStats.life} life</span>
-            <span className="text-muted-foreground">·</span>
-          </>
-        )}
-        {dayStats.caution > 0 && (
-          <>
-            <span>{dayStats.caution} caution</span>
-            <span className="text-muted-foreground">·</span>
-          </>
-        )}
-        <span>{dayStats.minutes} min</span>
-        {dayPreparation && (
-          <>
-            <span className="text-muted-foreground">·</span>
-            <Sun className={`h-4 w-4 ${getDayPromptIconClass('start')}`} />
-          </>
-        )}
-        {dayClosure && (
-          <>
-            <span className="text-muted-foreground">·</span>
-            <Moon className={`h-4 w-4 ${getDayPromptIconClass('end')}`} />
-          </>
-        )}
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 text-sm text-foreground">
+          {dayStats.habits > 0 && (
+            <>
+              <span>{dayStats.habits} {dayStats.habits === 1 ? 'habit' : 'habits'}</span>
+              <span className="text-muted-foreground">·</span>
+            </>
+          )}
+          {dayStats.life > 0 && (
+            <>
+              <span>{dayStats.life} life</span>
+              <span className="text-muted-foreground">·</span>
+            </>
+          )}
+          {dayStats.caution > 0 && (
+            <>
+              <span>{dayStats.caution} caution</span>
+              <span className="text-muted-foreground">·</span>
+            </>
+          )}
+          <span>{dayStats.minutes} min</span>
+          {dayPreparation && (
+            <>
+              <span className="text-muted-foreground">·</span>
+              <Sun className={`h-4 w-4 ${getDayPromptIconClass('start')}`} />
+            </>
+          )}
+          {dayClosure && (
+            <>
+              <span className="text-muted-foreground">·</span>
+              <Moon className={`h-4 w-4 ${getDayPromptIconClass('end')}`} />
+            </>
+          )}
+          {dayPreparation?.rest_day && (
+            <>
+              <span className="text-muted-foreground">·</span>
+              <Coffee className="h-4 w-4 text-amber-600 dark:text-amber-400" title="Rest day" />
+            </>
+          )}
+        </div>
       </div>
 
       {/* Entry List */}
@@ -448,15 +477,82 @@ export default function TodayView() {
         )}
       </div>
 
+      {/* Archived Entries */}
+      {archivedEntries.length > 0 && (
+        <div className="space-y-2">
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showArchived ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+            <Archive className="h-4 w-4" />
+            <span>{archivedEntries.length} archived {archivedEntries.length === 1 ? 'entry' : 'entries'}</span>
+          </button>
+
+          {showArchived && (
+            <div className="space-y-2 pl-6">
+              {archivedEntries.map(entry => (
+                <Card key={entry.id} className="opacity-60 border-dashed">
+                  <CardContent className="pt-3 pb-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <Badge
+                          variant={getEntryBadgeStyle(entry).variant}
+                          className={getEntryBadgeStyle(entry).className}
+                        >
+                          {getEntryLabel(entry)}
+                        </Badge>
+                        {entry.practice && (
+                          <span className="text-sm text-muted-foreground truncate">
+                            {entry.practice}
+                          </span>
+                        )}
+                        {entry.note && (
+                          <span className="text-sm text-muted-foreground truncate">
+                            — {entry.note}
+                          </span>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleUnarchiveEntry(entry.id)}
+                        className="shrink-0"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Restore
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Day Closure Card */}
       <Separator className="bg-border" />
       <Card className={dayClosure ? `${getDayPromptClasses('end')} border` : ''}>
         <CardContent className="pt-4 pb-4">
           {dayClosure ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Moon className={`h-4 w-4 ${getDayPromptIconClass('end')}`} />
-                <span className="text-sm font-medium">Day Closed</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Moon className={`h-4 w-4 ${getDayPromptIconClass('end')}`} />
+                  <span className="text-sm font-medium">Day Closed</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setClosureDialogOpen(true)}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
               </div>
               {dayClosure.note && (
                 <p className="text-sm text-muted-foreground">{dayClosure.note}</p>
@@ -496,6 +592,7 @@ export default function TodayView() {
         onOpenChange={setClosureDialogOpen}
         onSubmit={handleClosureSubmit}
         todayStats={dayStats}
+        existingClosure={dayClosure}
       />
 
       <WarmUpDialog

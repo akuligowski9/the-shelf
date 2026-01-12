@@ -28,7 +28,7 @@ The Shelf is a personal attention and life-balance companion. This document trac
 |------|----------|-------|
 | ShelfView | ~95% | Habits accordion, targets by status, activity stats, highlights |
 | TodayView | ~95% | Entries CRUD, prep/closure, warm-up/cool-down flows |
-| ProgressView | ~15% | Layout only, needs Recharts + real data |
+| ProgressView | ~85% | Balance/Patterns charts, calendar navigation, custom tooltips, habit deep dive |
 | ReviewView | ~20% | Layout only, needs functional reflections |
 | AttentionView | ~60% | Habits/practices/behaviors CRUD, targets CRUD, edit dialogs |
 | SettingsView | ~85% | Theme toggle, data health metrics, import/export placeholders |
@@ -56,17 +56,26 @@ The Shelf is a personal attention and life-balance companion. This document trac
 - [x] Behaviors displayed as comma-separated text
 - [x] Left border colors by entry type
 
-### ProgressView (Placeholder)
+### ProgressView (Functional)
 - [x] Header and basic layout
-- [x] Balance/Patterns toggle buttons (static)
-- [x] Time range selector (static)
-- [ ] Stacked bar chart (Recharts)
-- [ ] Line chart for patterns
-- [ ] Calendar view
-- [ ] Functional habit toggles
+- [x] Balance/Patterns toggle buttons (functional)
+- [x] Time range selector (Week/Month/Year)
+- [x] Calendar-based navigation (week date range, month+year, year number)
+- [x] Period navigation arrows (previous/next week/month/year)
+- [x] Stacked bar chart (Recharts) with habit colors
+- [x] Line chart for patterns view (clean lines, no dots, activeDot on hover)
+- [x] Custom tooltips with dark mode styling and habit colors
+- [x] Functional habit/Life toggles (show/hide in charts)
+- [x] Real data binding from mockEntries
+- [x] Distribution stats (total hours, habit/life/caution counts, rest days)
+- [x] Average stats (hrs/day, habits/day, entries/day)
+- [x] Period comparison (week-over-week % change)
+- [x] Habit coverage percentages
+- [x] Habit Deep Dive section (session stats, gaps, hours by period)
+- [x] Year view with 52 weeks, date range in tooltip
+- [ ] Calendar view (compact grid)
 - [ ] Practice breakdowns
 - [ ] Transition/caution markers
-- [ ] Real data binding
 
 ### ReviewView (Placeholder)
 - [x] Header and basic layout
@@ -217,15 +226,14 @@ The Shelf is a personal attention and life-balance companion. This document trac
 
 ### High Priority (Blocks Core Experience)
 1. **AttentionView**: Warm-up/cool-down template library
-2. **ProgressView**: Recharts integration for visualizations
-3. **Backend**: API endpoints for data persistence
+2. **Backend**: API endpoints for data persistence
 
 ### Medium Priority
-4. **ReviewView**: Functional reflection save/load
-5. **AttentionView**: Transition window flow
-6. **SettingsView**: Import/Export functionality
+3. **ReviewView**: Functional reflection save/load
+4. **AttentionView**: Transition window flow
+5. **SettingsView**: Import/Export functionality
 
 ### Lower Priority (Polish)
-7. **ProgressView**: Calendar view
-8. **AttentionView**: Hash navigation
-9. **Testing**: Playwright E2E tests
+6. **ProgressView**: Calendar view (compact grid), practice breakdowns, transition markers
+7. **AttentionView**: Hash navigation
+8. **Testing**: Playwright E2E tests

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -11,15 +11,24 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 
-export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats }) {
+export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats, existingClosure }) {
   const [note, setNote] = useState('')
+
+  // Populate form when editing existing closure
+  useEffect(() => {
+    if (existingClosure) {
+      setNote(existingClosure.note || '')
+    }
+  }, [existingClosure])
+
+  const isEditing = !!existingClosure
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
     const closure = {
-      id: Date.now(),
-      occurred_at: new Date().toISOString(),
+      id: existingClosure?.id || Date.now(),
+      occurred_at: existingClosure?.occurred_at || new Date().toISOString(),
       note: note.trim() || null,
     }
 
@@ -43,9 +52,11 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Close the Day</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Closure' : 'Close the Day'}</DialogTitle>
           <DialogDescription>
-            Mark the end of your day. This is about stopping cleanly, not perfectly.
+            {isEditing
+              ? 'Update your closing thoughts for the day.'
+              : 'Mark the end of your day. This is about stopping cleanly, not perfectly.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,7 +105,7 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
               Cancel
             </Button>
             <Button type="submit">
-              Close Day
+              {isEditing ? 'Save Changes' : 'Close Day'}
             </Button>
           </DialogFooter>
         </form>
