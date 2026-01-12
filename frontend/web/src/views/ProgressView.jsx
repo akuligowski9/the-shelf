@@ -308,11 +308,24 @@ export default function ProgressView() {
     })
   }, [dateRange, habits, timeRange])
 
-  // Calculate summary stats
+  // Calculate summary stats (filtered by enabledFilters)
   const stats = useMemo(() => {
-    const entriesInRange = mockEntries.filter(e => {
+    // Get enabled habits (filter out Life, that's handled separately)
+    const enabledHabitNames = new Set(
+      [...enabledFilters].filter(f => f !== 'Life')
+    )
+    const includeLife = enabledFilters.has('Life')
+
+    // Filter entries by date range AND enabled filters
+    const allEntriesInRange = mockEntries.filter(e => {
       const entryDate = e.occurred_at.split('T')[0]
       return dateRange.includes(entryDate)
+    })
+
+    const entriesInRange = allEntriesInRange.filter(e => {
+      if (e.type === 'habit') return enabledHabitNames.has(e.habit)
+      if (e.type === 'life') return includeLife
+      return true // caution always included
     })
 
     const totalEntries = entriesInRange.length
@@ -322,15 +335,18 @@ export default function ProgressView() {
 
     const daysWithEntries = new Set(entriesInRange.map(e => e.occurred_at.split('T')[0])).size
 
+    // Rest days based on enabled filters only
     const restDays = chartData.filter(day => {
-      const hasHours = habits.some(h => day[h.name] > 0)
-      const hasLifeHours = day.life > 0
+      const hasHours = habits.some(h => enabledHabitNames.has(h.name) && day[h.name] > 0)
+      const hasLifeHours = includeLife && day.life > 0
       return !hasHours && !hasLifeHours
     }).length
 
-    // chartData is already in hours
+    // Total hours based on enabled filters only
     const totalHours = chartData.reduce((acc, day) => {
-      const dayHours = habits.reduce((sum, h) => sum + (day[h.name] || 0), 0) + day.life
+      const dayHours = habits
+        .filter(h => enabledHabitNames.has(h.name))
+        .reduce((sum, h) => sum + (day[h.name] || 0), 0) + (includeLife ? day.life : 0)
       return acc + dayHours
     }, 0)
 
@@ -338,7 +354,7 @@ export default function ProgressView() {
     const avgEntriesPerDay = daysWithEntries > 0 ? (totalEntries / daysWithEntries).toFixed(1) : 0
     const avgHoursPerDay = daysWithEntries > 0 ? (totalHours / daysWithEntries).toFixed(1) : 0
 
-    // Count unique habits per day, then average
+    // Count unique enabled habits per day, then average
     const habitsByDay = {}
     entriesInRange.filter(e => e.type === 'habit').forEach(e => {
       const day = e.occurred_at.split('T')[0]
@@ -358,34 +374,65 @@ export default function ProgressView() {
 
     const highlights = entriesInRange.filter(e => e.is_highlight).length
 
-    // Habit coverage for the time range
-    const habitCoverage = habits.map(habit => {
-      const habitEntriesForHabit = entriesInRange.filter(e => e.type === 'habit' && e.habit === habit.name)
-      const daysLogged = new Set(habitEntriesForHabit.map(e => e.occurred_at.split('T')[0])).size
-      const coveragePercent = daysWithEntries > 0 ? Math.round((daysLogged / daysWithEntries) * 100) : 0
-      return { name: habit.name, color: habit.color, coverage: coveragePercent }
-    })
+    // Habit coverage for enabled habits only
+    const habitCoverage = habits
+      .filter(h => enabledHabitNames.has(h.name))
+      .map(habit => {
+        const habitEntriesForHabit = entriesInRange.filter(e => e.type === 'habit' && e.habit === habit.name)
+        const daysLogged = new Set(habitEntriesForHabit.map(e => e.occurred_at.split('T')[0])).size
+        const coveragePercent = daysWithEntries > 0 ? Math.round((daysLogged / daysWithEntries) * 100) : 0
+        return { name: habit.name, color: habit.color, coverage: coveragePercent }
+      })
 
-    // Week-over-Week change (compare to previous period)
-    const periodLength = dateRange.length
+    // Previous period comparison (based on viewed period, not today)
     const today = new Date()
     const previousRangeDates = []
-    for (let i = periodLength * 2 - 1; i >= periodLength; i--) {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i)
-      previousRangeDates.push(date.toISOString().split('T')[0])
+
+    if (timeRange === 'week') {
+      // Previous 7 days before the current viewed week
+      const firstDay = new Date(dateRange[0] + 'T12:00:00')
+      for (let i = 7; i >= 1; i--) {
+        const date = new Date(firstDay)
+        date.setDate(date.getDate() - i)
+        previousRangeDates.push(date.toISOString().split('T')[0])
+      }
+    } else if (timeRange === 'month') {
+      // Previous calendar month
+      const targetMonth = new Date(today.getFullYear(), today.getMonth() + periodOffset - 1, 1)
+      const year = targetMonth.getFullYear()
+      const month = targetMonth.getMonth()
+      const lastDay = new Date(year, month + 1, 0).getDate()
+      for (let day = 1; day <= lastDay; day++) {
+        const date = new Date(year, month, day)
+        previousRangeDates.push(date.toISOString().split('T')[0])
+      }
+    } else {
+      // Previous calendar year
+      const targetYear = today.getFullYear() + periodOffset - 1
+      const startDate = new Date(targetYear, 0, 1)
+      const endDate = new Date(targetYear, 11, 31)
+      for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+        previousRangeDates.push(date.toISOString().split('T')[0])
+      }
     }
-    const previousEntries = mockEntries.filter(e => {
+
+    // Filter previous entries by enabled filters too
+    const allPreviousEntries = mockEntries.filter(e => {
       const entryDate = e.occurred_at.split('T')[0]
       return previousRangeDates.includes(entryDate)
     })
+    const previousEntries = allPreviousEntries.filter(e => {
+      if (e.type === 'habit') return enabledHabitNames.has(e.habit)
+      if (e.type === 'life') return includeLife
+      return true
+    })
     const previousHours = previousEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / 60
     const currentHours = entriesInRange.reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / 60
-    const weekOverWeekChange = previousHours > 0
+    const periodOverPeriodChange = previousHours > 0
       ? Math.round(((currentHours - previousHours) / previousHours) * 100)
       : (currentHours > 0 ? 100 : 0)
 
-    // Day of Week distribution
+    // Day of Week distribution (filtered)
     const dayOfWeekDist = [0, 0, 0, 0, 0, 0, 0] // Sun-Sat
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     entriesInRange.forEach(e => {
@@ -397,12 +444,72 @@ export default function ProgressView() {
       hours: Math.round(dayOfWeekDist[i] * 10) / 10,
     }))
 
+    // Balance: Life vs Habit time split (filtered)
+    const habitHours = chartData.reduce((acc, day) => {
+      return acc + habits
+        .filter(h => enabledHabitNames.has(h.name))
+        .reduce((sum, h) => sum + (day[h.name] || 0), 0)
+    }, 0)
+    const lifeHours = includeLife ? chartData.reduce((acc, day) => acc + (day.life || 0), 0) : 0
+    const habitPercent = totalHours > 0 ? Math.round((habitHours / totalHours) * 100) : 0
+    const lifePercent = totalHours > 0 ? Math.round((lifeHours / totalHours) * 100) : 0
+
+    // Balance: Most and least logged habits (filtered)
+    const habitTotals = habits
+      .filter(h => enabledHabitNames.has(h.name))
+      .map(habit => {
+        const hours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
+        return { name: habit.name, color: habit.color, hours: Math.round(hours * 10) / 10 }
+      })
+    const sortedByHours = [...habitTotals].sort((a, b) => b.hours - a.hours)
+    const mostLoggedHabit = sortedByHours[0] || null
+    const habitsWithTime = sortedByHours.filter(h => h.hours > 0)
+    const leastLoggedHabit = habitsWithTime.length > 1 ? habitsWithTime[habitsWithTime.length - 1] : null
+
+    // Balance: Active days percentage
+    const totalDaysInRange = dateRange.length
+    const activeDaysPercent = totalDaysInRange > 0 ? Math.round((daysWithEntries / totalDaysInRange) * 100) : 0
+
+    // Balance: Neglected habits (enabled habits with 0 time this period)
+    const neglectedHabits = habitTotals.filter(h => h.hours === 0).map(h => h.name)
+
+    // Balance: Trend vs previous period (filtered)
+    const previousHabitHours = {}
+    habits.filter(h => enabledHabitNames.has(h.name)).forEach(habit => {
+      const hours = previousEntries
+        .filter(e => e.type === 'habit' && e.habit === habit.name)
+        .reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / 60
+      previousHabitHours[habit.name] = hours
+    })
+    const previousLifeHours = previousEntries
+      .filter(e => e.type === 'life')
+      .reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / 60
+    const previousTotalHours = previousHours
+
+    const balanceTrend = habits
+      .filter(h => enabledHabitNames.has(h.name))
+      .map(habit => {
+        const currentPercent = totalHours > 0 ? (habitTotals.find(h => h.name === habit.name)?.hours || 0) / totalHours * 100 : 0
+        const prevPercent = previousTotalHours > 0 ? (previousHabitHours[habit.name] || 0) / previousTotalHours * 100 : 0
+        const change = Math.round(currentPercent - prevPercent)
+        return { name: habit.name, color: habit.color, currentPercent: Math.round(currentPercent), change }
+      }).filter(h => h.currentPercent > 0 || h.change !== 0)
+
+    const lifeTrend = includeLife ? {
+      name: 'Life',
+      currentPercent: lifePercent,
+      change: previousTotalHours > 0
+        ? Math.round(lifePercent - (previousLifeHours / previousTotalHours * 100))
+        : 0
+    } : null
+
     return {
       // Shared
       totalEntries,
       restDays,
       totalHours,
       daysWithEntries,
+      totalDaysInRange,
       // Balance
       habitEntries,
       lifeEntries,
@@ -410,15 +517,23 @@ export default function ProgressView() {
       avgEntriesPerDay,
       avgHoursPerDay,
       avgHabitsPerDay,
+      habitPercent,
+      lifePercent,
+      mostLoggedHabit,
+      leastLoggedHabit,
+      activeDaysPercent,
+      neglectedHabits,
+      balanceTrend,
+      lifeTrend,
       // Patterns
       prepRate,
       closureRate,
       highlights,
       habitCoverage,
-      weekOverWeekChange,
+      periodOverPeriodChange,
       dayOfWeekData,
     }
-  }, [chartData, dateRange, habits])
+  }, [chartData, dateRange, habits, timeRange, periodOffset, enabledFilters])
 
   // Habit-specific patterns
   const habitPatterns = useMemo(() => {
@@ -590,7 +705,17 @@ export default function ProgressView() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">
-            {viewMode === 'balance' ? 'Balance' : 'Patterns'}
+            {viewMode === 'balance' ? (
+              <>
+                Balance
+                <InfoTip text="Are you giving attention to what matters? See if you're nurturing all the areas you set intention for." />
+              </>
+            ) : (
+              <>
+                Patterns
+                <InfoTip text="Are you showing up consistently? See your rhythm and engagement over time." />
+              </>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -729,7 +854,10 @@ export default function ProgressView() {
           {/* Balance: Distribution metrics */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Distribution</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Distribution
+                <InfoTip text="Entry counts by type and rest days (no logged activity)." />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-5 gap-4 text-center">
@@ -757,6 +885,115 @@ export default function ProgressView() {
             </CardContent>
           </Card>
 
+          {/* Balance: Time Split */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Time Split
+                <InfoTip text="How your logged time divides between habits and life activities." />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Stacked bar showing all categories */}
+              <div className="h-4 bg-muted rounded-full overflow-hidden flex">
+                {habits.map(habit => {
+                  const habitHours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
+                  const percent = stats.totalHours > 0 ? (habitHours / stats.totalHours) * 100 : 0
+                  if (percent === 0) return null
+                  return (
+                    <div
+                      key={habit.id}
+                      className="h-full"
+                      style={{ width: `${percent}%`, backgroundColor: getChartColor(habit.color) }}
+                    />
+                  )
+                })}
+                {stats.lifePercent > 0 && (
+                  <div
+                    className="h-full"
+                    style={{ width: `${stats.lifePercent}%`, backgroundColor: 'hsl(200, 45%, 48%)' }}
+                  />
+                )}
+              </div>
+              {/* Legend with percentages */}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm">
+                {habits.map(habit => {
+                  const habitHours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
+                  const percent = stats.totalHours > 0 ? Math.round((habitHours / stats.totalHours) * 100) : 0
+                  if (percent === 0) return null
+                  return (
+                    <div key={habit.id} className="flex items-center gap-1.5">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: getChartColor(habit.color) }}
+                      />
+                      <span>{habit.name}</span>
+                      <span className="text-muted-foreground">{percent}%</span>
+                    </div>
+                  )
+                })}
+                {stats.lifePercent > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: 'hsl(200, 45%, 48%)' }}
+                    />
+                    <span>Life</span>
+                    <span className="text-muted-foreground">{stats.lifePercent}%</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Balance: Trend vs Previous Period */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Balance Shift
+                <InfoTip text="How your time split changed vs the previous period. Positive means more share, negative means less." />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                {stats.balanceTrend.map(habit => (
+                  <div key={habit.name} className="flex items-center gap-1.5">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: getChartColor(habit.color) }}
+                    />
+                    <span>{habit.name}</span>
+                    {habit.change !== 0 && (
+                      <span className={habit.change > 0 ? 'text-green-500' : 'text-orange-500'}>
+                        {habit.change > 0 ? '+' : ''}{habit.change}%
+                      </span>
+                    )}
+                    {habit.change === 0 && (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </div>
+                ))}
+                {stats.lifeTrend && (stats.lifeTrend.currentPercent > 0 || stats.lifeTrend.change !== 0) && (
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: 'hsl(200, 45%, 48%)' }}
+                    />
+                    <span>Life</span>
+                    {stats.lifeTrend.change !== 0 && (
+                      <span className={stats.lifeTrend.change > 0 ? 'text-green-500' : 'text-orange-500'}>
+                        {stats.lifeTrend.change > 0 ? '+' : ''}{stats.lifeTrend.change}%
+                      </span>
+                    )}
+                    {stats.lifeTrend.change === 0 && (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Balance: Averages */}
           <div className="grid grid-cols-3 gap-4">
             <Card>
@@ -768,16 +1005,70 @@ export default function ProgressView() {
             <Card>
               <CardContent className="pt-4 pb-4 text-center">
                 <div className="text-2xl font-semibold">{stats.avgHabitsPerDay}</div>
-                <div className="text-sm text-muted-foreground">Habits/Day</div>
+                <div className="text-sm text-muted-foreground">
+                  Habits/Day
+                  <InfoTip text="Average unique habits touched per active day. Higher means more variety." />
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4 pb-4 text-center">
-                <div className="text-2xl font-semibold">{stats.avgEntriesPerDay}</div>
-                <div className="text-sm text-muted-foreground">Entries/Day</div>
+                <div className="text-2xl font-semibold">{stats.activeDaysPercent}%</div>
+                <div className="text-sm text-muted-foreground">
+                  Active Days
+                  <InfoTip text="Percentage of days with at least one entry." />
+                </div>
               </CardContent>
             </Card>
           </div>
+
+          {/* Balance: Focus Areas */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Focus Areas
+                <InfoTip text="Where most and least attention went this period." />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {stats.mostLoggedHabit && (
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Most Time</div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: getChartColor(stats.mostLoggedHabit.color) }}
+                      />
+                      <span className="font-medium">{stats.mostLoggedHabit.name}</span>
+                      <span className="text-muted-foreground text-sm">{stats.mostLoggedHabit.hours}h</span>
+                    </div>
+                  </div>
+                )}
+                {stats.leastLoggedHabit && (
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Least Time</div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: getChartColor(stats.leastLoggedHabit.color) }}
+                      />
+                      <span className="font-medium">{stats.leastLoggedHabit.name}</span>
+                      <span className="text-muted-foreground text-sm">{stats.leastLoggedHabit.hours}h</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {stats.neglectedHabits.length > 0 && (
+                <div className="mt-3 pt-3 border-t">
+                  <div className="text-xs text-muted-foreground mb-1">No Activity</div>
+                  <div className="text-sm text-muted-foreground">
+                    {stats.neglectedHabits.join(', ')}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </>
       ) : (
         <>
@@ -792,7 +1083,7 @@ export default function ProgressView() {
             <CardContent>
               <div className="flex items-center gap-4">
                 <div className="text-3xl font-semibold">
-                  {stats.weekOverWeekChange >= 0 ? '+' : ''}{stats.weekOverWeekChange}%
+                  {stats.periodOverPeriodChange >= 0 ? '+' : ''}{stats.periodOverPeriodChange}%
                 </div>
                 <div className="text-sm text-muted-foreground">
                   vs previous {timeRange}
