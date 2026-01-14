@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import {
   mockHabits as initialHabits,
   mockPractices as initialPractices,
@@ -8,6 +8,7 @@ import {
   mockWarmUpTemplates as initialWarmUpTemplates,
   mockCoolDownTemplates as initialCoolDownTemplates,
 } from '@/data/mockData'
+import { loadInitialData } from '@/lib/api'
 
 const HabitsContext = createContext(null)
 
@@ -19,6 +20,32 @@ export function HabitsProvider({ children }) {
   const [scheduledPractices, setScheduledPractices] = useState(initialScheduledPractices)
   const [warmUpTemplates, setWarmUpTemplates] = useState(initialWarmUpTemplates)
   const [coolDownTemplates, setCoolDownTemplates] = useState(initialCoolDownTemplates)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Transition window state
+  const [inTransition, setInTransition] = useState(false)
+  const [transitionStartedAt, setTransitionStartedAt] = useState(null)
+  const [transitionChanges, setTransitionChanges] = useState([]) // { habitId, habitName, from: 'active'|'inactive', to: 'active'|'inactive' }
+  const [habitTransitions, setHabitTransitions] = useState([]) // Completed transitions
+
+  // Load data from API on mount
+  useEffect(() => {
+    loadInitialData()
+      .then(data => {
+        setHabits(data.habits)
+        setPractices(data.practices)
+        setActions(data.actions)
+        if (data.targets.length > 0) {
+          setTargets(data.targets)
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load data from API, using mock data:', err)
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+  }, [])
 
   // Update a habit's color
   const updateHabitColor = (habitId, colorKey) => {
@@ -27,8 +54,33 @@ export function HabitsProvider({ children }) {
     )
   }
 
-  // Toggle habit active status
+  // Toggle habit active status (tracks changes when in transition)
   const toggleHabitActive = (habitId) => {
+    const habit = habits.find(h => h.id === habitId)
+    if (!habit) return
+
+    const fromState = habit.active ? 'active' : 'inactive'
+    const toState = habit.active ? 'inactive' : 'active'
+
+    // Track the change if we're in a transition window
+    if (inTransition) {
+      setTransitionChanges(prev => {
+        // Check if this habit was already changed - if so, update or remove the entry
+        const existingIndex = prev.findIndex(c => c.habitId === habitId)
+        if (existingIndex >= 0) {
+          const existing = prev[existingIndex]
+          // If we're back to original state, remove the change
+          if (existing.from === toState) {
+            return prev.filter((_, i) => i !== existingIndex)
+          }
+          // Otherwise update the 'to' state
+          return prev.map((c, i) => i === existingIndex ? { ...c, to: toState } : c)
+        }
+        // New change
+        return [...prev, { habitId, habitName: habit.name, from: fromState, to: toState }]
+      })
+    }
+
     setHabits(prev =>
       prev.map(h => h.id === habitId ? { ...h, active: !h.active } : h)
     )
@@ -160,11 +212,18 @@ export function HabitsProvider({ children }) {
     )
   }
 
+  // Delete an action
+  const deleteAction = (actionId) => {
+    setActions(prev => prev.filter(a => a.id !== actionId))
+  }
+
   // ---- Target management ----
 
-  // Get targets by status
+  // Get targets by status (sorted by sort_order)
   const getTargetsByStatus = (status) => {
-    return targets.filter(t => t.status === status)
+    return targets
+      .filter(t => t.status === status)
+      .sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity))
   }
 
   // Update target status
@@ -254,6 +313,13 @@ export function HabitsProvider({ children }) {
     )
   }
 
+  // Update habit track_actions flag
+  const updateHabitTrackActions = (habitId, trackActions) => {
+    setHabits(prev =>
+      prev.map(h => h.id === habitId ? { ...h, track_actions: trackActions } : h)
+    )
+  }
+
   // ---- Template management ----
 
   // Get warm-up templates for a habit
@@ -324,7 +390,59 @@ export function HabitsProvider({ children }) {
     )
   }
 
+  // ---- Transition Window Management ----
+
+  // Start a transition window
+  const startTransition = () => {
+    setInTransition(true)
+    setTransitionStartedAt(new Date().toISOString())
+    setTransitionChanges([])
+  }
+
+  // Complete and save a transition
+  const completeTransition = (note = '') => {
+    if (!inTransition) return null
+
+    const transition = {
+      id: Math.max(...habitTransitions.map(t => t.id), 0) + 1,
+      started_at: transitionStartedAt,
+      ended_at: new Date().toISOString(),
+      note,
+      changes: transitionChanges,
+    }
+
+    setHabitTransitions(prev => [...prev, transition])
+    setInTransition(false)
+    setTransitionStartedAt(null)
+    setTransitionChanges([])
+
+    return transition
+  }
+
+  // Cancel a transition (revert all changes)
+  const cancelTransition = () => {
+    if (!inTransition) return
+
+    // Revert all changes made during this transition
+    transitionChanges.forEach(change => {
+      setHabits(prev =>
+        prev.map(h => {
+          if (h.id === change.habitId) {
+            return { ...h, active: change.from === 'active' }
+          }
+          return h
+        })
+      )
+    })
+
+    setInTransition(false)
+    setTransitionStartedAt(null)
+    setTransitionChanges([])
+  }
+
   const value = {
+    // Loading state
+    isLoading,
     // Habits
     habits,
     activeHabits,
@@ -334,6 +452,7 @@ export function HabitsProvider({ children }) {
     addHabit,
     updateHabitName,
     updateHabitTargetMinutes,
+    updateHabitTrackActions,
     // Practices
     practices,
     getPracticesForHabit,
@@ -356,6 +475,7 @@ export function HabitsProvider({ children }) {
     toggleActionActive,
     addAction,
     updateActionName,
+    deleteAction,
     // Targets
     targets,
     getTargetsByStatus,
@@ -379,6 +499,13 @@ export function HabitsProvider({ children }) {
     deleteCoolDownTemplate,
     toggleWarmUpTemplateActive,
     toggleCoolDownTemplateActive,
+    // Transitions
+    inTransition,
+    transitionChanges,
+    habitTransitions,
+    startTransition,
+    completeTransition,
+    cancelTransition,
   }
 
   return (

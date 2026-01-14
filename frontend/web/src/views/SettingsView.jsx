@@ -16,12 +16,9 @@ import {
 } from '@/components/ui/select'
 import { ChevronDown } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
+import { useEntries } from '@/context/EntriesContext'
+import { useHabits } from '@/context/HabitsContext'
 import {
-  mockHabits,
-  mockPractices,
-  mockActions,
-  mockTargets,
-  mockEntries,
   mockPreparations,
   mockClosures,
   mockWarmUpTemplates,
@@ -78,6 +75,8 @@ function getStoredTimezone() {
 
 export default function SettingsView() {
   const { theme, setTheme } = useTheme()
+  const { habits, practices, actions, targets } = useHabits()
+  const { entries } = useEntries()
   const [timezone, setTimezoneState] = useState(getStoredTimezone)
   const [shelfSort, setShelfSortState] = useState(getStoredShelfSort)
 
@@ -100,30 +99,30 @@ export default function SettingsView() {
 
   // Compute data health metrics
   const metrics = useMemo(() => {
-    const entries = mockEntries.filter(e => !e.archived_at)
-    const habitEntries = entries.filter(e => e.type === 'habit')
+    const activeEntries = entries.filter(e => !e.archived_at)
+    const habitEntries = activeEntries.filter(e => e.type === 'habit')
 
     // Get unique days with entries
-    const uniqueDays = new Set(entries.map(e => e.occurred_at.split('T')[0]))
+    const uniqueDays = new Set(activeEntries.map(e => e.occurred_at.split('T')[0]))
     const daysWithEntries = uniqueDays.size
 
     // Date range
-    const dates = entries.map(e => new Date(e.occurred_at)).sort((a, b) => a - b)
+    const dates = activeEntries.map(e => new Date(e.occurred_at)).sort((a, b) => a - b)
     const firstEntry = dates[0]
     const lastEntry = dates[dates.length - 1]
 
     // Time metrics
-    const totalMinutes = entries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0)
+    const totalMinutes = activeEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0)
 
     // Ritual adoption
-    const warmUpsUsed = entries.filter(e => e.warm_up_at).length
-    const coolDownsUsed = entries.filter(e => e.cool_down_note).length
+    const warmUpsUsed = activeEntries.filter(e => e.warm_up_at).length
+    const coolDownsUsed = activeEntries.filter(e => e.cool_down_note).length
 
     // Unique habits logged
     const uniqueHabitsLogged = new Set(habitEntries.map(e => e.habit)).size
 
     // Averages
-    const avgEntriesPerDay = daysWithEntries > 0 ? (entries.length / daysWithEntries).toFixed(1) : 0
+    const avgEntriesPerDay = daysWithEntries > 0 ? (activeEntries.length / daysWithEntries).toFixed(1) : 0
     const avgMinutesPerEntry = habitEntries.length > 0
       ? Math.round(habitEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / habitEntries.length)
       : 0
@@ -160,7 +159,7 @@ export default function SettingsView() {
     const daysInYear = Math.ceil((today - yearStart) / (1000 * 60 * 60 * 24)) + 1
 
     // Include all habits (active and inactive) for full history
-    const habitCoverage = mockHabits.map(habit => {
+    const habitCoverage = habits.map(habit => {
       const habitEntriesForHabit = habitEntries.filter(e => e.habit === habit.name)
       const habitDays = new Set(habitEntriesForHabit.map(e => e.occurred_at.split('T')[0]))
 
@@ -199,26 +198,26 @@ export default function SettingsView() {
 
     return {
       // Counts
-      totalEntries: entries.length,
+      totalEntries: activeEntries.length,
       habitEntries: habitEntries.length,
-      lifeEvents: entries.filter(e => e.type === 'life_event' || e.type === 'life').length,
-      cautionEntries: entries.filter(e => e.type === 'caution_behavior' || e.type === 'caution').length,
-      transitions: entries.filter(e => e.type === 'transition').length,
+      lifeEvents: activeEntries.filter(e => e.type === 'life_event' || e.type === 'life').length,
+      cautionEntries: activeEntries.filter(e => e.type === 'caution_behavior' || e.type === 'caution').length,
+      transitions: activeEntries.filter(e => e.type === 'transition').length,
 
       // Structure
-      activeHabits: mockHabits.filter(h => h.active).length,
-      activePractices: mockPractices.filter(p => p.active).length,
-      totalActions: mockActions.length,
+      activeHabits: habits.filter(h => h.active).length,
+      activePractices: practices.filter(p => p.active).length,
+      totalActions: actions.length,
 
       // Targets
-      totalTargets: mockTargets.length,
-      activeTargets: mockTargets.filter(t => t.status === 'active').length,
-      plannedTargets: mockTargets.filter(t => t.status === 'planned').length,
-      completedTargets: mockTargets.filter(t => t.status === 'completed').length,
-      parkedTargets: mockTargets.filter(t => t.status === 'parked').length,
+      totalTargets: targets.length,
+      activeTargets: targets.filter(t => t.status === 'active').length,
+      plannedTargets: targets.filter(t => t.status === 'planned').length,
+      completedTargets: targets.filter(t => t.status === 'completed').length,
+      parkedTargets: targets.filter(t => t.status === 'parked').length,
 
       // Accomplishments
-      highlights: entries.filter(e => e.highlight).length,
+      highlights: activeEntries.filter(e => e.highlight).length,
       reflections: 0, // TODO: add mockReflections data
 
       // Usage
@@ -252,7 +251,7 @@ export default function SettingsView() {
       // Habit coverage
       habitCoverage,
     }
-  }, [])
+  }, [entries, habits, practices, actions, targets])
 
   const themeLabels = {
     light: 'Light',

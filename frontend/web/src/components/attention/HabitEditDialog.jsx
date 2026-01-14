@@ -25,7 +25,6 @@ export default function HabitEditDialog({
   onOpenChange,
   habit,
   onSave,
-  onToggleActive,
 }) {
   const {
     getWarmUpTemplatesForHabit,
@@ -41,6 +40,7 @@ export default function HabitEditDialog({
   const [name, setName] = useState('')
   const [targetMinutes, setTargetMinutes] = useState('')
   const [color, setColor] = useState('sage')
+  const [trackActions, setTrackActions] = useState(false)
   const [warmUpsOpen, setWarmUpsOpen] = useState(false)
   const [coolDownsOpen, setCoolDownsOpen] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
@@ -51,6 +51,7 @@ export default function HabitEditDialog({
       setName(habit.name)
       setTargetMinutes(habit.target_minutes?.toString() || '30')
       setColor(habit.color || 'sage')
+      setTrackActions(habit.track_actions || false)
     }
   }, [habit])
 
@@ -63,14 +64,10 @@ export default function HabitEditDialog({
         name: name.trim(),
         target_minutes: Number(targetMinutes) || 30,
         color,
+        track_actions: trackActions,
       })
       onOpenChange(false)
     }
-  }
-
-  const handleToggleActive = () => {
-    onToggleActive()
-    onOpenChange(false)
   }
 
   const handleAddTemplate = (type) => {
@@ -165,6 +162,22 @@ export default function HabitEditDialog({
                 ))}
               </div>
             </div>
+
+            {/* Track Actions Toggle */}
+            <label className="flex items-center gap-3 py-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={trackActions}
+                onChange={(e) => setTrackActions(e.target.checked)}
+                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              />
+              <div>
+                <span className="text-sm font-medium">Track Actions</span>
+                <p className="text-xs text-muted-foreground">
+                  Enable to add specific actions (e.g., Squats, Push-ups) under practices
+                </p>
+              </div>
+            </label>
 
             <Separator />
 
@@ -293,18 +306,6 @@ export default function HabitEditDialog({
                 </Button>
               </CollapsibleContent>
             </Collapsible>
-
-            <Separator />
-
-            {/* Toggle Active */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleToggleActive}
-            >
-              {habit.active ? 'Deactivate Habit' : 'Activate Habit'}
-            </Button>
           </div>
 
           <DialogFooter>

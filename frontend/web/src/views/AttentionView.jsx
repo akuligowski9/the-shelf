@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import {
   Collapsible,
@@ -21,8 +23,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog'
-import { ChevronDown, Plus, ArrowRightLeft, GripVertical, MoreHorizontal } from 'lucide-react'
+import { ChevronDown, ChevronRight, Plus, ArrowRightLeft, GripVertical, MoreHorizontal } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -50,6 +53,64 @@ import ActionEditDialog from '@/components/attention/ActionEditDialog'
 import TargetEditDialog from '@/components/attention/TargetEditDialog'
 // Calendar removed - may revisit in future iteration
 // import AttentionCalendar from '@/components/attention/AttentionCalendar'
+
+// Modal list item component (draggable)
+function ModalListItem({ target, habitName, habitColorClasses, onEdit, isOnBoard, position, colorScheme, isCompleted }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: target.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  const bgClass = isOnBoard ? colorScheme?.highlight || '' : ''
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center justify-between p-3 border rounded-lg cursor-grab active:cursor-grabbing ${bgClass} ${isDragging ? 'shadow-lg' : ''}`}
+      {...attributes}
+      {...listeners}
+    >
+      <div className="flex items-center gap-2">
+        {isOnBoard && (
+          <span className={`text-xs font-medium ${colorScheme?.number || 'text-muted-foreground'}`}>
+            #{position}
+          </span>
+        )}
+        <span className={`text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+          {target.name}
+        </span>
+        {habitName && (
+          <Badge
+            variant="outline"
+            className={`text-xs ${isCompleted ? 'opacity-60' : ''} ${habitColorClasses}`}
+          >
+            {habitName}
+          </Badge>
+        )}
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          onEdit(target)
+        }}
+        className="text-xs text-muted-foreground hover:text-foreground"
+      >
+        Edit
+      </button>
+    </div>
+  )
+}
 
 // Kanban card component
 function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted }) {
@@ -99,26 +160,67 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
   )
 }
 
+// Column color schemes for visual distinction
+const columnColors = {
+  active: {
+    header: 'bg-emerald-100 dark:bg-emerald-950/50',
+    text: 'text-emerald-800 dark:text-emerald-300',
+    badge: 'bg-emerald-200/80 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300',
+    dropzone: 'bg-emerald-50/50 dark:bg-emerald-950/20',
+    dropzoneHover: 'bg-emerald-100/60 dark:bg-emerald-900/30',
+    highlight: 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800',
+    number: 'text-emerald-600 dark:text-emerald-400',
+  },
+  planned: {
+    header: 'bg-sky-100 dark:bg-sky-950/50',
+    text: 'text-sky-800 dark:text-sky-300',
+    badge: 'bg-sky-200/80 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300',
+    dropzone: 'bg-sky-50/50 dark:bg-sky-950/20',
+    dropzoneHover: 'bg-sky-100/60 dark:bg-sky-900/30',
+    highlight: 'bg-sky-50/50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-800',
+    number: 'text-sky-600 dark:text-sky-400',
+  },
+  parked: {
+    header: 'bg-slate-100 dark:bg-slate-800/50',
+    text: 'text-slate-700 dark:text-slate-300',
+    badge: 'bg-slate-200/80 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300',
+    dropzone: 'bg-slate-50/50 dark:bg-slate-900/20',
+    dropzoneHover: 'bg-slate-100/60 dark:bg-slate-800/30',
+    highlight: 'bg-slate-100/50 dark:bg-slate-800/30 border-slate-300 dark:border-slate-700',
+    number: 'text-slate-500 dark:text-slate-400',
+  },
+  done: {
+    header: 'bg-violet-100 dark:bg-violet-950/50',
+    text: 'text-violet-800 dark:text-violet-300',
+    badge: 'bg-violet-200/80 dark:bg-violet-900/60 text-violet-700 dark:text-violet-300',
+    dropzone: 'bg-violet-50/50 dark:bg-violet-950/20',
+    dropzoneHover: 'bg-violet-100/60 dark:bg-violet-900/30',
+    highlight: 'bg-violet-50/50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-800',
+    number: 'text-violet-600 dark:text-violet-400',
+  },
+}
+
 // Kanban column component
 function KanbanColumn({ id, title, count, children, className }) {
   const { setNodeRef, isOver } = useDroppable({ id })
+  const colors = columnColors[id] || columnColors.planned
 
   return (
     <div
       ref={setNodeRef}
       className={`flex flex-col w-[240px] shrink-0 md:w-auto md:shrink ${className || ''}`}
     >
-      <div className="flex items-center justify-between mb-3 px-1">
-        <h4 className="text-sm font-semibold text-muted-foreground">{title}</h4>
+      <div className={`flex items-center justify-between mb-3 px-3 py-2 rounded-lg ${colors.header}`}>
+        <h4 className={`text-sm font-semibold ${colors.text}`}>{title}</h4>
         {count !== undefined && (
-          <span className="text-xs text-muted-foreground/60 bg-muted px-2 py-0.5 rounded-full">
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors.badge}`}>
             {count}
           </span>
         )}
       </div>
       <div
         className={`flex-1 min-h-[100px] p-2 rounded-lg transition-colors ${
-          isOver ? 'bg-accent/40' : 'bg-muted/30'
+          isOver ? colors.dropzoneHover : colors.dropzone
         }`}
       >
         {children}
@@ -152,6 +254,7 @@ export default function AttentionView() {
     getHabitByName,
     updateHabitName,
     updateHabitTargetMinutes,
+    updateHabitTrackActions,
     getPracticesForHabit,
     practices,
     togglePracticeActive,
@@ -162,9 +265,9 @@ export default function AttentionView() {
     // schedulePractice,    // Removed with calendar
     // removeScheduledPractice,  // Removed with calendar
     getActionsForPractice,
-    toggleActionActive,
     addAction,
     updateActionName,
+    deleteAction,
     addHabit,
     targets,
     getTargetsByStatus,
@@ -175,6 +278,14 @@ export default function AttentionView() {
     updateTargetDates,
     reorderTargets,
     deleteTarget,
+    getWarmUpTemplatesForHabit,
+    getCoolDownTemplatesForHabit,
+    // Transitions
+    inTransition,
+    transitionChanges,
+    startTransition,
+    completeTransition,
+    cancelTransition,
   } = useHabits()
 
   // Track which habit is showing the add practice input
@@ -199,8 +310,16 @@ export default function AttentionView() {
   const [editingActionPracticeName, setEditingActionPracticeName] = useState('')
   const [editingTarget, setEditingTarget] = useState(null)
 
-  // Done modal state
+  // Modal states
   const [showDoneModal, setShowDoneModal] = useState(false)
+  const [showPlannedModal, setShowPlannedModal] = useState(false)
+  const [showParkedModal, setShowParkedModal] = useState(false)
+  const [showCompleteTransitionDialog, setShowCompleteTransitionDialog] = useState(false)
+  const [transitionNote, setTransitionNote] = useState('')
+
+  // Column limits
+  const COLUMN_LIMIT = 5
+  const DONE_COLUMN_LIMIT = 3
 
   // Get targets by status from context
   const activeTargets = getTargetsByStatus('active')
@@ -366,6 +485,7 @@ export default function AttentionView() {
       updateHabitName(editingHabit.id, updates.name)
       updateHabitTargetMinutes(editingHabit.id, updates.target_minutes)
       updateHabitColor(editingHabit.id, updates.color)
+      updateHabitTrackActions(editingHabit.id, updates.track_actions)
     }
   }
 
@@ -486,18 +606,28 @@ export default function AttentionView() {
                       Drag here to plan
                     </p>
                   ) : (
-                    plannedTargets.map(target => {
-                      const habitName = getHabitNameById(target.habit_id)
-                      return (
-                        <KanbanCard
-                          key={target.id}
-                          target={target}
-                          habitName={habitName}
-                          habitColorClasses={getHabitColorByName(habitName)}
-                          onEdit={setEditingTarget}
-                        />
-                      )
-                    })
+                    <>
+                      {plannedTargets.slice(0, COLUMN_LIMIT).map(target => {
+                        const habitName = getHabitNameById(target.habit_id)
+                        return (
+                          <KanbanCard
+                            key={target.id}
+                            target={target}
+                            habitName={habitName}
+                            habitColorClasses={getHabitColorByName(habitName)}
+                            onEdit={setEditingTarget}
+                          />
+                        )
+                      })}
+                      {plannedTargets.length > COLUMN_LIMIT && (
+                        <button
+                          onClick={() => setShowPlannedModal(true)}
+                          className="w-full text-xs text-muted-foreground hover:text-foreground py-2 text-center border border-dashed rounded-lg hover:bg-accent/50 transition-colors"
+                        >
+                          See all ({plannedTargets.length})
+                        </button>
+                      )}
+                    </>
                   )}
                 </SortableContext>
               </KanbanColumn>
@@ -513,18 +643,28 @@ export default function AttentionView() {
                       Drag here to park
                     </p>
                   ) : (
-                    parkedTargets.map(target => {
-                      const habitName = getHabitNameById(target.habit_id)
-                      return (
-                        <KanbanCard
-                          key={target.id}
-                          target={target}
-                          habitName={habitName}
-                          habitColorClasses={getHabitColorByName(habitName)}
-                          onEdit={setEditingTarget}
-                        />
-                      )
-                    })
+                    <>
+                      {parkedTargets.slice(0, COLUMN_LIMIT).map(target => {
+                        const habitName = getHabitNameById(target.habit_id)
+                        return (
+                          <KanbanCard
+                            key={target.id}
+                            target={target}
+                            habitName={habitName}
+                            habitColorClasses={getHabitColorByName(habitName)}
+                            onEdit={setEditingTarget}
+                          />
+                        )
+                      })}
+                      {parkedTargets.length > COLUMN_LIMIT && (
+                        <button
+                          onClick={() => setShowParkedModal(true)}
+                          className="w-full text-xs text-muted-foreground hover:text-foreground py-2 text-center border border-dashed rounded-lg hover:bg-accent/50 transition-colors"
+                        >
+                          See all ({parkedTargets.length})
+                        </button>
+                      )}
+                    </>
                   )}
                 </SortableContext>
               </KanbanColumn>
@@ -545,8 +685,8 @@ export default function AttentionView() {
                     </p>
                   ) : (
                     <>
-                      {/* Show top 3 completed */}
-                      {completedTargets.slice(0, 3).map(target => {
+                      {/* Show top completed */}
+                      {completedTargets.slice(0, DONE_COLUMN_LIMIT).map(target => {
                         const habitName = getHabitNameById(target.habit_id)
                         return (
                           <KanbanCard
@@ -560,7 +700,7 @@ export default function AttentionView() {
                         )
                       })}
                       {/* See all button */}
-                      {(completedTargets.length > 3 || archivedTargets.length > 0) && (
+                      {(completedTargets.length > DONE_COLUMN_LIMIT || archivedTargets.length > 0) && (
                         <button
                           onClick={() => setShowDoneModal(true)}
                           className="w-full text-xs text-muted-foreground hover:text-foreground py-2 text-center border border-dashed rounded-lg hover:bg-accent/50 transition-colors"
@@ -586,11 +726,125 @@ export default function AttentionView() {
         </CardContent>
       </Card>
 
+      {/* Planned Modal */}
+      <Dialog open={showPlannedModal} onOpenChange={setShowPlannedModal}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className={columnColors.planned.text}>
+              Planned ({plannedTargets.length})
+            </DialogTitle>
+          </DialogHeader>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(event) => {
+              const { active, over } = event
+              if (over && active.id !== over.id) {
+                const oldIndex = plannedTargets.findIndex(t => t.id === active.id)
+                const newIndex = plannedTargets.findIndex(t => t.id === over.id)
+                if (oldIndex !== -1 && newIndex !== -1) {
+                  const newOrder = arrayMove(plannedTargets, oldIndex, newIndex)
+                  reorderTargets(newOrder.map(t => t.id))
+                }
+              }
+            }}
+          >
+            <SortableContext
+              items={plannedTargets.map(t => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {plannedTargets.map((target, index) => {
+                  const habitName = getHabitNameById(target.habit_id)
+                  return (
+                    <ModalListItem
+                      key={target.id}
+                      target={target}
+                      habitName={habitName}
+                      habitColorClasses={getHabitColorByName(habitName)}
+                      onEdit={(t) => {
+                        setShowPlannedModal(false)
+                        setEditingTarget(t)
+                      }}
+                      isOnBoard={index < COLUMN_LIMIT}
+                      position={index + 1}
+                      colorScheme={columnColors.planned}
+                    />
+                  )
+                })}
+                {plannedTargets.length > COLUMN_LIMIT && (
+                  <p className="text-xs text-muted-foreground text-center pt-2">
+                    Items 1-{COLUMN_LIMIT} are visible on the board
+                  </p>
+                )}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </DialogContent>
+      </Dialog>
+
+      {/* Parked Modal */}
+      <Dialog open={showParkedModal} onOpenChange={setShowParkedModal}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className={columnColors.parked.text}>
+              Parking Lot ({parkedTargets.length})
+            </DialogTitle>
+          </DialogHeader>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(event) => {
+              const { active, over } = event
+              if (over && active.id !== over.id) {
+                const oldIndex = parkedTargets.findIndex(t => t.id === active.id)
+                const newIndex = parkedTargets.findIndex(t => t.id === over.id)
+                if (oldIndex !== -1 && newIndex !== -1) {
+                  const newOrder = arrayMove(parkedTargets, oldIndex, newIndex)
+                  reorderTargets(newOrder.map(t => t.id))
+                }
+              }
+            }}
+          >
+            <SortableContext
+              items={parkedTargets.map(t => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {parkedTargets.map((target, index) => {
+                  const habitName = getHabitNameById(target.habit_id)
+                  return (
+                    <ModalListItem
+                      key={target.id}
+                      target={target}
+                      habitName={habitName}
+                      habitColorClasses={getHabitColorByName(habitName)}
+                      onEdit={(t) => {
+                        setShowParkedModal(false)
+                        setEditingTarget(t)
+                      }}
+                      isOnBoard={index < COLUMN_LIMIT}
+                      position={index + 1}
+                      colorScheme={columnColors.parked}
+                    />
+                  )
+                })}
+                {parkedTargets.length > COLUMN_LIMIT && (
+                  <p className="text-xs text-muted-foreground text-center pt-2">
+                    Items 1-{COLUMN_LIMIT} are visible on the board
+                  </p>
+                )}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </DialogContent>
+      </Dialog>
+
       {/* Done Modal */}
       <Dialog open={showDoneModal} onOpenChange={setShowDoneModal}>
         <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Done</DialogTitle>
+            <DialogTitle className={columnColors.done.text}>Done</DialogTitle>
           </DialogHeader>
           <div className="space-y-6">
             {/* Completed Section */}
@@ -601,40 +855,53 @@ export default function AttentionView() {
               {completedTargets.length === 0 ? (
                 <p className="text-sm text-muted-foreground/60">No completed targets</p>
               ) : (
-                <div className="space-y-2">
-                  {completedTargets.map(target => {
-                    const habitName = getHabitNameById(target.habit_id)
-                    return (
-                      <div
-                        key={target.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <span className="text-sm line-through text-muted-foreground">
-                            {target.name}
-                          </span>
-                          {habitName && (
-                            <Badge
-                              variant="outline"
-                              className={`ml-2 text-xs opacity-60 ${getHabitColorByName(habitName)}`}
-                            >
-                              {habitName}
-                            </Badge>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => {
-                            setShowDoneModal(false)
-                            setEditingTarget(target)
-                          }}
-                          className="text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          Edit
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={(event) => {
+                    const { active, over } = event
+                    if (over && active.id !== over.id) {
+                      const oldIndex = completedTargets.findIndex(t => t.id === active.id)
+                      const newIndex = completedTargets.findIndex(t => t.id === over.id)
+                      if (oldIndex !== -1 && newIndex !== -1) {
+                        const newOrder = arrayMove(completedTargets, oldIndex, newIndex)
+                        reorderTargets(newOrder.map(t => t.id))
+                      }
+                    }
+                  }}
+                >
+                  <SortableContext
+                    items={completedTargets.map(t => t.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2">
+                      {completedTargets.map((target, index) => {
+                        const habitName = getHabitNameById(target.habit_id)
+                        return (
+                          <ModalListItem
+                            key={target.id}
+                            target={target}
+                            habitName={habitName}
+                            habitColorClasses={getHabitColorByName(habitName)}
+                            onEdit={(t) => {
+                              setShowDoneModal(false)
+                              setEditingTarget(t)
+                            }}
+                            isOnBoard={index < DONE_COLUMN_LIMIT}
+                            position={index + 1}
+                            colorScheme={columnColors.done}
+                            isCompleted={true}
+                          />
+                        )
+                      })}
+                      {completedTargets.length > DONE_COLUMN_LIMIT && (
+                        <p className="text-xs text-muted-foreground text-center pt-2">
+                          Items 1-{DONE_COLUMN_LIMIT} are visible on the board
+                        </p>
+                      )}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               )}
             </div>
 
@@ -654,14 +921,14 @@ export default function AttentionView() {
                         key={target.id}
                         className="flex items-center justify-between p-3 border rounded-lg bg-muted/30"
                       >
-                        <div>
+                        <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">
                             {target.name}
                           </span>
                           {habitName && (
                             <Badge
                               variant="outline"
-                              className={`ml-2 text-xs opacity-60 ${getHabitColorByName(habitName)}`}
+                              className={`text-xs opacity-60 ${getHabitColorByName(habitName)}`}
                             >
                               {habitName}
                             </Badge>
@@ -686,7 +953,7 @@ export default function AttentionView() {
         </DialogContent>
       </Dialog>
 
-      {/* Habits */}
+      {/* Habits - Tree View */}
       <Card ref={habitsRef}>
         <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Habits</CardTitle>
@@ -716,215 +983,281 @@ export default function AttentionView() {
             </Button>
           )}
         </CardHeader>
-        <CardContent className="space-y-1">
-          {habits.map(habit => {
-            const habitColor = colorPalette[habit.color] || colorPalette.forest
-            const practices = getPracticesForHabit(habit.id)
-            const activePractices = practices.filter(p => p.active)
+        <CardContent>
+          <div className="space-y-0.5">
+            {habits.map(habit => {
+              const habitColor = colorPalette[habit.color] || colorPalette.forest
+              const practices = getPracticesForHabit(habit.id)
+              const allActions = habit.track_actions ? practices.flatMap(p => getActionsForPractice(p.id)) : []
+              const warmUps = getWarmUpTemplatesForHabit(habit.id)
+              const coolDowns = getCoolDownTemplatesForHabit(habit.id)
 
-            return (
-              <Collapsible key={habit.id}>
-                <div className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-3">
-                    {/* Color picker dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          className={`w-4 h-4 rounded-full ${habitColor.dot} hover:ring-2 hover:ring-offset-2 hover:ring-border transition-all cursor-pointer`}
-                          title="Change color"
-                        />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="min-w-[140px]">
-                        {Object.entries(colorPalette).map(([key, color]) => (
-                          <DropdownMenuItem
-                            key={key}
-                            onClick={() => updateHabitColor(habit.id, key)}
-                            className="flex items-center gap-2 cursor-pointer"
-                          >
-                            <div className={`w-3 h-3 rounded-full ${color.dot}`} />
-                            <span>{color.name}</span>
-                            {habit.color === key && (
-                              <span className="ml-auto text-xs text-muted-foreground">✓</span>
-                            )}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <CollapsibleTrigger className="flex items-center gap-2 hover:text-foreground/80 [&[data-state=open]>svg]:rotate-180">
-                      <span className={habit.active ? '' : 'text-muted-foreground'}>
+              return (
+                <Collapsible key={habit.id}>
+                  {/* Habit Level */}
+                  <div className="flex items-center group">
+                    <CollapsibleTrigger className="flex items-center gap-2 py-1.5 hover:text-foreground/80 flex-1 [&[data-state=open]>svg]:rotate-90">
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200" />
+                      <div className={`w-3 h-3 rounded-full ${habitColor.dot}`} />
+                      <span className={habit.active ? 'text-sm font-medium' : 'text-sm font-medium text-muted-foreground'}>
                         {habit.name}
                       </span>
-                      <span className="text-xs text-muted-foreground">
-                        ({activePractices.length}/{practices.length})
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        {practices.length}p
+                        {habit.track_actions && <> · {allActions.length}a</>}
+                        {warmUps.length > 0 && <> · <span className="text-amber-500">↑</span>{warmUps.length}</>}
+                        {coolDowns.length > 0 && <> · <span className="text-blue-500">↓</span>{coolDowns.length}</>}
                       </span>
-                      <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
                     </CollapsibleTrigger>
+                    <button
+                      onClick={() => setEditingHabit(habit)}
+                      className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
+                    >
+                      Edit
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setEditingHabit(habit)}
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    Edit
-                  </button>
-                </div>
 
-                <CollapsibleContent>
-                  <div className="ml-7 pl-3 border-l border-border space-y-1 pb-2">
-                    {practices.length === 0 ? (
-                      <p className="text-sm text-muted-foreground py-1">No practices yet</p>
-                    ) : (
-                      practices.map(practice => {
-                        const actions = getActionsForPractice(practice.id)
-                        const activeActions = actions.filter(a => a.active)
-                        const showActions = habit.track_actions
+                  <CollapsibleContent>
+                    <div className="ml-4 pl-3 border-l border-border/50">
+                      {practices.length === 0 ? (
+                        <p className="text-xs text-muted-foreground py-1.5 pl-5">No practices</p>
+                      ) : (
+                        practices.map(practice => {
+                          const actions = habit.track_actions ? getActionsForPractice(practice.id) : []
 
-                        return (
-                          <Collapsible key={practice.id}>
-                            <div className="flex items-center justify-between py-1">
-                              <CollapsibleTrigger className="flex items-center gap-2 hover:text-foreground/80 [&[data-state=open]>svg]:rotate-180">
-                                <span className={practice.active ? 'text-sm' : 'text-sm text-muted-foreground'}>
+                          // If no actions tracking, just show practice as a simple row
+                          if (!habit.track_actions) {
+                            return (
+                              <div key={practice.id} className="flex items-center group py-1 pl-5">
+                                <span className={practice.active ? 'text-sm flex-1' : 'text-sm flex-1 text-muted-foreground'}>
                                   {practice.name}
                                 </span>
-                                {showActions && (
-                                  <>
-                                    <span className="text-xs text-muted-foreground">
-                                      ({activeActions.length}/{actions.length})
-                                    </span>
-                                    <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
-                                  </>
-                                )}
-                              </CollapsibleTrigger>
-                              <button
-                                onClick={() => openPracticeEdit(practice, habit.name)}
-                                className="text-xs text-muted-foreground hover:text-foreground"
-                              >
-                                Edit
-                              </button>
-                            </div>
+                                <button
+                                  onClick={() => openPracticeEdit(practice, habit.name)}
+                                  className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
+                                >
+                                  Edit
+                                </button>
+                              </div>
+                            )
+                          }
 
-                            {habit.track_actions && (
-                              <CollapsibleContent>
-                                <div className="ml-4 pl-3 border-l border-border/50 space-y-1 pb-1">
-                                  {actions.map(action => (
-                                    <div
-                                      key={action.id}
-                                      className="flex items-center justify-between py-0.5"
-                                    >
-                                      <span className={action.active ? 'text-xs' : 'text-xs text-muted-foreground'}>
-                                        {action.name}
-                                      </span>
-                                      <button
-                                        onClick={() => openActionEdit(action, practice.name)}
-                                        className="text-xs text-muted-foreground hover:text-foreground"
-                                      >
-                                        Edit
-                                      </button>
-                                    </div>
-                                  ))}
-
-                                  {/* Add Action Input */}
-                                  {addingActionFor === practice.id ? (
-                                    <div className="flex items-center gap-2 pt-1">
-                                      <Input
-                                        value={newActionName}
-                                        onChange={(e) => setNewActionName(e.target.value)}
-                                        placeholder="Action name"
-                                        className="h-6 text-xs"
-                                        autoFocus
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') handleAddAction(practice.id)
-                                          if (e.key === 'Escape') handleCancelAddAction()
-                                        }}
-                                      />
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-6 px-2 text-xs"
-                                        onClick={() => handleAddAction(practice.id)}
-                                      >
-                                        Add
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-6 px-2 text-xs"
-                                        onClick={handleCancelAddAction}
-                                      >
-                                        Cancel
-                                      </Button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      onClick={() => setAddingActionFor(practice.id)}
-                                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground pt-0.5"
-                                    >
-                                      <Plus className="h-2.5 w-2.5" />
-                                      Add Action
-                                    </button>
+                          // With actions tracking, show expandable practice
+                          return (
+                            <Collapsible key={practice.id}>
+                              {/* Practice Level */}
+                              <div className="flex items-center group">
+                                <CollapsibleTrigger className="flex items-center gap-2 py-1 hover:text-foreground/80 flex-1 [&[data-state=open]>svg]:rotate-90">
+                                  <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
+                                  <span className={practice.active ? 'text-sm' : 'text-sm text-muted-foreground'}>
+                                    {practice.name}
+                                  </span>
+                                  {actions.length > 0 && (
+                                    <span className="text-xs text-muted-foreground">{actions.length}</span>
                                   )}
+                                </CollapsibleTrigger>
+                                <button
+                                  onClick={() => openPracticeEdit(practice, habit.name)}
+                                  className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
+                                >
+                                  Edit
+                                </button>
+                              </div>
+
+                              <CollapsibleContent>
+                                <div className="ml-3 pl-3 border-l border-border/30 py-1">
+                                  {/* Actions as chips */}
+                                  <div className="flex flex-wrap gap-1 pl-2">
+                                    {actions.map(action => (
+                                      <button
+                                        key={action.id}
+                                        onClick={() => openActionEdit(action, practice.name)}
+                                        className={`text-xs px-2 py-0.5 rounded border transition-colors ${
+                                          action.active
+                                            ? 'bg-background hover:bg-muted border-border'
+                                            : 'bg-muted/30 text-muted-foreground hover:bg-muted border-transparent'
+                                        }`}
+                                      >
+                                        {action.name}
+                                      </button>
+                                    ))}
+                                    {/* Add Action */}
+                                    {addingActionFor === practice.id ? (
+                                      <div className="flex items-center gap-1">
+                                        <Input
+                                          value={newActionName}
+                                          onChange={(e) => setNewActionName(e.target.value)}
+                                          placeholder="Action"
+                                          className="h-5 text-xs w-20 px-1.5"
+                                          autoFocus
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleAddAction(practice.id)
+                                            if (e.key === 'Escape') handleCancelAddAction()
+                                          }}
+                                        />
+                                        <button
+                                          onClick={() => handleAddAction(practice.id)}
+                                          className="text-xs text-muted-foreground hover:text-foreground"
+                                        >
+                                          ✓
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => setAddingActionFor(practice.id)}
+                                        className="text-xs px-1.5 py-0.5 text-muted-foreground hover:text-foreground"
+                                      >
+                                        +
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </CollapsibleContent>
-                            )}
-                          </Collapsible>
-                        )
-                      })
-                    )}
+                            </Collapsible>
+                          )
+                        })
+                      )}
 
-                    {/* Add Practice Input */}
-                    {addingPracticeFor === habit.id ? (
-                      <div className="flex items-center gap-2 pt-1">
-                        <Input
-                          value={newPracticeName}
-                          onChange={(e) => setNewPracticeName(e.target.value)}
-                          placeholder="Practice name"
-                          className="h-7 text-sm"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleAddPractice(habit.id)
-                            if (e.key === 'Escape') handleCancelAdd()
-                          }}
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 px-2"
-                          onClick={() => handleAddPractice(habit.id)}
+                      {/* Add Practice */}
+                      {addingPracticeFor === habit.id ? (
+                        <div className="flex items-center gap-2 py-1 pl-5">
+                          <Input
+                            value={newPracticeName}
+                            onChange={(e) => setNewPracticeName(e.target.value)}
+                            placeholder="Practice name"
+                            className="h-6 text-sm w-32"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleAddPractice(habit.id)
+                              if (e.key === 'Escape') handleCancelAdd()
+                            }}
+                          />
+                          <button
+                            onClick={() => handleAddPractice(habit.id)}
+                            className="text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            Add
+                          </button>
+                          <button
+                            onClick={handleCancelAdd}
+                            className="text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setAddingPracticeFor(habit.id)}
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground py-1 pl-5"
                         >
-                          Add
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 px-2"
-                          onClick={handleCancelAdd}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setAddingPracticeFor(habit.id)}
-                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground pt-1"
-                      >
-                        <Plus className="h-3 w-3" />
-                        Add Practice
-                      </button>
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            )
-          })}
+                          <Plus className="h-3 w-3" />
+                          Practice
+                        </button>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )
+            })}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Enter Transition - subtle link below habits */}
-      <div className="flex justify-center">
-        <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2">
-          <ArrowRightLeft className="h-4 w-4" />
-          Enter Transition
-        </button>
-      </div>
+      {/* Transition Window */}
+      {!inTransition ? (
+        <div className="flex justify-center">
+          <button
+            onClick={startTransition}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+          >
+            <ArrowRightLeft className="h-4 w-4" />
+            Enter Transition
+          </button>
+        </div>
+      ) : (
+        <Card className="border-amber-500/50 bg-amber-500/5">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ArrowRightLeft className="h-5 w-5 text-amber-500" />
+                <CardTitle className="text-lg">Transition Window</CardTitle>
+              </div>
+              <Badge variant="outline" className="border-amber-500 text-amber-600">
+                Active
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Adjust which habits are active. All changes will be recorded as one transition.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Habit toggles */}
+            <div className="space-y-2">
+              {habits.map(habit => {
+                const habitColor = colorPalette[habit.color] || colorPalette.forest
+                const change = transitionChanges.find(c => c.habitId === habit.id)
+                return (
+                  <div
+                    key={habit.id}
+                    className={`flex items-center justify-between p-2 rounded-md ${
+                      change ? 'bg-amber-500/10' : 'bg-muted/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${habitColor.dot}`} />
+                      <span className="text-sm font-medium">{habit.name}</span>
+                      {change && (
+                        <span className="text-xs text-amber-600">
+                          ({change.from} → {change.to})
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      variant={habit.active ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleHabitActive(habit.id)}
+                      className={habit.active ? 'bg-primary' : ''}
+                    >
+                      {habit.active ? 'Active' : 'Inactive'}
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Changes summary */}
+            {transitionChanges.length > 0 && (
+              <div className="text-sm text-muted-foreground border-t pt-3">
+                <span className="font-medium">{transitionChanges.length} change{transitionChanges.length !== 1 ? 's' : ''}</span>
+                {' '}will be recorded
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  cancelTransition()
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setTransitionNote('')
+                  setShowCompleteTransitionDialog(true)
+                }}
+                className="flex-1"
+                disabled={transitionChanges.length === 0}
+              >
+                Complete Transition
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Edit Dialogs */}
       <HabitEditDialog
@@ -932,7 +1265,6 @@ export default function AttentionView() {
         onOpenChange={(open) => !open && setEditingHabit(null)}
         habit={editingHabit}
         onSave={handleSaveHabit}
-        onToggleActive={() => editingHabit && toggleHabitActive(editingHabit.id)}
       />
 
       <PracticeEditDialog
@@ -950,7 +1282,7 @@ export default function AttentionView() {
         action={editingAction}
         practiceName={editingActionPracticeName}
         onSave={handleSaveAction}
-        onToggleActive={() => editingAction && toggleActionActive(editingAction.id)}
+        onDelete={deleteAction}
       />
 
       <TargetEditDialog
@@ -961,6 +1293,55 @@ export default function AttentionView() {
         onSave={handleSaveTarget}
         onDelete={deleteTarget}
       />
+
+      {/* Complete Transition Dialog */}
+      <Dialog open={showCompleteTransitionDialog} onOpenChange={setShowCompleteTransitionDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Complete Transition</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Summary of changes */}
+            <div className="space-y-2">
+              <Label>Changes</Label>
+              <div className="text-sm space-y-1 p-3 bg-muted/50 rounded-md">
+                {transitionChanges.map((change, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="font-medium">{change.habitName}</span>
+                    <span className="text-muted-foreground">
+                      {change.from} → {change.to}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Optional note */}
+            <div className="space-y-2">
+              <Label htmlFor="transition-note">Note (optional)</Label>
+              <Textarea
+                id="transition-note"
+                value={transitionNote}
+                onChange={(e) => setTransitionNote(e.target.value)}
+                placeholder="Why are you making this change?"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCompleteTransitionDialog(false)}>
+              Back
+            </Button>
+            <Button onClick={() => {
+              completeTransition(transitionNote)
+              setShowCompleteTransitionDialog(false)
+              setTransitionNote('')
+            }}>
+              Save Transition
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

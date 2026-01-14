@@ -87,32 +87,36 @@ Enable manual creation of entries (habit or life) from the UI.
 
 ---
 
-## 6. Warm-Up Prompt Support (Data + UI)
+## 6. ~~Warm-Up Prompt Support (Data + UI)~~ DONE
 
-**Description**  
+**Description**
 Support optional warm-up prompts at the habit level.
 
 **Acceptance Criteria**
-- Warm-up prompt stored in backend
-- UI indicates presence of warm-up
-- Warm-up can be viewed (not necessarily required)
+- [x] Warm-up prompt stored in backend
+- [x] UI indicates presence of warm-up
+- [x] Warm-up can be viewed (not necessarily required)
 
-**Priority**: P2  
+**Status**: Complete - Implemented in HabitEditDialog with collapsible template library. Templates shown as ↑ count in habit tree.
+
+**Priority**: P2
 **Story Points**: 3
 
 ---
 
-## 7. Cool-Down Capture and "Last Touched"
+## 7. ~~Cool-Down Capture and "Last Touched"~~ DONE
 
-**Description**  
+**Description**
 Capture cool-down notes and update "last touched" metadata for habits/targets.
 
 **Acceptance Criteria**
-- Cool-down note can be saved
-- Last-touched timestamp updates correctly
-- Visible somewhere in UI
+- [x] Cool-down note can be saved
+- [x] Last-touched timestamp updates correctly
+- [x] Visible somewhere in UI
 
-**Priority**: P1  
+**Status**: Complete - Cool-down templates managed in HabitEditDialog. Templates shown as ↓ count in habit tree.
+
+**Priority**: P1
 **Story Points**: 3
 
 ---

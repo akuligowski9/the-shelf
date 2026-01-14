@@ -22,7 +22,8 @@ import {
   Legend,
 } from 'recharts'
 import { useHabits } from '@/context/HabitsContext'
-import { mockEntries, mockPreparations, mockClosures, mockTransitions, mockTargets, mockReflections } from '@/data/mockData'
+import { useEntries } from '@/context/EntriesContext'
+import { mockPreparations, mockClosures, mockTransitions, mockTargets, mockReflections } from '@/data/mockData'
 import { colorPalette } from '@/lib/colors'
 
 // Info tooltip helper component
@@ -118,6 +119,7 @@ function getWeekKey(dateStr) {
 
 export default function ProgressView() {
   const { habits } = useHabits()
+  const { entries: allEntries } = useEntries()
   const [viewMode, setViewMode] = useState('balance') // 'balance' | 'patterns'
   const [timeRange, setTimeRange] = useState('week') // 'week' | 'month' | 'year'
   const [periodOffset, setPeriodOffset] = useState(0) // 0 = current, -1 = previous, etc.
@@ -241,7 +243,7 @@ export default function ProgressView() {
       })
 
       // Aggregate entries by week
-      mockEntries.forEach(entry => {
+      allEntries.forEach(entry => {
         const entryDate = entry.occurred_at.split('T')[0]
         if (!dateRange.includes(entryDate)) return
 
@@ -293,7 +295,7 @@ export default function ProgressView() {
     })
 
     // Aggregate entries by date and type
-    mockEntries.forEach(entry => {
+    allEntries.forEach(entry => {
       const entryDate = entry.occurred_at.split('T')[0]
       if (!dataByDate[entryDate]) return
 
@@ -329,7 +331,7 @@ export default function ProgressView() {
     const includeLife = enabledFilters.has('Life')
 
     // Filter entries by date range AND enabled filters
-    const allEntriesInRange = mockEntries.filter(e => {
+    const allEntriesInRange = allEntries.filter(e => {
       const entryDate = e.occurred_at.split('T')[0]
       return dateRange.includes(entryDate)
     })
@@ -451,7 +453,7 @@ export default function ProgressView() {
     }
 
     // Filter previous entries by enabled filters too
-    const allPreviousEntries = mockEntries.filter(e => {
+    const allPreviousEntries = allEntries.filter(e => {
       const entryDate = e.occurred_at.split('T')[0]
       return previousRangeDates.includes(entryDate)
     })
@@ -594,7 +596,7 @@ export default function ProgressView() {
   const habitPatterns = useMemo(() => {
     if (!selectedHabit) return null
 
-    const habitEntries = mockEntries
+    const habitEntries = allEntries
       .filter(e => e.type === 'habit' && e.habit === selectedHabit)
       .sort((a, b) => new Date(a.occurred_at) - new Date(b.occurred_at))
 

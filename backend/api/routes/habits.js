@@ -14,6 +14,30 @@ router.get('/', async (_req, res, next) => {
   }
 });
 
+// Get all practices
+router.get('/practices', async (_req, res, next) => {
+  try {
+    const r = await pool.query(
+      'SELECT * FROM practices ORDER BY habit_id, COALESCE(sort_order, 9999), name ASC'
+    );
+    res.json({ ok: true, practices: r.rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get all actions
+router.get('/actions', async (_req, res, next) => {
+  try {
+    const r = await pool.query(
+      'SELECT * FROM actions ORDER BY practice_id, name ASC'
+    );
+    res.json({ ok: true, actions: r.rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/', async (req, res, next) => {
   try {
     const { name, target_minutes, active, sort_order } = req.body || {};

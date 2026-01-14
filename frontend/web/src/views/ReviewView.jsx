@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { mockEntries, mockReflections, mockPreparations } from '@/data/mockData'
+import { mockReflections, mockPreparations } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
+import { useEntries } from '@/context/EntriesContext'
 import { Star, Target, ChevronDown, ChevronUp, Lightbulb, Clock, Activity, AlertCircle, Coffee, Zap } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import PeriodSelector, { getDateRange } from '@/components/shared/PeriodSelector'
@@ -230,6 +231,7 @@ function getPeriodLabel(timeRange, periodOffset) {
 
 export default function ReviewView() {
   const { targets, habits } = useHabits()
+  const { entries: allEntries } = useEntries()
   const [timeRange, setTimeRange] = useState('week') // 'week' | 'month'
   const [periodOffset, setPeriodOffset] = useState(0)
   const [highlightFilter, setHighlightFilter] = useState('all')
@@ -246,12 +248,12 @@ export default function ReviewView() {
 
   // Calculate metrics for current and previous periods
   const currentMetrics = useMemo(() => {
-    return calculatePeriodMetrics(mockEntries, mockPreparations, dateRange, activeHabits)
+    return calculatePeriodMetrics(allEntries, mockPreparations, dateRange, activeHabits)
   }, [dateRange, activeHabits])
 
   const previousMetrics = useMemo(() => {
     if (!previousDateRange) return null
-    return calculatePeriodMetrics(mockEntries, mockPreparations, previousDateRange, activeHabits)
+    return calculatePeriodMetrics(allEntries, mockPreparations, previousDateRange, activeHabits)
   }, [previousDateRange, activeHabits])
 
   // Generate reflection prompts
@@ -261,7 +263,7 @@ export default function ReviewView() {
 
   // Get highlighted entries within the date range, filtered by type
   const highlights = useMemo(() => {
-    return mockEntries
+    return allEntries
       .filter(entry => {
         if (!entry.is_highlight) return false
         const entryDate = new Date(entry.occurred_at)

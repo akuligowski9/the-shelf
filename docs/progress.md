@@ -1,6 +1,6 @@
 # The Shelf — Progress Report
 
-Last updated: 2026-01-11
+Last updated: 2026-01-14
 
 ---
 
@@ -30,7 +30,7 @@ The Shelf is a personal attention and life-balance companion. This document trac
 | TodayView | ~95% | Entries CRUD, prep/closure, warm-up/cool-down flows |
 | ProgressView | ~85% | Balance/Patterns charts, calendar navigation, custom tooltips, habit deep dive |
 | ReviewView | ~20% | Layout only, needs functional reflections |
-| AttentionView | ~60% | Habits/practices/behaviors CRUD, targets CRUD, edit dialogs |
+| AttentionView | ~90% | Kanban targets, tree view habits, templates, actions, hash nav |
 | SettingsView | ~85% | Theme toggle, data health metrics, import/export placeholders |
 
 ### ShelfView (Complete)
@@ -88,24 +88,27 @@ The Shelf is a personal attention and life-balance companion. This document trac
 - [ ] Toggle highlights
 - [ ] Contextual metrics
 
-### AttentionView (Partial)
-- [x] Habits list with collapsible practices/behaviors
+### AttentionView (Nearly Complete)
+- [x] Habits tree view (file explorer style, expand/collapse)
+- [x] Practices nested under habits
+- [x] Actions management (for habits with track_actions enabled)
+- [x] track_actions toggle per habit in HabitEditDialog
 - [x] Color picker for habits
-- [x] Add Habit inline form
-- [x] Add Practice inline form
-- [x] Add Behavior inline form
-- [x] HabitEditDialog (name, target_minutes, color, active)
-- [x] PracticeEditDialog (name, active)
-- [x] BehaviorEditDialog (name, active)
-- [x] Targets grouped by status from context
-- [x] Add Target inline form
-- [x] Target status transitions (Move dropdown)
-- [x] Completed targets section
+- [x] Add Habit/Practice/Action inline forms
+- [x] HabitEditDialog (name, target_minutes, color, track_actions, active)
+- [x] PracticeEditDialog (name, details, active)
+- [x] ActionEditDialog (name, delete)
+- [x] Targets Kanban board (Active, Planned, Parked, Done columns)
+- [x] Drag-and-drop between Kanban columns
+- [x] Colored column headers (emerald/sky/slate/violet)
+- [x] "See all" modals for each column with drag-reorder
+- [x] TargetEditDialog (name, habit, status, dates)
+- [x] Warm-up/Cool-down template library (in HabitEditDialog)
+- [x] Session template counts in habit tree (↑/↓ icons)
+- [x] Hash navigation support (#habits, #targets)
 - [x] Transition window indicator (static)
 - [ ] Transition window enter/exit functionality
-- [ ] Warm-up/Cool-down template library
-- [ ] Target editing (name, habit association)
-- [ ] Hash navigation support (#habits, #targets)
+- [ ] Template preview with dynamic elements
 
 ### SettingsView (Mostly Complete)
 - [x] Theme selector (light/dark/auto with 6PM-6AM)
@@ -225,15 +228,14 @@ The Shelf is a personal attention and life-balance companion. This document trac
 ## Gap Analysis Summary
 
 ### High Priority (Blocks Core Experience)
-1. **AttentionView**: Warm-up/cool-down template library
-2. **Backend**: API endpoints for data persistence
+1. **Backend**: API endpoints for data persistence
+2. **ReviewView**: Functional reflection save/load
 
 ### Medium Priority
-3. **ReviewView**: Functional reflection save/load
-4. **AttentionView**: Transition window flow
-5. **SettingsView**: Import/Export functionality
+3. **AttentionView**: Transition window enter/exit flow
+4. **SettingsView**: Import/Export functionality
 
 ### Lower Priority (Polish)
-6. **ProgressView**: Calendar view (compact grid), practice breakdowns, transition markers
-7. **AttentionView**: Hash navigation
-8. **Testing**: Playwright E2E tests
+5. **ProgressView**: Calendar view (compact grid), practice breakdowns, transition markers
+6. **AttentionView**: Template preview with dynamic elements
+7. **Testing**: Playwright E2E tests

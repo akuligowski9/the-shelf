@@ -40,11 +40,10 @@ import {
   statusColors,
 } from '@/lib/colors'
 import { useHabits } from '@/context/HabitsContext'
+import { useEntries } from '@/context/EntriesContext'
 import {
-  mockEntries,
   mockPreparations,
   mockClosures,
-  mockTargets,
   formatDateKey,
   getPracticesForHabit,
   getActionsForPractice,
@@ -203,6 +202,7 @@ export default function ShelfView() {
 
   // Use shared habits and targets from context
   const { habits, activeHabits, targets: contextTargets, reorderTargets, updateTargetStatus } = useHabits()
+  const { entries: allEntries } = useEntries()
 
   // Today's date key
   const today = new Date()
@@ -214,7 +214,7 @@ export default function ShelfView() {
 
   // Calculate today's stats
   const todayStats = useMemo(() => {
-    const todayEntries = mockEntries.filter(entry => {
+    const todayEntries = allEntries.filter(entry => {
       const entryDate = entry.occurred_at.split('T')[0]
       return entryDate === todayKey && !entry.archived_at
     })
@@ -232,7 +232,7 @@ export default function ShelfView() {
     const weekAgo = new Date(today)
     weekAgo.setDate(weekAgo.getDate() - 7)
 
-    const weekEntries = mockEntries.filter(entry => {
+    const weekEntries = allEntries.filter(entry => {
       const entryDate = new Date(entry.occurred_at)
       return entryDate >= weekAgo && !entry.archived_at
     })
@@ -250,7 +250,7 @@ export default function ShelfView() {
   const monthStats = useMemo(() => {
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
 
-    const monthEntries = mockEntries.filter(entry => {
+    const monthEntries = allEntries.filter(entry => {
       const entryDate = new Date(entry.occurred_at)
       return entryDate >= monthStart && !entry.archived_at
     })
@@ -266,7 +266,7 @@ export default function ShelfView() {
 
   // Get recent highlights
   const recentHighlights = useMemo(() => {
-    return mockEntries
+    return allEntries
       .filter(e => e.highlight && !e.archived_at)
       .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
       .slice(0, 3)
@@ -275,7 +275,7 @@ export default function ShelfView() {
   // Calculate progress for each target (total time from entries)
   const targetProgress = useMemo(() => {
     const progress = {}
-    mockEntries.forEach(entry => {
+    allEntries.forEach(entry => {
       if (entry.target_id && !entry.archived_at) {
         if (!progress[entry.target_id]) {
           progress[entry.target_id] = { minutes: 0, sessions: 0 }
