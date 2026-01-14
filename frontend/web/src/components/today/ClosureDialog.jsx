@@ -10,8 +10,18 @@ import {
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Clock, Activity, AlertTriangle } from 'lucide-react'
 
-export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats, existingClosure }) {
+function formatDuration(minutes) {
+  if (!minutes) return '0 min'
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours === 0) return `${mins} min`
+  if (mins === 0) return `${hours}h`
+  return `${hours}h ${mins}m`
+}
+
+export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats, habitBreakdown, existingClosure }) {
   const [note, setNote] = useState('')
 
   // Populate form when editing existing closure
@@ -63,22 +73,41 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Today's Summary */}
           {todayStats && (
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <p className="text-sm font-medium">Today's Activity</p>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <div className="text-2xl font-semibold">{todayStats.habits}</div>
-                  <div className="text-xs text-muted-foreground">habits</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold">{todayStats.life}</div>
-                  <div className="text-xs text-muted-foreground">life</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold">{todayStats.minutes}</div>
-                  <div className="text-xs text-muted-foreground">minutes</div>
-                </div>
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Today's Activity</p>
+                <span className="text-lg font-semibold flex items-center gap-1.5">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  {formatDuration(todayStats.minutes)}
+                </span>
               </div>
+
+              <div className="flex items-center gap-4 text-sm">
+                {todayStats.habits > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <Activity className="h-4 w-4 text-[hsl(var(--color-ui-accent))]" />
+                    {todayStats.habits} {todayStats.habits === 1 ? 'habit session' : 'habit sessions'}
+                  </span>
+                )}
+                {todayStats.caution > 0 && (
+                  <span className="flex items-center gap-1.5 text-[hsl(var(--color-terracotta))]">
+                    <AlertTriangle className="h-4 w-4" />
+                    {todayStats.caution} caution
+                  </span>
+                )}
+              </div>
+
+              {/* Habit breakdown */}
+              {habitBreakdown && habitBreakdown.length > 0 && (
+                <div className="pt-2 border-t border-border/50 space-y-1">
+                  {habitBreakdown.map(({ habit, minutes, count }) => (
+                    <div key={habit} className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{habit}</span>
+                      <span>{formatDuration(minutes)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -89,10 +118,11 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
               <span className="text-muted-foreground text-xs ml-1">(optional)</span>
             </Label>
             <Textarea
-              placeholder="How did today feel? Anything to note for tomorrow?"
+              placeholder="How did today feel? What worked well? Anything to carry forward?"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              rows={3}
+              rows={5}
+              className="resize-none"
             />
           </div>
 

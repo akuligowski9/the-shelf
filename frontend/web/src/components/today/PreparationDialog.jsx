@@ -66,10 +66,11 @@ export default function PreparationDialog({ open, onOpenChange, onSubmit, existi
           <div className="space-y-2">
             <Label>What's the focus?</Label>
             <Textarea
-              placeholder="e.g., Balance day - some habit work, some rest. Take it easy on exercise."
+              placeholder="What do you want to accomplish today? Any constraints or priorities?"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              rows={3}
+              rows={5}
+              className="resize-none"
             />
           </div>
 

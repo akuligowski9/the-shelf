@@ -10,6 +10,7 @@ const settingsRouter = require('./routes/settings');
 const programsRouter = require('./routes/programs');
 const reflectionsRouter = require('./routes/reflections');
 const preparationsRouter = require('./routes/preparations');
+const closuresRouter = require('./routes/closures');
 const dashboardRouter = require('./routes/dashboard');
 const metricsRouter = require('./routes/metrics');
 
@@ -33,6 +34,7 @@ app.use('/settings', settingsRouter);
 app.use('/programs', programsRouter);
 app.use('/reflections', reflectionsRouter);
 app.use('/preparations', preparationsRouter);
+app.use('/closures', closuresRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/metrics', metricsRouter);
 

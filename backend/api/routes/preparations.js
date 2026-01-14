@@ -29,23 +29,22 @@ router.get('/', async (req, res, next) => {
 // PUT /preparations  (upsert)
 router.put('/', async (req, res, next) => {
   try {
-    const { period_type, period_start, note } = req.body || {};
+    const { period_type, period_start, note, rest_day } = req.body || {};
 
     if (!period_type || !['day', 'week'].includes(period_type)) {
       return res.status(400).json({ ok: false, error: "period_type must be 'day' or 'week'" });
     }
     if (!period_start) return res.status(400).json({ ok: false, error: 'period_start is required (YYYY-MM-DD)' });
-    if (!note) return res.status(400).json({ ok: false, error: 'note is required' });
 
     const q = `
-      INSERT INTO preparations (period_type, period_start, note)
-      VALUES ($1, $2::date, $3)
+      INSERT INTO preparations (period_type, period_start, note, rest_day)
+      VALUES ($1, $2::date, $3, COALESCE($4, false))
       ON CONFLICT (period_type, period_start)
-      DO UPDATE SET note = EXCLUDED.note, updated_at = NOW()
+      DO UPDATE SET note = EXCLUDED.note, rest_day = EXCLUDED.rest_day, updated_at = NOW()
       RETURNING *;
     `;
 
-    const r = await pool.query(q, [period_type, period_start, note]);
+    const r = await pool.query(q, [period_type, period_start, note || null, rest_day]);
     res.json({ ok: true, preparation: r.rows[0] });
   } catch (err) {
     next(err);

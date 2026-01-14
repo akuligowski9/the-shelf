@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,13 +16,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Plus, Star, Pencil, Sun, Moon, Sunrise, Sunset, Archive, RotateCcw, ChevronDown, ChevronRight, Coffee, Target } from 'lucide-react'
-import {
-  mockEntries,
-  mockPreparations,
-  mockClosures,
-  formatDateKey,
-} from '@/data/mockData'
+import { formatDateKey } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
+import { useEntries } from '@/context/EntriesContext'
+import { getPreparation, savePreparation, getClosure, saveClosure } from '@/lib/api'
 import {
   getHabitBadgeClassesByColor,
   entryTypeColors,
@@ -34,6 +31,9 @@ import {
 export default function TodayView() {
   // Shared habits from context
   const { getHabitByName } = useHabits()
+
+  // Entries from context (API)
+  const { entries: allEntries, setEntries: setAllEntries, createEntry } = useEntries()
 
   // Date state
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -50,10 +50,32 @@ export default function TodayView() {
   const [coolDownEntry, setCoolDownEntry] = useState(null)
   const [showArchived, setShowArchived] = useState(false)
 
-  // Data states - initialize from mock data
-  const [allEntries, setAllEntries] = useState(mockEntries)
-  const [allPreparations, setAllPreparations] = useState(mockPreparations)
-  const [allClosures, setAllClosures] = useState(mockClosures)
+  // Data states - preparations and closures from API
+  const [dayPreparation, setDayPreparation] = useState(null)
+  const [dayClosure, setDayClosure] = useState(null)
+  const [isLoadingDayData, setIsLoadingDayData] = useState(false)
+
+  // Fetch preparation and closure for selected date
+  const fetchDayData = useCallback(async (date) => {
+    setIsLoadingDayData(true)
+    try {
+      const [prep, close] = await Promise.all([
+        getPreparation('day', date).catch(() => null),
+        getClosure('day', date).catch(() => null),
+      ])
+      setDayPreparation(prep)
+      setDayClosure(close)
+    } catch (err) {
+      console.error('Failed to fetch day data:', err)
+    } finally {
+      setIsLoadingDayData(false)
+    }
+  }, [])
+
+  // Fetch day data when date changes
+  useEffect(() => {
+    fetchDayData(dateKey)
+  }, [dateKey, fetchDayData])
 
   // Filter entries for selected date (exclude archived)
   const entries = useMemo(() => {
@@ -71,16 +93,6 @@ export default function TodayView() {
     })
   }, [allEntries, dateKey])
 
-  // Get preparation for selected date (day-level only)
-  const dayPreparation = useMemo(() => {
-    return allPreparations[dateKey] || null
-  }, [allPreparations, dateKey])
-
-  // Get closure for selected date (day-level only)
-  const dayClosure = useMemo(() => {
-    return allClosures[dateKey] || null
-  }, [allClosures, dateKey])
-
   // Check if viewing today
   const isToday = useMemo(() => {
     const today = new Date()
@@ -97,17 +109,40 @@ export default function TodayView() {
     }
   }, [entries])
 
+  // Habit breakdown for closure dialog
+  const habitBreakdown = useMemo(() => {
+    const breakdown = {}
+    entries.filter(e => e.type === 'habit').forEach(entry => {
+      const habit = entry.habit || 'Unknown'
+      if (!breakdown[habit]) {
+        breakdown[habit] = { habit, minutes: 0, count: 0 }
+      }
+      breakdown[habit].minutes += entry.duration_minutes || 0
+      breakdown[habit].count += 1
+    })
+    return Object.values(breakdown).sort((a, b) => b.minutes - a.minutes)
+  }, [entries])
+
   // Handlers
-  const handleEntrySubmit = (entry, isEdit) => {
+  const handleEntrySubmit = async (entry, isEdit) => {
     if (!isEdit) {
       const entryTime = entry.occurred_at.split('T')[1]
       entry.occurred_at = `${dateKey}T${entryTime}`
     }
 
     if (isEdit) {
+      // TODO: Add update API endpoint
       setAllEntries(prev => prev.map(e => e.id === entry.id ? entry : e))
     } else {
-      setAllEntries(prev => [...prev, entry])
+      try {
+        // Create entry via API
+        const newEntry = await createEntry(entry)
+        // Entry is already added to state by createEntry in context
+      } catch (err) {
+        console.error('Failed to create entry:', err)
+        // Fallback to local state update
+        setAllEntries(prev => [...prev, entry])
+      }
     }
     setEditingEntry(null)
   }
@@ -154,12 +189,35 @@ export default function TodayView() {
     )
   }
 
-  const handlePreparationSubmit = (prep) => {
-    setAllPreparations(prev => ({ ...prev, [dateKey]: prep }))
+  const handlePreparationSubmit = async (prep) => {
+    try {
+      const saved = await savePreparation({
+        period_type: 'day',
+        period_start: dateKey,
+        note: prep.note,
+        rest_day: prep.rest_day,
+      })
+      setDayPreparation(saved)
+    } catch (err) {
+      console.error('Failed to save preparation:', err)
+      // Optimistic update as fallback
+      setDayPreparation(prep)
+    }
   }
 
-  const handleClosureSubmit = (close) => {
-    setAllClosures(prev => ({ ...prev, [dateKey]: close }))
+  const handleClosureSubmit = async (close) => {
+    try {
+      const saved = await saveClosure({
+        scope: 'day',
+        occurred_at: close.occurred_at,
+        note: close.note,
+      })
+      setDayClosure(saved)
+    } catch (err) {
+      console.error('Failed to save closure:', err)
+      // Optimistic update as fallback
+      setDayClosure(close)
+    }
   }
 
   // Warm-up handlers (for existing entries)
@@ -206,16 +264,16 @@ export default function TodayView() {
 
   const getEntryLabel = (entry) => {
     if (entry.type === 'habit') {
-      return entry.habit
+      return entry.habit || 'Unknown Habit'
     }
     return entry.type.charAt(0).toUpperCase() + entry.type.slice(1)
   }
 
-  // Get badge style for entry - looks up habit colors from context
+  // Get badge style for entry - uses habit_color from API or looks up from context
   const getEntryBadgeStyle = (entry) => {
     if (entry.type === 'habit' && entry.habit) {
-      const habit = getHabitByName(entry.habit)
-      const colorKey = habit?.color || 'sage'
+      // Use habit_color from API if available, otherwise look up from context
+      const colorKey = entry.habit_color || getHabitByName(entry.habit)?.color || 'sage'
       return {
         variant: 'outline',
         className: getHabitBadgeClassesByColor(colorKey)
@@ -395,12 +453,6 @@ export default function TodayView() {
                           {entry.practice}
                         </span>
                       )}
-                      {entry.target && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Target className="h-3 w-3" />
-                          {entry.target}
-                        </span>
-                      )}
                       {entry.is_highlight && (
                         <Star className="h-4 w-4 text-[hsl(var(--color-ui-accent))] fill-[hsl(var(--color-ui-accent))]" />
                       )}
@@ -408,6 +460,14 @@ export default function TodayView() {
                         <Sunrise className="h-3 w-3 text-muted-foreground" title="Warmed up" />
                       )}
                     </div>
+
+                    {/* Target on its own line */}
+                    {entry.target && (
+                      <p className="text-sm text-[hsl(var(--content-foreground))] flex items-center gap-1.5">
+                        <Target className="h-3.5 w-3.5 text-muted-foreground" />
+                        {entry.target}
+                      </p>
+                    )}
 
                     {/* Actions as comma-separated text */}
                     {entry.actions && entry.actions.length > 0 && (
@@ -598,6 +658,7 @@ export default function TodayView() {
         onOpenChange={setClosureDialogOpen}
         onSubmit={handleClosureSubmit}
         todayStats={dayStats}
+        habitBreakdown={habitBreakdown}
         existingClosure={dayClosure}
       />
 
