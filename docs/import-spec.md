@@ -58,7 +58,8 @@ A full import file may include:
   "preparations": [],
   "closures": [],
   "entries": [],
-  "reflections": []
+  "reflections": [],
+  "transitions": []
 }
 ```
 
@@ -155,6 +156,7 @@ Entries record what actually happened.
 - `duration_minutes` (number, optional)
 - `note` (string, optional)
 - `is_highlight` (boolean, optional)
+- `actions` (array of strings, optional — see 7.1)
 
 _Example — Habit Entry:_
 
@@ -197,6 +199,30 @@ _Example — Caution Entry:_
 - Caution entries are usually occurrence-based
 - Entries may be edited later in the UI
 - Entries are never hard-deleted
+
+### 7.1 Actions (for habits with track_actions)
+
+Habit entries may include an `actions` array for granular tracking within a session.
+
+_Example — Entry with Actions:_
+
+```json
+{
+  "type": "habit",
+  "habit": "Dog Training",
+  "practice": "Drills",
+  "occurred_at": "2026-01-12T12:00:00",
+  "duration_minutes": 60,
+  "actions": ["Crate", "Name Recall", "Greeting Practice"]
+}
+```
+
+**Rules:**
+
+- `actions` is optional
+- Only meaningful for habits with `track_actions: true`
+- Action names are strings (matched to practice's action list)
+- Unknown actions are preserved but may not display in UI
 
 ## 8. Reflections
 
@@ -273,3 +299,61 @@ Imports never:
 - delete data
 - overwrite history
 - remove archived items
+
+## 13. Transitions (Structural Changes)
+
+Log files may include a `transitions` array to record structural changes to habits, practices, or actions.
+
+_Example:_
+
+```json
+{
+  "date": "2026-01-15",
+  "transitions": [
+    {
+      "type": "add_practice",
+      "habit": "Exercise",
+      "practice": "Yoga",
+      "note": "Starting yoga practice"
+    },
+    {
+      "type": "add_action",
+      "habit": "Dog Training",
+      "practice": "Drills",
+      "action": "Place Command",
+      "note": "Added new drill"
+    }
+  ],
+  "entries": []
+}
+```
+
+**Supported transition types:**
+
+- `add_habit` — Add a new habit
+- `add_practice` — Add practice to existing habit
+- `add_action` — Add action to existing practice
+- `deactivate_habit` — Set habit.active = false
+- `deactivate_practice` — Set practice.active = false
+
+**Rules:**
+
+- Transitions are processed before entries for that day
+- `data/habits.json` is the baseline; transitions extend it over time
+- Transitions create a timeline of structural evolution
+- Unknown transition types are ignored
+
+## 14. Source of Truth
+
+1. **`data/habits.json`** — Canonical baseline structure
+   - Defines all habits, practices, actions as of initial setup
+   - Contains `practice_aliases` for import normalization
+
+2. **Log files (`data/logs/*.json`)** — Timeline data + structural evolution
+   - Entries, preparations, closures, reflections
+   - Optional `transitions` array for adding practices/actions
+
+3. **Import process** merges:
+   - habits.json (baseline)
+   - All transitions from log files (in date order)
+   - Creates final structure for database/frontend

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -19,7 +19,7 @@ import { useTheme } from '@/context/ThemeContext'
 import {
   mockHabits,
   mockPractices,
-  mockBehaviors,
+  mockActions,
   mockTargets,
   mockEntries,
   mockPreparations,
@@ -28,8 +28,75 @@ import {
   mockCoolDownTemplates,
 } from '@/data/mockData'
 
+// Common timezones grouped by region
+const TIMEZONES = [
+  { value: 'America/New_York', label: 'Eastern (ET)', offset: 'UTC-5/-4' },
+  { value: 'America/Chicago', label: 'Central (CT)', offset: 'UTC-6/-5' },
+  { value: 'America/Denver', label: 'Mountain (MT)', offset: 'UTC-7/-6' },
+  { value: 'America/Los_Angeles', label: 'Pacific (PT)', offset: 'UTC-8/-7' },
+  { value: 'America/Anchorage', label: 'Alaska (AKT)', offset: 'UTC-9/-8' },
+  { value: 'Pacific/Honolulu', label: 'Hawaii (HT)', offset: 'UTC-10' },
+  { value: 'Europe/London', label: 'London (GMT/BST)', offset: 'UTC+0/+1' },
+  { value: 'Europe/Paris', label: 'Central Europe (CET)', offset: 'UTC+1/+2' },
+  { value: 'Asia/Tokyo', label: 'Japan (JST)', offset: 'UTC+9' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST)', offset: 'UTC+10/+11' },
+  { value: 'UTC', label: 'UTC', offset: 'UTC+0' },
+]
+
+const TIMEZONE_STORAGE_KEY = 'shelf_timezone'
+const SHELF_SORT_KEY = 'shelf_target_sort'
+
+// Options for how targets are sorted on the shelf
+const SHELF_SORT_OPTIONS = [
+  { value: 'priority', label: 'Priority (drag order)', description: 'Manual ordering via drag and drop' },
+  { value: 'deadline', label: 'Deadline', description: 'Targets with soonest deadlines first' },
+  { value: 'recent', label: 'Recently added', description: 'Newest targets first' },
+]
+
+function getStoredShelfSort() {
+  try {
+    const stored = localStorage.getItem(SHELF_SORT_KEY)
+    if (stored && SHELF_SORT_OPTIONS.find(opt => opt.value === stored)) {
+      return stored
+    }
+  } catch (e) {}
+  return 'priority' // default
+}
+
+function getStoredTimezone() {
+  try {
+    const stored = localStorage.getItem(TIMEZONE_STORAGE_KEY)
+    if (stored && TIMEZONES.find(tz => tz.value === stored)) {
+      return stored
+    }
+  } catch (e) {}
+  // Default to browser's timezone or Eastern
+  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const match = TIMEZONES.find(tz => tz.value === browserTz)
+  return match ? match.value : 'America/New_York'
+}
+
 export default function SettingsView() {
   const { theme, setTheme } = useTheme()
+  const [timezone, setTimezoneState] = useState(getStoredTimezone)
+  const [shelfSort, setShelfSortState] = useState(getStoredShelfSort)
+
+  const setTimezone = (tz) => {
+    setTimezoneState(tz)
+    try {
+      localStorage.setItem(TIMEZONE_STORAGE_KEY, tz)
+    } catch (e) {}
+  }
+
+  const setShelfSort = (sort) => {
+    setShelfSortState(sort)
+    try {
+      localStorage.setItem(SHELF_SORT_KEY, sort)
+    } catch (e) {}
+  }
+
+  const selectedTimezone = TIMEZONES.find(tz => tz.value === timezone)
+  const selectedShelfSort = SHELF_SORT_OPTIONS.find(opt => opt.value === shelfSort)
 
   // Compute data health metrics
   const metrics = useMemo(() => {
@@ -141,7 +208,7 @@ export default function SettingsView() {
       // Structure
       activeHabits: mockHabits.filter(h => h.active).length,
       activePractices: mockPractices.filter(p => p.active).length,
-      totalBehaviors: mockBehaviors.length,
+      totalActions: mockActions.length,
 
       // Targets
       totalTargets: mockTargets.length,
@@ -211,12 +278,24 @@ export default function SettingsView() {
             <div>
               <div className="font-medium">Timezone</div>
               <div className="text-sm text-muted-foreground">
-                All times are stored in this timezone
+                All times are displayed in this timezone
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              EST (UTC-5)
-            </Button>
+            <Select value={timezone} onValueChange={setTimezone}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue>
+                  {selectedTimezone ? `${selectedTimezone.label}` : 'Select timezone'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {TIMEZONES.map(tz => (
+                  <SelectItem key={tz.value} value={tz.value}>
+                    <span>{tz.label}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{tz.offset}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Separator />
@@ -236,6 +315,31 @@ export default function SettingsView() {
                 <SelectItem value="light">Light</SelectItem>
                 <SelectItem value="dark">Dark</SelectItem>
                 <SelectItem value="auto">Auto (6 PM - 6 AM)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium">Shelf Target Order</div>
+              <div className="text-sm text-muted-foreground">
+                How targets are sorted on the Shelf view
+              </div>
+            </div>
+            <Select value={shelfSort} onValueChange={setShelfSort}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue>
+                  {selectedShelfSort ? selectedShelfSort.label : 'Select order'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {SHELF_SORT_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -397,8 +501,8 @@ export default function SettingsView() {
                   <span className="font-medium">{metrics.activePractices}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Behaviors:</span>{' '}
-                  <span className="font-medium">{metrics.totalBehaviors}</span>
+                  <span className="text-muted-foreground">Actions:</span>{' '}
+                  <span className="font-medium">{metrics.totalActions}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Transitions:</span>{' '}

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { mockEntries, mockReflections, mockPreparations } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
-import { Star, Target, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react'
+import { Star, Target, ChevronDown, ChevronUp, Lightbulb, Clock, Activity, AlertCircle, Coffee, Zap } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import PeriodSelector, { getDateRange } from '@/components/shared/PeriodSelector'
 
@@ -42,6 +42,11 @@ function calculatePeriodMetrics(entries, preparations, dateRange, activeHabits) 
 
   // Highlights
   const highlights = periodEntries.filter(e => e.is_highlight).length
+
+  // Actions (count total actions logged across all entries)
+  const totalActions = periodEntries.reduce((sum, e) => {
+    return sum + (e.actions?.length || 0)
+  }, 0)
 
   // Rest days (days with rest_day preparation)
   const restDays = Object.entries(preparations).filter(([dateKey, prep]) => {
@@ -89,6 +94,7 @@ function calculatePeriodMetrics(entries, preparations, dateRange, activeHabits) 
     lifeEntries,
     cautionEntries,
     highlights,
+    totalActions,
     restDays,
     daysWithEntries,
     totalDays,
@@ -332,6 +338,133 @@ export default function ReviewView() {
         onTimeRangeChange={setTimeRange}
         onPeriodOffsetChange={setPeriodOffset}
       />
+
+      {/* Contextual Metrics */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Period Summary</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            What happened during {periodLabel}
+          </p>
+        </CardHeader>
+        <CardContent>
+          {/* Main Stats Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-primary/10">
+                <Clock className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold">{currentMetrics.totalHours}h</p>
+                <p className="text-xs text-muted-foreground">Total time</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-blue-500/10">
+                <Activity className="h-4 w-4 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold">{currentMetrics.habitEntries}</p>
+                <p className="text-xs text-muted-foreground">Habit sessions</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-amber-500/10">
+                <AlertCircle className="h-4 w-4 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold">{currentMetrics.cautionEntries}</p>
+                <p className="text-xs text-muted-foreground">Cautions</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-violet-500/10">
+                <Zap className="h-4 w-4 text-violet-500" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold">{currentMetrics.totalActions}</p>
+                <p className="text-xs text-muted-foreground">Actions</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-md bg-muted">
+                <Coffee className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold">{currentMetrics.restDays}</p>
+                <p className="text-xs text-muted-foreground">Rest days</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Habit Breakdown */}
+          {Object.keys(currentMetrics.habitBreakdown).length > 0 && (
+            <>
+              <Separator className="my-4" />
+              <div>
+                <h4 className="text-sm font-medium mb-3">Time by Habit</h4>
+                <div className="space-y-2">
+                  {Object.entries(currentMetrics.habitBreakdown)
+                    .sort((a, b) => b[1].minutes - a[1].minutes)
+                    .slice(0, 5)
+                    .map(([habitName, data]) => {
+                      const habit = habits.find(h => h.name === habitName)
+                      const percent = Math.round((data.minutes / currentMetrics.totalMinutes) * 100)
+                      const hours = Math.floor(data.minutes / 60)
+                      const mins = data.minutes % 60
+                      const timeStr = hours > 0
+                        ? mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
+                        : `${mins}m`
+
+                      return (
+                        <div key={habitName} className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm">{habitName}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {timeStr} · {data.count} {data.count === 1 ? 'session' : 'sessions'}
+                              </span>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary/60 rounded-full"
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+                          </div>
+                          <span className="text-xs text-muted-foreground w-8 text-right">
+                            {percent}%
+                          </span>
+                        </div>
+                      )
+                    })}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Comparison to Previous Period */}
+          {previousMetrics && previousMetrics.totalMinutes > 0 && (
+            <>
+              <Separator className="my-4" />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">vs. previous period</span>
+                {(() => {
+                  const diff = currentMetrics.totalMinutes - previousMetrics.totalMinutes
+                  const percentChange = Math.round((diff / previousMetrics.totalMinutes) * 100)
+                  const isUp = diff > 0
+
+                  return (
+                    <span className={isUp ? 'text-green-600' : 'text-amber-600'}>
+                      {isUp ? '+' : ''}{percentChange}% ({isUp ? '+' : ''}{Math.round(diff / 60)}h)
+                    </span>
+                  )
+                })()}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Accomplishments */}
       <Card>

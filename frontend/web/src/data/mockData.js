@@ -1,11 +1,11 @@
 // Mock data for development - mirrors expected API structure
 
 export const mockHabits = [
-  { id: 1, name: 'Software', active: true, target_minutes: 120, color: 'dusk' },
-  { id: 2, name: 'Spanish', active: true, target_minutes: 30, color: 'coral' },
-  { id: 3, name: 'Exercise', active: true, target_minutes: 60, color: 'forest' },
-  { id: 4, name: 'Dog Training', active: true, target_minutes: 30, color: 'lavender' },
-  { id: 5, name: 'Reading', active: false, target_minutes: 30, color: 'sienna' },
+  { id: 1, name: 'Software', active: true, target_minutes: 120, color: 'dusk', track_actions: false },
+  { id: 2, name: 'Spanish', active: true, target_minutes: 30, color: 'coral', track_actions: false },
+  { id: 3, name: 'Exercise', active: true, target_minutes: 60, color: 'forest', track_actions: true },
+  { id: 4, name: 'Dog Training', active: true, target_minutes: 30, color: 'lavender', track_actions: true },
+  { id: 5, name: 'Reading', active: true, target_minutes: 30, color: 'sienna', track_actions: false },
 ]
 
 // Warm-up and cool-down templates per habit
@@ -118,27 +118,26 @@ export function getCoolDownTemplatesForHabit(habitId) {
 }
 
 export const mockPractices = [
-  // Software
-  { id: 1, habit_id: 1, name: 'Personal Project Development', active: true, details: null },
-  { id: 2, habit_id: 1, name: 'Architecture Planning', active: true, details: null },
-  { id: 3, habit_id: 1, name: 'Open Source', active: true, details: null },
-  // Spanish
-  { id: 4, habit_id: 2, name: 'Textbook Learning', active: true, details: null },
-  { id: 5, habit_id: 2, name: 'Conversation', active: true, details: null },
-  // Exercise
-  { id: 6, habit_id: 3, name: 'Walking', active: true, details: null },
-  { id: 7, habit_id: 3, name: 'Outdoor Walking', active: true, details: null },
-  { id: 8, habit_id: 3, name: 'Gym', active: true, details: null },
-  { id: 9, habit_id: 3, name: 'Corrective Exercises', active: true, details: null },
-  { id: 15, habit_id: 3, name: 'Legs Workout', active: true, details: null },
-  { id: 16, habit_id: 3, name: 'Upper Body', active: true, details: null },
-  // Dog Training
-  { id: 10, habit_id: 4, name: 'Walk Training', active: true, details: null },
-  { id: 11, habit_id: 4, name: 'Loose-Leash Drills', active: true, details: null },
-  { id: 12, habit_id: 4, name: 'Miscellaneous Care', active: true, details: null },
-  // Reading
-  { id: 13, habit_id: 5, name: 'Books', active: true, details: null },
-  { id: 14, habit_id: 5, name: 'Articles', active: true, details: null },
+  // Software (track_actions: false)
+  { id: 1, habit_id: 1, name: 'Development', active: true },
+  { id: 2, habit_id: 1, name: 'Architecture Planning', active: true },
+  // Spanish (track_actions: false)
+  { id: 3, habit_id: 2, name: 'Textbook Learning', active: true },
+  { id: 4, habit_id: 2, name: 'Conversation', active: true },
+  // Exercise (track_actions: true)
+  { id: 5, habit_id: 3, name: 'Walking', active: true },
+  { id: 6, habit_id: 3, name: 'Gym', active: true },
+  { id: 7, habit_id: 3, name: 'Physical Therapy', active: true },
+  { id: 8, habit_id: 3, name: 'Core & Abs', active: true },
+  { id: 9, habit_id: 3, name: 'Upper Body', active: true },
+  { id: 10, habit_id: 3, name: 'Legs', active: true },
+  // Dog Training (track_actions: true)
+  { id: 11, habit_id: 4, name: 'Walk Training', active: true },
+  { id: 12, habit_id: 4, name: 'Drills', active: true },
+  { id: 13, habit_id: 4, name: 'Care', active: true },
+  // Reading (track_actions: false)
+  { id: 14, habit_id: 5, name: 'Books', active: true },
+  { id: 15, habit_id: 5, name: 'Articles', active: true },
 ]
 
 // Scheduled practices - links practices to specific dates
@@ -146,69 +145,70 @@ export const mockScheduledPractices = [
   // Example: { id: 1, practice_id: 15, date: '2026-01-13' }
 ]
 
-// Behaviors/actions per practice (checkboxes for what you did)
-export const mockBehaviors = [
-  // Software - Personal Project Development
-  { id: 1, practice_id: 1, name: 'Feature implementation', active: true },
-  { id: 2, practice_id: 1, name: 'Bug fixes', active: true },
-  { id: 3, practice_id: 1, name: 'Code review', active: true },
-  { id: 4, practice_id: 1, name: 'Testing', active: true },
-  // Software - Architecture Planning
-  { id: 5, practice_id: 2, name: 'System design', active: true },
-  { id: 6, practice_id: 2, name: 'Documentation', active: true },
-  { id: 7, practice_id: 2, name: 'Tech spec writing', active: true },
-  // Spanish - Textbook Learning
-  { id: 8, practice_id: 4, name: 'Vocabulary', active: true },
-  { id: 9, practice_id: 4, name: 'Grammar exercises', active: true },
-  { id: 10, practice_id: 4, name: 'Reading practice', active: true },
-  { id: 11, practice_id: 4, name: 'Flashcards', active: true },
-  // Spanish - Conversation
-  { id: 12, practice_id: 5, name: 'Speaking practice', active: true },
-  { id: 13, practice_id: 5, name: 'Listening practice', active: true },
-  // Exercise - Legs Workout
-  { id: 14, practice_id: 15, name: 'Squats', active: true },
-  { id: 15, practice_id: 15, name: 'Lunges', active: true },
-  { id: 16, practice_id: 15, name: 'Leg Press', active: true },
-  { id: 17, practice_id: 15, name: 'Calf Raises', active: true },
-  { id: 18, practice_id: 15, name: 'Leg Curls', active: true },
-  // Exercise - Upper Body
-  { id: 19, practice_id: 16, name: 'Bench Press', active: true },
-  { id: 20, practice_id: 16, name: 'Shoulder Press', active: true },
-  { id: 21, practice_id: 16, name: 'Pull-ups', active: true },
-  { id: 22, practice_id: 16, name: 'Rows', active: true },
-  { id: 23, practice_id: 16, name: 'Bicep Curls', active: true },
-  // Exercise - Corrective Exercises
-  { id: 24, practice_id: 9, name: 'Hip stretches', active: true },
-  { id: 25, practice_id: 9, name: 'Mobility work', active: true },
-  { id: 26, practice_id: 9, name: 'Foam rolling', active: true },
-  // Dog Training - Loose-Leash Drills
-  { id: 27, practice_id: 11, name: 'Calm exits', active: true },
-  { id: 28, practice_id: 11, name: 'Leash tension awareness', active: true },
-  { id: 29, practice_id: 11, name: 'Greetings practice', active: true },
-  { id: 30, practice_id: 11, name: 'Direction changes', active: true },
+// Actions per practice (checkboxes for granular tracking within a session)
+// Only for habits with track_actions: true (Exercise, Dog Training)
+export const mockActions = [
+  // Exercise - Gym (practice_id: 6)
+  { id: 23, practice_id: 6, name: 'Cardio', active: true },
+  { id: 24, practice_id: 6, name: 'Weights', active: true },
+  { id: 25, practice_id: 6, name: 'Stretching', active: true },
+  // Exercise - Physical Therapy (practice_id: 7)
+  { id: 1, practice_id: 7, name: 'Overhead Mobility', active: true },
+  { id: 2, practice_id: 7, name: 'Hip Stretches', active: true },
+  { id: 3, practice_id: 7, name: 'Foam Rolling', active: true },
+  // Exercise - Core & Abs (practice_id: 8)
+  { id: 4, practice_id: 8, name: 'Planks', active: true },
+  { id: 5, practice_id: 8, name: 'Crunches', active: true },
+  { id: 6, practice_id: 8, name: 'Dead Bug', active: true },
+  // Exercise - Upper Body (practice_id: 9)
+  { id: 7, practice_id: 9, name: 'Bench Press', active: true },
+  { id: 8, practice_id: 9, name: 'Rows', active: true },
+  { id: 9, practice_id: 9, name: 'Pull-ups', active: true },
+  { id: 10, practice_id: 9, name: 'Shoulder Press', active: true },
+  // Exercise - Legs (practice_id: 10)
+  { id: 11, practice_id: 10, name: 'Squats', active: true },
+  { id: 12, practice_id: 10, name: 'Lunges', active: true },
+  { id: 13, practice_id: 10, name: 'Leg Press', active: true },
+  { id: 14, practice_id: 10, name: 'Calf Raises', active: true },
+  // Dog Training - Walk Training (practice_id: 11)
+  { id: 15, practice_id: 11, name: 'Loose-Leash', active: true },
+  { id: 16, practice_id: 11, name: 'Calm Exits', active: true },
+  { id: 17, practice_id: 11, name: 'Leash Tension Awareness', active: true },
+  // Dog Training - Drills (practice_id: 12)
+  { id: 18, practice_id: 12, name: 'Crate', active: true },
+  { id: 19, practice_id: 12, name: 'Name Recall', active: true },
+  { id: 20, practice_id: 12, name: 'Greeting Practice', active: true },
+  { id: 21, practice_id: 12, name: 'Patience', active: true },
+  { id: 22, practice_id: 12, name: 'Calming', active: true },
 ]
 
-// Helper to get behaviors for a specific practice
-export function getBehaviorsForPractice(practiceId) {
-  return mockBehaviors.filter(b => b.practice_id === practiceId && b.active)
+// Helper to get actions for a specific practice
+export function getActionsForPractice(practiceId) {
+  return mockActions.filter(a => a.practice_id === practiceId && a.active)
+}
+
+// Check if a habit tracks actions
+export function habitTracksActions(habitId) {
+  const habit = mockHabits.find(h => h.id === habitId)
+  return habit?.track_actions || false
 }
 
 export const mockTargets = [
-  // Active
-  { id: 1, name: 'The Shelf', status: 'active', habit_id: 1 },
-  { id: 4, name: 'Daily Walking Habit', status: 'active', habit_id: 3 },
+  // Active (sort_order determines priority on shelf)
+  { id: 1, name: 'The Shelf', status: 'active', habit_id: 1, end_date: '2026-03-31', sort_order: 0 },
+  { id: 4, name: 'Daily Walking Habit', status: 'active', habit_id: 3, planned_duration: '1 month', sort_order: 1 },
   // Planned
-  { id: 2, name: 'Spanish B1 Certification', status: 'planned', habit_id: 2 },
-  { id: 5, name: 'Read 12 Books in 2026', status: 'planned', habit_id: 5 },
-  { id: 6, name: 'Marathon Training', status: 'planned', habit_id: 3 },
+  { id: 2, name: 'Spanish B1 Certification', status: 'planned', habit_id: 2, end_date: '2026-06-01', sort_order: 0 },
+  { id: 5, name: 'Read 12 Books in 2026', status: 'planned', habit_id: 5, end_date: '2026-12-31', sort_order: 1 },
+  { id: 6, name: 'Marathon Training', status: 'planned', habit_id: 3, planned_duration: '4 months', sort_order: 2 },
   // Parked
-  { id: 3, name: 'Home Renovation Ideas', status: 'parked', habit_id: null },
-  { id: 7, name: 'Learn Guitar', status: 'parked', habit_id: null },
+  { id: 3, name: 'Home Renovation Ideas', status: 'parked', habit_id: null, sort_order: 0 },
+  { id: 7, name: 'Learn Guitar', status: 'parked', habit_id: null, sort_order: 1 },
   // Completed
-  { id: 8, name: 'Set Up Dev Environment', status: 'completed', habit_id: 1, done_at: '2026-01-03' },
-  { id: 9, name: '30-Day Spanish Streak', status: 'completed', habit_id: 2, done_at: '2025-12-15' },
-  { id: 10, name: 'ShelfView MVP', status: 'completed', habit_id: 1, done_at: '2026-01-08' },
-  { id: 11, name: 'Gym 3x This Week', status: 'completed', habit_id: 3, done_at: '2026-01-10' },
+  { id: 8, name: 'Set Up Dev Environment', status: 'completed', habit_id: 1, done_at: '2026-01-03', sort_order: 0 },
+  { id: 9, name: '30-Day Spanish Streak', status: 'completed', habit_id: 2, done_at: '2025-12-15', sort_order: 1 },
+  { id: 10, name: 'ShelfView MVP', status: 'completed', habit_id: 1, done_at: '2026-01-08', sort_order: 2 },
+  { id: 11, name: 'Gym 3x This Week', status: 'completed', habit_id: 3, done_at: '2026-01-10', sort_order: 3 },
 ]
 
 // Entries from multiple days (based on actual log data)

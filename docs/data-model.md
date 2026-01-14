@@ -31,6 +31,16 @@ data recorded in 2026 should still be explorable and meaningful in 2028 and beyo
 
 ---
 
+## Source of truth
+
+1. **`data/habits.json`** — Canonical baseline for habits, practices, and actions
+2. **`data/logs/*.json`** — Daily log files with entries and optional transitions
+3. **`db/schema.sql`** — Database schema (the import process populates this)
+
+See `docs/import-spec.md` for detailed import format and how transitions evolve structure over time.
+
+---
+
 ## Canonical definitions (domain language)
 
 - **Habit**  

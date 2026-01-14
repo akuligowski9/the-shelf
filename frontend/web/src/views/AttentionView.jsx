@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -15,17 +16,134 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ChevronDown, Plus, ArrowRightLeft } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { ChevronDown, Plus, ArrowRightLeft, GripVertical, MoreHorizontal } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  DragOverlay,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { colorPalette, getHabitBadgeClassesByColor } from '@/lib/colors'
 import { useHabits } from '@/context/HabitsContext'
-import { mockEntries } from '@/data/mockData'
+// import { mockEntries } from '@/data/mockData'  // Removed with calendar
 import HabitEditDialog from '@/components/attention/HabitEditDialog'
 import PracticeEditDialog from '@/components/attention/PracticeEditDialog'
-import BehaviorEditDialog from '@/components/attention/BehaviorEditDialog'
+import ActionEditDialog from '@/components/attention/ActionEditDialog'
 import TargetEditDialog from '@/components/attention/TargetEditDialog'
-import AttentionCalendar from '@/components/attention/AttentionCalendar'
+// Calendar removed - may revisit in future iteration
+// import AttentionCalendar from '@/components/attention/AttentionCalendar'
+
+// Kanban card component
+function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: target.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`bg-card border rounded-lg p-3 mb-2 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? 'shadow-lg' : ''}`}
+      {...attributes}
+      {...listeners}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <span className={`text-sm font-medium ${isCompleted ? 'text-muted-foreground line-through' : ''}`}>
+          {target.name}
+        </span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onEdit(target)
+          }}
+          className="text-muted-foreground/60 hover:text-muted-foreground shrink-0"
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </button>
+      </div>
+      {habitName && (
+        <Badge variant="outline" className={`mt-2 text-xs ${habitColorClasses} ${isCompleted ? 'opacity-50' : ''}`}>
+          {habitName}
+        </Badge>
+      )}
+    </div>
+  )
+}
+
+// Kanban column component
+function KanbanColumn({ id, title, count, children, className }) {
+  const { setNodeRef, isOver } = useDroppable({ id })
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex flex-col w-[240px] shrink-0 md:w-auto md:shrink ${className || ''}`}
+    >
+      <div className="flex items-center justify-between mb-3 px-1">
+        <h4 className="text-sm font-semibold text-muted-foreground">{title}</h4>
+        {count !== undefined && (
+          <span className="text-xs text-muted-foreground/60 bg-muted px-2 py-0.5 rounded-full">
+            {count}
+          </span>
+        )}
+      </div>
+      <div
+        className={`flex-1 min-h-[100px] p-2 rounded-lg transition-colors ${
+          isOver ? 'bg-accent/40' : 'bg-muted/30'
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
 
 export default function AttentionView() {
+  const location = useLocation()
+
+  // Refs for hash navigation
+  const targetsRef = useRef(null)
+  const habitsRef = useRef(null)
+
+  // Handle hash navigation
+  useEffect(() => {
+    const hash = location.hash.replace('#', '')
+    if (hash === 'targets' && targetsRef.current) {
+      targetsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else if (hash === 'habits' && habitsRef.current) {
+      habitsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [location.hash])
+
   // Shared state from context
   const {
     habits,
@@ -40,13 +158,13 @@ export default function AttentionView() {
     addPractice,
     updatePracticeName,
     updatePracticeDetails,
-    scheduledPractices,
-    schedulePractice,
-    removeScheduledPractice,
-    getBehaviorsForPractice,
-    toggleBehaviorActive,
-    addBehavior,
-    updateBehaviorName,
+    // scheduledPractices,  // Removed with calendar
+    // schedulePractice,    // Removed with calendar
+    // removeScheduledPractice,  // Removed with calendar
+    getActionsForPractice,
+    toggleActionActive,
+    addAction,
+    updateActionName,
     addHabit,
     targets,
     getTargetsByStatus,
@@ -55,15 +173,17 @@ export default function AttentionView() {
     updateTargetName,
     updateTargetHabit,
     updateTargetDates,
+    reorderTargets,
+    deleteTarget,
   } = useHabits()
 
   // Track which habit is showing the add practice input
   const [addingPracticeFor, setAddingPracticeFor] = useState(null)
   const [newPracticeName, setNewPracticeName] = useState('')
 
-  // Track which practice is showing the add behavior input
-  const [addingBehaviorFor, setAddingBehaviorFor] = useState(null)
-  const [newBehaviorName, setNewBehaviorName] = useState('')
+  // Track which practice is showing the add action input
+  const [addingActionFor, setAddingActionFor] = useState(null)
+  const [newActionName, setNewActionName] = useState('')
 
   // Track adding new target/habit
   const [addingTarget, setAddingTarget] = useState(false)
@@ -75,15 +195,105 @@ export default function AttentionView() {
   const [editingHabit, setEditingHabit] = useState(null)
   const [editingPractice, setEditingPractice] = useState(null)
   const [editingPracticeHabitName, setEditingPracticeHabitName] = useState('')
-  const [editingBehavior, setEditingBehavior] = useState(null)
-  const [editingBehaviorPracticeName, setEditingBehaviorPracticeName] = useState('')
+  const [editingAction, setEditingAction] = useState(null)
+  const [editingActionPracticeName, setEditingActionPracticeName] = useState('')
   const [editingTarget, setEditingTarget] = useState(null)
+
+  // Done modal state
+  const [showDoneModal, setShowDoneModal] = useState(false)
 
   // Get targets by status from context
   const activeTargets = getTargetsByStatus('active')
   const plannedTargets = getTargetsByStatus('planned')
   const parkedTargets = getTargetsByStatus('parked')
   const completedTargets = getTargetsByStatus('completed')
+  const archivedTargets = getTargetsByStatus('archived')
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  // Track active drag for overlay
+  const [activeDragId, setActiveDragId] = useState(null)
+  const activeDragTarget = activeDragId
+    ? targets.find(t => t.id === activeDragId)
+    : null
+
+  // Find which zone a target belongs to (for Kanban board)
+  const findZone = (targetId) => {
+    if (activeTargets.find(t => t.id === targetId)) return 'active'
+    if (plannedTargets.find(t => t.id === targetId)) return 'planned'
+    if (parkedTargets.find(t => t.id === targetId)) return 'parked'
+    // Both completed and archived show in Done column
+    if (completedTargets.find(t => t.id === targetId)) return 'done'
+    if (archivedTargets.find(t => t.id === targetId)) return 'done'
+    return null
+  }
+
+  // Map zone to status (done zone -> completed status)
+  const zoneToStatus = (zone) => {
+    if (zone === 'done') return 'completed'
+    return zone
+  }
+
+  // Handle drag start
+  const handleDragStart = (event) => {
+    setActiveDragId(event.active.id)
+  }
+
+  // Handle drag end - reorder or change status
+  const handleDragEnd = (event) => {
+    const { active, over } = event
+    setActiveDragId(null)
+
+    if (!over) return
+
+    const activeId = active.id
+    const overId = over.id
+
+    // Check if dropped on a zone directly
+    const zoneIds = ['active', 'planned', 'parked', 'done']
+    const droppedOnZone = zoneIds.includes(overId) ? overId : null
+
+    // Find source zone
+    const sourceZone = findZone(activeId)
+
+    // Determine target zone (either dropped on zone or on item in zone)
+    let targetZone = droppedOnZone || findZone(overId)
+
+    if (!sourceZone || !targetZone) return
+
+    // If moving to different zone, update status
+    if (sourceZone !== targetZone) {
+      updateTargetStatus(activeId, zoneToStatus(targetZone))
+      return
+    }
+
+    // Same zone - reorder
+    if (activeId !== overId && !droppedOnZone) {
+      // Done column combines completed + archived for display
+      const doneTargets = [...completedTargets, ...archivedTargets]
+      const zoneTargets = {
+        active: activeTargets,
+        planned: plannedTargets,
+        parked: parkedTargets,
+        done: doneTargets,
+      }[sourceZone]
+
+      const oldIndex = zoneTargets.findIndex(t => t.id === activeId)
+      const newIndex = zoneTargets.findIndex(t => t.id === overId)
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(zoneTargets, oldIndex, newIndex)
+        reorderTargets(newOrder.map(t => t.id))
+      }
+    }
+  }
 
   // Get habit color classes by habit name
   const getHabitColorByName = (habitName) => {
@@ -105,17 +315,17 @@ export default function AttentionView() {
     setAddingPracticeFor(null)
   }
 
-  const handleAddBehavior = (practiceId) => {
-    if (newBehaviorName.trim()) {
-      addBehavior(practiceId, newBehaviorName.trim())
-      setNewBehaviorName('')
-      setAddingBehaviorFor(null)
+  const handleAddAction = (practiceId) => {
+    if (newActionName.trim()) {
+      addAction(practiceId, newActionName.trim())
+      setNewActionName('')
+      setAddingActionFor(null)
     }
   }
 
-  const handleCancelAddBehavior = () => {
-    setNewBehaviorName('')
-    setAddingBehaviorFor(null)
+  const handleCancelAddAction = () => {
+    setNewActionName('')
+    setAddingActionFor(null)
   }
 
   const handleAddTarget = () => {
@@ -166,9 +376,9 @@ export default function AttentionView() {
     }
   }
 
-  const handleSaveBehavior = (updates) => {
-    if (editingBehavior) {
-      updateBehaviorName(editingBehavior.id, updates.name)
+  const handleSaveAction = (updates) => {
+    if (editingAction) {
+      updateActionName(editingAction.id, updates.name)
     }
   }
 
@@ -176,7 +386,8 @@ export default function AttentionView() {
     if (editingTarget) {
       updateTargetName(editingTarget.id, updates.name)
       updateTargetHabit(editingTarget.id, updates.habit_id)
-      updateTargetDates(editingTarget.id, updates.start_date, updates.end_date)
+      updateTargetStatus(editingTarget.id, updates.status)
+      updateTargetDates(editingTarget.id, updates.start_date, updates.end_date, updates.planned_duration)
     }
   }
 
@@ -185,9 +396,9 @@ export default function AttentionView() {
     setEditingPracticeHabitName(habitName)
   }
 
-  const openBehaviorEdit = (behavior, practiceName) => {
-    setEditingBehavior(behavior)
-    setEditingBehaviorPracticeName(practiceName)
+  const openActionEdit = (action, practiceName) => {
+    setEditingAction(action)
+    setEditingActionPracticeName(practiceName)
   }
 
   return (
@@ -198,19 +409,8 @@ export default function AttentionView() {
         <p className="text-muted-foreground">Manage what gets your attention</p>
       </div>
 
-      {/* Calendar */}
-      <AttentionCalendar
-        targets={targets}
-        entries={mockEntries}
-        habits={habits}
-        practices={practices}
-        scheduledPractices={scheduledPractices}
-        onSchedulePractice={schedulePractice}
-        onUnschedulePractice={removeScheduledPractice}
-      />
-
       {/* Targets */}
-      <Card>
+      <Card ref={targetsRef}>
         <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Targets</CardTitle>
           {addingTarget ? (
@@ -239,213 +439,255 @@ export default function AttentionView() {
             </Button>
           )}
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Active */}
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-              Active
-            </h4>
-            {activeTargets.length === 0 ? (
-              <p className="text-sm text-muted-foreground/60 py-1">No active targets</p>
-            ) : (
-              activeTargets.map(target => {
-                const habitName = getHabitNameById(target.habit_id)
-                return (
-                  <div
-                    key={target.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div>
-                      <span>{target.name}</span>
-                      {habitName && (
-                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
-                          {habitName}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setEditingTarget(target)}
-                        className="text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        Edit
-                      </button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">Move</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'completed')}>
-                            Complete
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'parked')}>
-                            Park
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'planned')}>
-                            Back to Planned
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
+        <CardContent className="p-4">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            {/* Kanban Board */}
+            <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 md:grid md:grid-cols-4 md:overflow-visible">
+              {/* Active Column */}
+              <KanbanColumn id="active" title="Active" count={activeTargets.length}>
+                <SortableContext
+                  items={activeTargets.map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {activeTargets.length === 0 ? (
+                    <p className="text-xs text-muted-foreground/60 text-center py-4">
+                      Drag here to activate
+                    </p>
+                  ) : (
+                    activeTargets.map(target => {
+                      const habitName = getHabitNameById(target.habit_id)
+                      return (
+                        <KanbanCard
+                          key={target.id}
+                          target={target}
+                          habitName={habitName}
+                          habitColorClasses={getHabitColorByName(habitName)}
+                          onEdit={setEditingTarget}
+                        />
+                      )
+                    })
+                  )}
+                </SortableContext>
+              </KanbanColumn>
 
-          <Separator />
+              {/* Planned Column */}
+              <KanbanColumn id="planned" title="Planned" count={plannedTargets.length}>
+                <SortableContext
+                  items={plannedTargets.map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {plannedTargets.length === 0 ? (
+                    <p className="text-xs text-muted-foreground/60 text-center py-4">
+                      Drag here to plan
+                    </p>
+                  ) : (
+                    plannedTargets.map(target => {
+                      const habitName = getHabitNameById(target.habit_id)
+                      return (
+                        <KanbanCard
+                          key={target.id}
+                          target={target}
+                          habitName={habitName}
+                          habitColorClasses={getHabitColorByName(habitName)}
+                          onEdit={setEditingTarget}
+                        />
+                      )
+                    })
+                  )}
+                </SortableContext>
+              </KanbanColumn>
 
-          {/* Planned */}
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-              Planned
-            </h4>
-            {plannedTargets.length === 0 ? (
-              <p className="text-sm text-muted-foreground/60 py-1">Nothing planned</p>
-            ) : (
-              plannedTargets.map(target => {
-                const habitName = getHabitNameById(target.habit_id)
-                return (
-                  <div
-                    key={target.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div>
-                      <span className="text-muted-foreground">{target.name}</span>
-                      {habitName && (
-                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
-                          {habitName}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setEditingTarget(target)}
-                        className="text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        Edit
-                      </button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">Move</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'active')}>
-                            Activate
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'parked')}>
-                            Park
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
+              {/* Parking Lot Column */}
+              <KanbanColumn id="parked" title="Parking Lot" count={parkedTargets.length}>
+                <SortableContext
+                  items={parkedTargets.map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {parkedTargets.length === 0 ? (
+                    <p className="text-xs text-muted-foreground/60 text-center py-4">
+                      Drag here to park
+                    </p>
+                  ) : (
+                    parkedTargets.map(target => {
+                      const habitName = getHabitNameById(target.habit_id)
+                      return (
+                        <KanbanCard
+                          key={target.id}
+                          target={target}
+                          habitName={habitName}
+                          habitColorClasses={getHabitColorByName(habitName)}
+                          onEdit={setEditingTarget}
+                        />
+                      )
+                    })
+                  )}
+                </SortableContext>
+              </KanbanColumn>
 
-          <Separator />
-
-          {/* Parked */}
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-              Parking Lot
-            </h4>
-            {parkedTargets.length === 0 ? (
-              <p className="text-sm text-muted-foreground/60 py-1">Empty</p>
-            ) : (
-              parkedTargets.map(target => {
-                const habitName = getHabitNameById(target.habit_id)
-                return (
-                  <div
-                    key={target.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div>
-                      <span className="text-muted-foreground">{target.name}</span>
-                      {habitName && (
-                        <Badge variant="outline" className={`ml-2 ${getHabitColorByName(habitName)}`}>
-                          {habitName}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setEditingTarget(target)}
-                        className="text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        Edit
-                      </button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">Move</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'active')}>
-                            Activate
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateTargetStatus(target.id, 'planned')}>
-                            Back to Planned
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
-
-          {/* Completed */}
-          {completedTargets.length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                  Completed
-                </h4>
-                {completedTargets.map(target => {
-                  const habitName = getHabitNameById(target.habit_id)
-                  return (
-                    <div
-                      key={target.id}
-                      className="flex items-center justify-between py-2"
-                    >
-                      <div>
-                        <span className="text-muted-foreground line-through">{target.name}</span>
-                        {habitName && (
-                          <Badge variant="outline" className={`ml-2 opacity-50 ${getHabitColorByName(habitName)}`}>
-                            {habitName}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
+              {/* Done Column */}
+              <KanbanColumn
+                id="done"
+                title="Done"
+                count={completedTargets.length + archivedTargets.length}
+              >
+                <SortableContext
+                  items={[...completedTargets, ...archivedTargets].map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {completedTargets.length === 0 && archivedTargets.length === 0 ? (
+                    <p className="text-xs text-muted-foreground/60 text-center py-4">
+                      Drag here to complete
+                    </p>
+                  ) : (
+                    <>
+                      {/* Show top 3 completed */}
+                      {completedTargets.slice(0, 3).map(target => {
+                        const habitName = getHabitNameById(target.habit_id)
+                        return (
+                          <KanbanCard
+                            key={target.id}
+                            target={target}
+                            habitName={habitName}
+                            habitColorClasses={getHabitColorByName(habitName)}
+                            onEdit={setEditingTarget}
+                            isCompleted={true}
+                          />
+                        )
+                      })}
+                      {/* See all button */}
+                      {(completedTargets.length > 3 || archivedTargets.length > 0) && (
                         <button
-                          onClick={() => setEditingTarget(target)}
+                          onClick={() => setShowDoneModal(true)}
+                          className="w-full text-xs text-muted-foreground hover:text-foreground py-2 text-center border border-dashed rounded-lg hover:bg-accent/50 transition-colors"
+                        >
+                          See all ({completedTargets.length + archivedTargets.length})
+                        </button>
+                      )}
+                    </>
+                  )}
+                </SortableContext>
+              </KanbanColumn>
+            </div>
+
+            {/* Drag overlay */}
+            <DragOverlay>
+              {activeDragTarget && (
+                <div className="bg-card border rounded-lg p-3 shadow-lg opacity-95 min-w-[180px]">
+                  <span className="text-sm font-medium">{activeDragTarget.name}</span>
+                </div>
+              )}
+            </DragOverlay>
+          </DndContext>
+        </CardContent>
+      </Card>
+
+      {/* Done Modal */}
+      <Dialog open={showDoneModal} onOpenChange={setShowDoneModal}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Done</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            {/* Completed Section */}
+            <div>
+              <h4 className="text-sm font-semibold text-muted-foreground mb-3">
+                Completed ({completedTargets.length})
+              </h4>
+              {completedTargets.length === 0 ? (
+                <p className="text-sm text-muted-foreground/60">No completed targets</p>
+              ) : (
+                <div className="space-y-2">
+                  {completedTargets.map(target => {
+                    const habitName = getHabitNameById(target.habit_id)
+                    return (
+                      <div
+                        key={target.id}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div>
+                          <span className="text-sm line-through text-muted-foreground">
+                            {target.name}
+                          </span>
+                          {habitName && (
+                            <Badge
+                              variant="outline"
+                              className={`ml-2 text-xs opacity-60 ${getHabitColorByName(habitName)}`}
+                            >
+                              {habitName}
+                            </Badge>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setShowDoneModal(false)
+                            setEditingTarget(target)
+                          }}
                           className="text-xs text-muted-foreground hover:text-foreground"
                         >
                           Edit
                         </button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => updateTargetStatus(target.id, 'active')}
-                        >
-                          Reopen
-                        </Button>
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Archived Section */}
+            <div>
+              <h4 className="text-sm font-semibold text-muted-foreground mb-3">
+                Archived ({archivedTargets.length})
+              </h4>
+              {archivedTargets.length === 0 ? (
+                <p className="text-sm text-muted-foreground/60">No archived targets</p>
+              ) : (
+                <div className="space-y-2">
+                  {archivedTargets.map(target => {
+                    const habitName = getHabitNameById(target.habit_id)
+                    return (
+                      <div
+                        key={target.id}
+                        className="flex items-center justify-between p-3 border rounded-lg bg-muted/30"
+                      >
+                        <div>
+                          <span className="text-sm text-muted-foreground">
+                            {target.name}
+                          </span>
+                          {habitName && (
+                            <Badge
+                              variant="outline"
+                              className={`ml-2 text-xs opacity-60 ${getHabitColorByName(habitName)}`}
+                            >
+                              {habitName}
+                            </Badge>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setShowDoneModal(false)
+                            setEditingTarget(target)
+                          }}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Habits */}
-      <Card>
+      <Card ref={habitsRef}>
         <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Habits</CardTitle>
           {addingHabit ? (
@@ -532,8 +774,9 @@ export default function AttentionView() {
                       <p className="text-sm text-muted-foreground py-1">No practices yet</p>
                     ) : (
                       practices.map(practice => {
-                        const behaviors = getBehaviorsForPractice(practice.id)
-                        const activeBehaviors = behaviors.filter(b => b.active)
+                        const actions = getActionsForPractice(practice.id)
+                        const activeActions = actions.filter(a => a.active)
+                        const showActions = habit.track_actions
 
                         return (
                           <Collapsible key={practice.id}>
@@ -542,10 +785,10 @@ export default function AttentionView() {
                                 <span className={practice.active ? 'text-sm' : 'text-sm text-muted-foreground'}>
                                   {practice.name}
                                 </span>
-                                {behaviors.length > 0 && (
+                                {showActions && (
                                   <>
                                     <span className="text-xs text-muted-foreground">
-                                      ({activeBehaviors.length}/{behaviors.length})
+                                      ({activeActions.length}/{actions.length})
                                     </span>
                                     <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
                                   </>
@@ -559,67 +802,69 @@ export default function AttentionView() {
                               </button>
                             </div>
 
-                            <CollapsibleContent>
-                              <div className="ml-4 pl-3 border-l border-border/50 space-y-1 pb-1">
-                                {behaviors.map(behavior => (
-                                  <div
-                                    key={behavior.id}
-                                    className="flex items-center justify-between py-0.5"
-                                  >
-                                    <span className={behavior.active ? 'text-xs' : 'text-xs text-muted-foreground'}>
-                                      {behavior.name}
-                                    </span>
-                                    <button
-                                      onClick={() => openBehaviorEdit(behavior, practice.name)}
-                                      className="text-xs text-muted-foreground hover:text-foreground"
+                            {habit.track_actions && (
+                              <CollapsibleContent>
+                                <div className="ml-4 pl-3 border-l border-border/50 space-y-1 pb-1">
+                                  {actions.map(action => (
+                                    <div
+                                      key={action.id}
+                                      className="flex items-center justify-between py-0.5"
                                     >
-                                      Edit
-                                    </button>
-                                  </div>
-                                ))}
+                                      <span className={action.active ? 'text-xs' : 'text-xs text-muted-foreground'}>
+                                        {action.name}
+                                      </span>
+                                      <button
+                                        onClick={() => openActionEdit(action, practice.name)}
+                                        className="text-xs text-muted-foreground hover:text-foreground"
+                                      >
+                                        Edit
+                                      </button>
+                                    </div>
+                                  ))}
 
-                                {/* Add Behavior Input */}
-                                {addingBehaviorFor === practice.id ? (
-                                  <div className="flex items-center gap-2 pt-1">
-                                    <Input
-                                      value={newBehaviorName}
-                                      onChange={(e) => setNewBehaviorName(e.target.value)}
-                                      placeholder="Behavior name"
-                                      className="h-6 text-xs"
-                                      autoFocus
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') handleAddBehavior(practice.id)
-                                        if (e.key === 'Escape') handleCancelAddBehavior()
-                                      }}
-                                    />
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-6 px-2 text-xs"
-                                      onClick={() => handleAddBehavior(practice.id)}
+                                  {/* Add Action Input */}
+                                  {addingActionFor === practice.id ? (
+                                    <div className="flex items-center gap-2 pt-1">
+                                      <Input
+                                        value={newActionName}
+                                        onChange={(e) => setNewActionName(e.target.value)}
+                                        placeholder="Action name"
+                                        className="h-6 text-xs"
+                                        autoFocus
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') handleAddAction(practice.id)
+                                          if (e.key === 'Escape') handleCancelAddAction()
+                                        }}
+                                      />
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-6 px-2 text-xs"
+                                        onClick={() => handleAddAction(practice.id)}
+                                      >
+                                        Add
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-6 px-2 text-xs"
+                                        onClick={handleCancelAddAction}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => setAddingActionFor(practice.id)}
+                                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground pt-0.5"
                                     >
-                                      Add
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-6 px-2 text-xs"
-                                      onClick={handleCancelAddBehavior}
-                                    >
-                                      Cancel
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() => setAddingBehaviorFor(practice.id)}
-                                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground pt-0.5"
-                                  >
-                                    <Plus className="h-2.5 w-2.5" />
-                                    Add Behavior
-                                  </button>
-                                )}
-                              </div>
-                            </CollapsibleContent>
+                                      <Plus className="h-2.5 w-2.5" />
+                                      Add Action
+                                    </button>
+                                  )}
+                                </div>
+                              </CollapsibleContent>
+                            )}
                           </Collapsible>
                         )
                       })
@@ -699,13 +944,13 @@ export default function AttentionView() {
         onToggleActive={() => editingPractice && togglePracticeActive(editingPractice.id)}
       />
 
-      <BehaviorEditDialog
-        open={!!editingBehavior}
-        onOpenChange={(open) => !open && setEditingBehavior(null)}
-        behavior={editingBehavior}
-        practiceName={editingBehaviorPracticeName}
-        onSave={handleSaveBehavior}
-        onToggleActive={() => editingBehavior && toggleBehaviorActive(editingBehavior.id)}
+      <ActionEditDialog
+        open={!!editingAction}
+        onOpenChange={(open) => !open && setEditingAction(null)}
+        action={editingAction}
+        practiceName={editingActionPracticeName}
+        onSave={handleSaveAction}
+        onToggleActive={() => editingAction && toggleActionActive(editingAction.id)}
       />
 
       <TargetEditDialog
@@ -714,6 +959,7 @@ export default function AttentionView() {
         target={editingTarget}
         habits={habits}
         onSave={handleSaveTarget}
+        onDelete={deleteTarget}
       />
     </div>
   )

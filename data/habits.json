@@ -1,0 +1,106 @@
+{
+  "habits": [
+    {
+      "id": 1,
+      "name": "Software",
+      "active": true,
+      "color": "dusk",
+      "track_actions": false,
+      "practices": [
+        { "id": 1, "name": "Development", "active": true },
+        { "id": 2, "name": "Architecture Planning", "active": true }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Spanish",
+      "active": true,
+      "color": "coral",
+      "track_actions": false,
+      "practices": [
+        { "id": 3, "name": "Textbook Learning", "active": true },
+        { "id": 4, "name": "Conversation", "active": true }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Exercise",
+      "active": true,
+      "color": "forest",
+      "track_actions": true,
+      "practices": [
+        { "id": 5, "name": "Walking", "active": true },
+        { "id": 6, "name": "Gym", "active": true },
+        {
+          "id": 7,
+          "name": "Physical Therapy",
+          "active": true,
+          "actions": ["Overhead Mobility", "Hip Stretches", "Foam Rolling"]
+        },
+        {
+          "id": 8,
+          "name": "Core & Abs",
+          "active": true,
+          "actions": ["Planks", "Crunches", "Dead Bug"]
+        },
+        {
+          "id": 9,
+          "name": "Upper Body",
+          "active": true,
+          "actions": ["Bench Press", "Rows", "Pull-ups", "Shoulder Press"]
+        },
+        {
+          "id": 10,
+          "name": "Legs",
+          "active": true,
+          "actions": ["Squats", "Lunges", "Leg Press", "Calf Raises"]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Dog Training",
+      "active": true,
+      "color": "lavender",
+      "track_actions": true,
+      "practices": [
+        {
+          "id": 11,
+          "name": "Walk Training",
+          "active": true,
+          "actions": ["Loose-Leash", "Calm Exits", "Leash Tension Awareness"]
+        },
+        {
+          "id": 12,
+          "name": "Drills",
+          "active": true,
+          "actions": ["Crate", "Name Recall", "Greeting Practice", "Patience", "Calming"]
+        },
+        { "id": 13, "name": "Care", "active": true }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Reading",
+      "active": true,
+      "color": "sienna",
+      "track_actions": false,
+      "practices": [
+        { "id": 14, "name": "Books", "active": true },
+        { "id": 15, "name": "Articles", "active": true }
+      ]
+    }
+  ],
+  "practice_aliases": {
+    "Personal Project Development": "Development",
+    "Outdoor Walking": "Walking",
+    "Corrective Exercises": "Physical Therapy",
+    "Hip Stability": "Physical Therapy",
+    "Core Stability": "Core & Abs",
+    "Abs and Legs": "Legs",
+    "Loose-Leash Drills": "Walk Training",
+    "Training": "Drills",
+    "Miscellaneous Care": "Care",
+    "Code Book": "Books"
+  }
+}

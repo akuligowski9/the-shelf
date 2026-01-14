@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from 'react'
 import {
   mockHabits as initialHabits,
   mockPractices as initialPractices,
-  mockBehaviors as initialBehaviors,
+  mockActions as initialActions,
   mockTargets as initialTargets,
   mockScheduledPractices as initialScheduledPractices,
   mockWarmUpTemplates as initialWarmUpTemplates,
@@ -14,7 +14,7 @@ const HabitsContext = createContext(null)
 export function HabitsProvider({ children }) {
   const [habits, setHabits] = useState(initialHabits)
   const [practices, setPractices] = useState(initialPractices)
-  const [behaviors, setBehaviors] = useState(initialBehaviors)
+  const [actions, setActions] = useState(initialActions)
   const [targets, setTargets] = useState(initialTargets)
   const [scheduledPractices, setScheduledPractices] = useState(initialScheduledPractices)
   const [warmUpTemplates, setWarmUpTemplates] = useState(initialWarmUpTemplates)
@@ -124,39 +124,39 @@ export function HabitsProvider({ children }) {
     )
   }
 
-  // ---- Behavior management ----
+  // ---- Action management ----
 
-  // Get all behaviors for a practice (active and inactive)
-  const getBehaviorsForPractice = (practiceId) => {
-    return behaviors.filter(b => b.practice_id === practiceId)
+  // Get all actions for a practice (active and inactive)
+  const getActionsForPractice = (practiceId) => {
+    return actions.filter(a => a.practice_id === practiceId)
   }
 
-  // Get only active behaviors for a practice
-  const getActiveBehaviorsForPractice = (practiceId) => {
-    return behaviors.filter(b => b.practice_id === practiceId && b.active)
+  // Get only active actions for a practice
+  const getActiveActionsForPractice = (practiceId) => {
+    return actions.filter(a => a.practice_id === practiceId && a.active)
   }
 
-  // Toggle behavior active status
-  const toggleBehaviorActive = (behaviorId) => {
-    setBehaviors(prev =>
-      prev.map(b => b.id === behaviorId ? { ...b, active: !b.active } : b)
+  // Toggle action active status
+  const toggleActionActive = (actionId) => {
+    setActions(prev =>
+      prev.map(a => a.id === actionId ? { ...a, active: !a.active } : a)
     )
   }
 
-  // Add a new behavior to a practice
-  const addBehavior = (practiceId, name) => {
-    const newId = Math.max(...behaviors.map(b => b.id), 0) + 1
-    setBehaviors(prev => [
+  // Add a new action to a practice
+  const addAction = (practiceId, name) => {
+    const newId = Math.max(...actions.map(a => a.id), 0) + 1
+    setActions(prev => [
       ...prev,
       { id: newId, practice_id: practiceId, name, active: true }
     ])
     return newId
   }
 
-  // Update behavior name
-  const updateBehaviorName = (behaviorId, name) => {
-    setBehaviors(prev =>
-      prev.map(b => b.id === behaviorId ? { ...b, name } : b)
+  // Update action name
+  const updateActionName = (actionId, name) => {
+    setActions(prev =>
+      prev.map(a => a.id === actionId ? { ...a, name } : a)
     )
   }
 
@@ -198,11 +198,34 @@ export function HabitsProvider({ children }) {
     )
   }
 
-  // Update target dates
-  const updateTargetDates = (targetId, startDate, endDate) => {
+  // Update target dates and duration
+  const updateTargetDates = (targetId, startDate, endDate, plannedDuration) => {
     setTargets(prev =>
-      prev.map(t => t.id === targetId ? { ...t, start_date: startDate, end_date: endDate } : t)
+      prev.map(t => t.id === targetId ? {
+        ...t,
+        start_date: startDate,
+        end_date: endDate,
+        planned_duration: plannedDuration
+      } : t)
     )
+  }
+
+  // Reorder targets (for drag-and-drop)
+  const reorderTargets = (orderedIds) => {
+    setTargets(prev =>
+      prev.map(t => {
+        const newOrder = orderedIds.indexOf(t.id)
+        if (newOrder !== -1) {
+          return { ...t, sort_order: newOrder }
+        }
+        return t
+      })
+    )
+  }
+
+  // Delete a target
+  const deleteTarget = (targetId) => {
+    setTargets(prev => prev.filter(t => t.id !== targetId))
   }
 
   // ---- Habit management ----
@@ -326,13 +349,13 @@ export function HabitsProvider({ children }) {
     schedulePractice,
     removeScheduledPractice,
     unschedulePracticeFromDate,
-    // Behaviors
-    behaviors,
-    getBehaviorsForPractice,
-    getActiveBehaviorsForPractice,
-    toggleBehaviorActive,
-    addBehavior,
-    updateBehaviorName,
+    // Actions
+    actions,
+    getActionsForPractice,
+    getActiveActionsForPractice,
+    toggleActionActive,
+    addAction,
+    updateActionName,
     // Targets
     targets,
     getTargetsByStatus,
@@ -341,6 +364,8 @@ export function HabitsProvider({ children }) {
     updateTargetName,
     updateTargetHabit,
     updateTargetDates,
+    reorderTargets,
+    deleteTarget,
     // Templates
     warmUpTemplates,
     coolDownTemplates,

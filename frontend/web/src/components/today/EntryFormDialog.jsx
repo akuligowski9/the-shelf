@@ -23,10 +23,39 @@ import { Sunrise, ChevronDown, ChevronUp } from 'lucide-react'
 import {
   mockHabits,
   getPracticesForHabit,
-  getBehaviorsForPractice,
+  getActionsForPractice,
+  habitTracksActions,
   getWarmUpTemplatesForHabit,
   renderWarmUpTemplate,
 } from '@/data/mockData'
+import { useHabits } from '@/context/HabitsContext'
+
+// Helper to get/set last used target per habit from localStorage
+const LAST_TARGET_KEY = 'shelf_last_target_by_habit'
+
+function getLastTargetForHabit(habitId) {
+  try {
+    const stored = localStorage.getItem(LAST_TARGET_KEY)
+    if (stored) {
+      const map = JSON.parse(stored)
+      return map[habitId] || ''
+    }
+  } catch (e) {
+    // Ignore localStorage errors
+  }
+  return ''
+}
+
+function setLastTargetForHabit(habitId, targetId) {
+  try {
+    const stored = localStorage.getItem(LAST_TARGET_KEY)
+    const map = stored ? JSON.parse(stored) : {}
+    map[habitId] = targetId
+    localStorage.setItem(LAST_TARGET_KEY, JSON.stringify(map))
+  } catch (e) {
+    // Ignore localStorage errors
+  }
+}
 
 const ENTRY_TYPES = [
   { value: 'habit', label: 'Habit' },
@@ -35,10 +64,13 @@ const ENTRY_TYPES = [
 ]
 
 export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchive, editingEntry }) {
+  const { targets } = useHabits()
+
   const [entryType, setEntryType] = useState('habit')
   const [habitId, setHabitId] = useState('')
   const [practiceId, setPracticeId] = useState('')
-  const [selectedBehaviors, setSelectedBehaviors] = useState([])
+  const [targetId, setTargetId] = useState('')
+  const [selectedActions, setSelectedActions] = useState([])
   const [durationMinutes, setDurationMinutes] = useState('')
   const [note, setNote] = useState('')
 
@@ -50,15 +82,30 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
 
   const activeHabits = useMemo(() => mockHabits.filter(h => h.active), [])
 
+  // Active targets for the selected habit
+  const availableTargets = useMemo(() => {
+    if (!habitId) return []
+    return targets.filter(t =>
+      t.habit_id === Number(habitId) &&
+      (t.status === 'active' || t.status === 'planned')
+    )
+  }, [habitId, targets])
+
+  const selectedTarget = useMemo(() => {
+    return targets.find(t => t.id === Number(targetId))
+  }, [targetId, targets])
+
   const practices = useMemo(() => {
     if (!habitId) return []
     return getPracticesForHabit(Number(habitId))
   }, [habitId])
 
-  const behaviors = useMemo(() => {
-    if (!practiceId) return []
-    return getBehaviorsForPractice(Number(practiceId))
-  }, [practiceId])
+  const actions = useMemo(() => {
+    if (!practiceId || !habitId) return []
+    // Only show actions for habits that track them
+    if (!habitTracksActions(Number(habitId))) return []
+    return getActionsForPractice(Number(practiceId))
+  }, [practiceId, habitId])
 
   const selectedHabit = useMemo(() => {
     return activeHabits.find(h => h.id === Number(habitId))
@@ -98,7 +145,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
       setEntryType(editingEntry.type)
       setDurationMinutes(editingEntry.duration_minutes?.toString() || '')
       setNote(editingEntry.note || '')
-      setSelectedBehaviors(editingEntry.behaviors || [])
+      setSelectedActions(editingEntry.actions || [])
       setWarmUpNote(editingEntry.warm_up_note || '')
       setWarmUpCompleted(!!editingEntry.warm_up_at)
 
@@ -110,6 +157,9 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
           const practice = habitPractices.find(p => p.name === editingEntry.practice)
           if (practice) {
             setPracticeId(String(practice.id))
+          }
+          if (editingEntry.target_id) {
+            setTargetId(String(editingEntry.target_id))
           }
           if (editingEntry.warm_up_template_id) {
             setWarmUpTemplateId(String(editingEntry.warm_up_template_id))
@@ -123,7 +173,8 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     setEntryType('habit')
     setHabitId('')
     setPracticeId('')
-    setSelectedBehaviors([])
+    setTargetId('')
+    setSelectedActions([])
     setDurationMinutes('')
     setNote('')
     setShowWarmUp(false)
@@ -154,8 +205,15 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
       entry.practice = selectedPractice?.name || null
       entry.habit_id = habitId ? Number(habitId) : null
       entry.practice_id = practiceId ? Number(practiceId) : null
-      entry.behaviors = selectedBehaviors.length > 0 ? selectedBehaviors : null
-      entry.note = null // Habits don't have notes, use behaviors instead
+      entry.target_id = targetId ? Number(targetId) : null
+      entry.target = selectedTarget?.name || null
+      entry.actions = selectedActions.length > 0 ? selectedActions : null
+      entry.note = null // Habits don't have notes, use actions instead
+
+      // Remember this target for next time
+      if (habitId && targetId) {
+        setLastTargetForHabit(habitId, targetId)
+      }
     } else {
       entry.note = note || null
     }
@@ -183,17 +241,20 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
   const handleHabitChange = (value) => {
     setHabitId(value)
     setPracticeId('')
-    setSelectedBehaviors([])
+    setSelectedActions([])
     setShowWarmUp(false)
     setWarmUpCompleted(false)
     setWarmUpNote('')
+    // Load last used target for this habit
+    const lastTarget = getLastTargetForHabit(value)
+    setTargetId(lastTarget)
   }
 
-  const toggleBehavior = (behaviorName) => {
-    setSelectedBehaviors(prev =>
-      prev.includes(behaviorName)
-        ? prev.filter(b => b !== behaviorName)
-        : [...prev, behaviorName]
+  const toggleAction = (actionName) => {
+    setSelectedActions(prev =>
+      prev.includes(actionName)
+        ? prev.filter(a => a !== actionName)
+        : [...prev, actionName]
     )
   }
 
@@ -224,7 +285,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
               setEntryType(value)
               setHabitId('')
               setPracticeId('')
-              setSelectedBehaviors([])
+              setSelectedActions([])
               setShowWarmUp(false)
               setWarmUpCompleted(false)
             }}>
@@ -266,7 +327,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
               <Label>Practice <span className="text-muted-foreground text-xs">(optional)</span></Label>
               <Select value={practiceId} onValueChange={(value) => {
                 setPracticeId(value)
-                setSelectedBehaviors([])
+                setSelectedActions([])
               }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a practice" />
@@ -282,23 +343,45 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
             </div>
           )}
 
-          {/* Behaviors (only for habit type with practice selected) */}
-          {entryType === 'habit' && practiceId && behaviors.length > 0 && (
+          {/* Target Selector (only for habit type with habit selected and targets available) */}
+          {entryType === 'habit' && habitId && availableTargets.length > 0 && (
+            <div className="space-y-2">
+              <Label>Target <span className="text-muted-foreground text-xs">(optional)</span></Label>
+              <Select value={targetId} onValueChange={setTargetId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a target" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTargets.map(target => (
+                    <SelectItem key={target.id} value={String(target.id)}>
+                      {target.name}
+                      {target.status === 'planned' && (
+                        <span className="text-muted-foreground ml-1">(planned)</span>
+                      )}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Actions (only for habits with track_actions and practice selected) */}
+          {entryType === 'habit' && practiceId && actions.length > 0 && (
             <div className="space-y-2">
               <Label>What did you work on?</Label>
               <div className="grid grid-cols-2 gap-2">
-                {behaviors.map(behavior => (
-                  <div key={behavior.id} className="flex items-center space-x-2">
+                {actions.map(action => (
+                  <div key={action.id} className="flex items-center space-x-2">
                     <Checkbox
-                      id={`behavior-${behavior.id}`}
-                      checked={selectedBehaviors.includes(behavior.name)}
-                      onCheckedChange={() => toggleBehavior(behavior.name)}
+                      id={`action-${action.id}`}
+                      checked={selectedActions.includes(action.name)}
+                      onCheckedChange={() => toggleAction(action.name)}
                     />
                     <label
-                      htmlFor={`behavior-${behavior.id}`}
+                      htmlFor={`action-${action.id}`}
                       className="text-sm cursor-pointer"
                     >
-                      {behavior.name}
+                      {action.name}
                     </label>
                   </div>
                 ))}

@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Plus, Star, Pencil, Sun, Moon, Sunrise, Sunset, Archive, RotateCcw, ChevronDown, ChevronRight, Coffee } from 'lucide-react'
+import { Plus, Star, Pencil, Sun, Moon, Sunrise, Sunset, Archive, RotateCcw, ChevronDown, ChevronRight, Coffee, Target } from 'lucide-react'
 import {
   mockEntries,
   mockPreparations,
@@ -395,6 +395,12 @@ export default function TodayView() {
                           {entry.practice}
                         </span>
                       )}
+                      {entry.target && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Target className="h-3 w-3" />
+                          {entry.target}
+                        </span>
+                      )}
                       {entry.is_highlight && (
                         <Star className="h-4 w-4 text-[hsl(var(--color-ui-accent))] fill-[hsl(var(--color-ui-accent))]" />
                       )}
@@ -403,10 +409,10 @@ export default function TodayView() {
                       )}
                     </div>
 
-                    {/* Behaviors as comma-separated text */}
-                    {entry.behaviors && entry.behaviors.length > 0 && (
+                    {/* Actions as comma-separated text */}
+                    {entry.actions && entry.actions.length > 0 && (
                       <p className="text-sm text-[hsl(var(--content-foreground))]">
-                        {entry.behaviors.join(', ')}
+                        {entry.actions.join(', ')}
                       </p>
                     )}
 

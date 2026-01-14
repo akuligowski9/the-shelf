@@ -22,7 +22,8 @@ import { Sunrise, ChevronDown, ChevronUp } from 'lucide-react'
 import {
   mockHabits,
   getPracticesForHabit,
-  getBehaviorsForPractice,
+  getActionsForPractice,
+  habitTracksActions,
   getWarmUpTemplatesForHabit,
   renderWarmUpTemplate,
 } from '@/data/mockData'
@@ -34,7 +35,7 @@ export default function StartSessionDialog({
 }) {
   const [habitId, setHabitId] = useState('')
   const [practiceId, setPracticeId] = useState('')
-  const [selectedBehaviors, setSelectedBehaviors] = useState([])
+  const [selectedActions, setSelectedActions] = useState([])
   const [showWarmUp, setShowWarmUp] = useState(false)
   const [warmUpTemplateId, setWarmUpTemplateId] = useState('')
   const [warmUpCompleted, setWarmUpCompleted] = useState(false)
@@ -46,10 +47,11 @@ export default function StartSessionDialog({
     return getPracticesForHabit(Number(habitId))
   }, [habitId])
 
-  const behaviors = useMemo(() => {
-    if (!practiceId) return []
-    return getBehaviorsForPractice(Number(practiceId))
-  }, [practiceId])
+  const actions = useMemo(() => {
+    if (!practiceId || !habitId) return []
+    if (!habitTracksActions(Number(habitId))) return []
+    return getActionsForPractice(Number(practiceId))
+  }, [practiceId, habitId])
 
   const warmUpTemplates = useMemo(() => {
     if (!habitId) return []
@@ -92,7 +94,7 @@ export default function StartSessionDialog({
       habit_id: Number(habitId),
       practice: selectedPractice?.name || null,
       practice_id: practiceId ? Number(practiceId) : null,
-      behaviors: selectedBehaviors.length > 0 ? selectedBehaviors : null,
+      actions: selectedActions.length > 0 ? selectedActions : null,
       occurred_at: new Date().toISOString(),
       duration_minutes: null,
       note: null,
@@ -110,7 +112,7 @@ export default function StartSessionDialog({
   const resetForm = () => {
     setHabitId('')
     setPracticeId('')
-    setSelectedBehaviors([])
+    setSelectedActions([])
     setShowWarmUp(false)
     setWarmUpTemplateId('')
     setWarmUpCompleted(false)
@@ -126,21 +128,21 @@ export default function StartSessionDialog({
   const handleHabitChange = (value) => {
     setHabitId(value)
     setPracticeId('')
-    setSelectedBehaviors([])
+    setSelectedActions([])
     setShowWarmUp(false)
     setWarmUpCompleted(false)
   }
 
   const handlePracticeChange = (value) => {
     setPracticeId(value)
-    setSelectedBehaviors([])
+    setSelectedActions([])
   }
 
-  const toggleBehavior = (behaviorName) => {
-    setSelectedBehaviors(prev =>
-      prev.includes(behaviorName)
-        ? prev.filter(b => b !== behaviorName)
-        : [...prev, behaviorName]
+  const toggleAction = (actionName) => {
+    setSelectedActions(prev =>
+      prev.includes(actionName)
+        ? prev.filter(a => a !== actionName)
+        : [...prev, actionName]
     )
   }
 
@@ -199,23 +201,23 @@ export default function StartSessionDialog({
             </div>
           )}
 
-          {/* Behaviors Checkboxes */}
-          {practiceId && behaviors.length > 0 && (
+          {/* Actions Checkboxes */}
+          {practiceId && actions.length > 0 && (
             <div className="space-y-2">
               <Label>What will you work on?</Label>
               <div className="grid grid-cols-2 gap-2">
-                {behaviors.map(behavior => (
-                  <div key={behavior.id} className="flex items-center space-x-2">
+                {actions.map(action => (
+                  <div key={action.id} className="flex items-center space-x-2">
                     <Checkbox
-                      id={`behavior-${behavior.id}`}
-                      checked={selectedBehaviors.includes(behavior.name)}
-                      onCheckedChange={() => toggleBehavior(behavior.name)}
+                      id={`action-${action.id}`}
+                      checked={selectedActions.includes(action.name)}
+                      onCheckedChange={() => toggleAction(action.name)}
                     />
                     <label
-                      htmlFor={`behavior-${behavior.id}`}
+                      htmlFor={`action-${action.id}`}
                       className="text-sm cursor-pointer"
                     >
-                      {behavior.name}
+                      {action.name}
                     </label>
                   </div>
                 ))}

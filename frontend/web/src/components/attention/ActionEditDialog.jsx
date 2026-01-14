@@ -11,10 +11,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 
-export default function BehaviorEditDialog({
+export default function ActionEditDialog({
   open,
   onOpenChange,
-  behavior,
+  action,
   practiceName,
   onSave,
   onToggleActive,
@@ -22,10 +22,10 @@ export default function BehaviorEditDialog({
   const [name, setName] = useState('')
 
   useEffect(() => {
-    if (behavior) {
-      setName(behavior.name)
+    if (action) {
+      setName(action.name)
     }
-  }, [behavior])
+  }, [action])
 
   const handleSave = () => {
     if (name.trim()) {
@@ -39,13 +39,13 @@ export default function BehaviorEditDialog({
     onOpenChange(false)
   }
 
-  if (!behavior) return null
+  if (!action) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Behavior</DialogTitle>
+          <DialogTitle>Edit Action</DialogTitle>
           {practiceName && (
             <p className="text-sm text-muted-foreground">{practiceName}</p>
           )}
@@ -58,7 +58,7 @@ export default function BehaviorEditDialog({
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Behavior name"
+              placeholder="Action name"
             />
           </div>
 
@@ -71,7 +71,7 @@ export default function BehaviorEditDialog({
             className="w-full"
             onClick={handleToggleActive}
           >
-            {behavior.active ? 'Deactivate Behavior' : 'Activate Behavior'}
+            {action.active ? 'Deactivate Action' : 'Activate Action'}
           </Button>
         </div>
 

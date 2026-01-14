@@ -6,12 +6,11 @@ Tasks organized by priority and area. Each task includes its source.
 
 ## Frontend — High Priority
 
-### NEXT SESSION: Bridge Targets Gap
-**Targets feel disconnected from daily flow.** Revisit these options:
-1. **Link entries to targets** — When logging a habit entry, optionally select which target you're working toward
-4. **Practice → Target mapping** — Link a practice to a target; entries automatically count toward target
-
-Pick one approach and implement. This connects intention (targets) to action (entries).
+### ~~NEXT SESSION: Bridge Targets Gap~~ ✓ DONE
+- [x] **Link entries to targets** — When logging a habit entry, optionally select which target you're working toward
+  - Implemented with smart defaults (remembers last target per habit via localStorage)
+  - Target shown on entry cards in TodayView
+  - Target progress (time + sessions) displayed on ShelfView
 
 ---
 
@@ -19,16 +18,16 @@ Pick one approach and implement. This connects intention (targets) to action (en
 - [x] **Warm-up/Cool-down Template Library** — Manage templates per habit in HabitEditDialog.
   - Source: tech-spec.md (Section 3.5.1, 5.5)
 
-- [ ] **Attention Calendar** — Single calendar view showing target timelines (gantt-style bars) and light activity indicators (dots for days with entries). Consolidates calendar needs in one place.
-  - Source: design decision (one calendar, in Attention)
+- [x] ~~**Attention Calendar**~~ — Removed for now. Targets displayed as cards on ShelfView instead. May revisit if date-driven view becomes needed.
+  - Source: design decision (simplified, cards on shelf instead)
 
 - [ ] **Transition Window Flow** — Implement enter/exit transition window. When in a transition window, track habit changes as a single transition event.
   - Source: README.md (Transitions section), tech-spec.md (Section 3.8)
 
-- [ ] **Target Edit Dialog** — Add ability to edit target name and habit association.
+- [x] **Target Edit Dialog** — Add ability to edit target name and habit association.
   - Source: conversation context
 
-- [ ] **Hash Navigation** — Support `/attention#habits` and `/attention#targets` for direct navigation from Shelf view.
+- [x] **Hash Navigation** — Support `/attention#habits` and `/attention#targets` for direct navigation from Shelf view.
   - Source: tech-spec.md (Section 5.5)
 
 ### ProgressView
@@ -81,7 +80,7 @@ Pick one approach and implement. This connects intention (targets) to action (en
 - [x] **Time Range Selector** — Filter accomplishments and reflections by time period.
   - Source: tech-spec.md (Section 5.4)
 
-- [ ] **Contextual Metrics** — Show relevant metrics alongside reflections.
+- [x] **Contextual Metrics** — Show relevant metrics alongside reflections.
   - Source: tech-spec.md (Section 5.4)
 
 ---
@@ -95,11 +94,11 @@ Pick one approach and implement. This connects intention (targets) to action (en
 - [ ] **Export JSON** — Download all data as JSON following import-spec format.
   - Source: tech-spec.md (Section 5.6), backlog.md (#16)
 
-- [ ] **Timezone Selector** — Functional timezone selection with persistence.
+- [x] **Timezone Selector** — Functional timezone selection with persistence.
   - Source: tech-spec.md (Section 5.6)
 
 ### TodayView
-- [ ] **Edit Past Days** — Navigation allows viewing past days, ensure editing works correctly.
+- [x] **Edit Past Days** — Navigation allows viewing past days, ensure editing works correctly.
   - Source: tech-spec.md (Section 5.2 - "supports imperfect memory")
 
 ### General
