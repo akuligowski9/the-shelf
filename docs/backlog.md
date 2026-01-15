@@ -12,47 +12,53 @@ Each task includes:
 
 ---
 
-## 1. Refine Core Terminology (Habits, Targets, Practices)
+## 1. ~~Refine Core Terminology (Habits, Targets, Practices)~~ DONE
 
-**Description**  
+**Description**
 Clarify and lock in the conceptual model: what a habit is, what a target is, and how practices relate to both. Ensure the language feels natural and consistent across UI and docs.
 
 **Acceptance Criteria**
-- Written definitions for Habit, Target, Practice
-- Clear examples for each
-- Terminology reflected consistently in README and UI labels
+- [x] Written definitions for Habit, Target, Practice
+- [x] Clear examples for each
+- [x] Terminology reflected consistently in README and UI labels
 
-**Priority**: P0  
+**Status**: Complete - Terminology defined in data-model.md and CLAUDE.md. UI consistently uses Habits, Practices, Behaviors (actions), and Targets.
+
+**Priority**: P0
 **Story Points**: 3
 
 ---
 
-## 2. React Dashboard Layout Refinement
+## 2. ~~React Dashboard Layout Refinement~~ DONE
 
-**Description**  
+**Description**
 Refine the dashboard layout to better reflect the "Shelf" metaphor: calm, scannable, and non-urgent.
 
 **Acceptance Criteria**
-- Habits, targets, and entries visually grouped
-- Clear separation between Active vs Parked
-- UI feels readable without scrolling fatigue
+- [x] Habits, targets, and entries visually grouped
+- [x] Clear separation between Active vs Parked
+- [x] UI feels readable without scrolling fatigue
 
-**Priority**: P0  
+**Status**: Complete - ShelfView has expandable habits accordion, targets grouped by status, activity stats, and recent highlights. Clean, calm design.
+
+**Priority**: P0
 **Story Points**: 5
 
 ---
 
-## 3. Parking Lot Interaction (Park / Unpark Targets)
+## 3. ~~Parking Lot Interaction (Park / Unpark Targets)~~ DONE
 
-**Description**  
+**Description**
 Allow targets to be moved between Active and Parked states from the UI.
 
 **Acceptance Criteria**
-- Button or affordance to park/unpark a target
-- Backend state updates correctly
-- UI refresh reflects change immediately
+- [x] Button or affordance to park/unpark a target
+- [x] Backend state updates correctly
+- [x] UI refresh reflects change immediately
 
-**Priority**: P0  
+**Status**: Complete - Targets can be moved via AttentionView Kanban columns (drag-drop) and ShelfView drag-drop interaction between status groups.
+
+**Priority**: P0
 **Story Points**: 3
 
 ---

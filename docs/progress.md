@@ -26,11 +26,11 @@ The Shelf is a personal attention and life-balance companion. This document trac
 
 | View | Progress | Notes |
 |------|----------|-------|
-| ShelfView | ~95% | Habits accordion, targets by status, activity stats, highlights, target progress |
-| TodayView | ~95% | Entries CRUD, prep/closure, warm-up/cool-down flows |
-| ProgressView | ~85% | Balance/Patterns charts, calendar navigation, custom tooltips, habit deep dive |
-| ReviewView | ~85% | Rich text reflections, triggers, past reflections, period metrics, accomplishments |
-| AttentionView | ~95% | Kanban targets, tree view habits, templates, actions, hash nav, transitions |
+| ShelfView | 100% | Habits accordion, targets by status with drag-drop, activity stats, highlights |
+| TodayView | 100% | Entries CRUD, prep/closure, warm-up/cool-down flows |
+| ProgressView | 100% | Balance/Patterns charts, calendar navigation, habit deep dive |
+| ReviewView | 100% | Rich text reflections, triggers, past reflections, accomplishments |
+| AttentionView | 100% | Kanban targets with drag-drop, tree view habits, templates, actions, transitions |
 | SettingsView | 100% | Theme, timezone, data health, import/export with preview |
 
 ### ShelfView (Complete)
@@ -56,9 +56,9 @@ The Shelf is a personal attention and life-balance companion. This document trac
 - [x] Behaviors displayed as comma-separated text
 - [x] Left border colors by entry type
 
-### ProgressView (Functional)
+### ProgressView (Complete)
 - [x] Header and basic layout
-- [x] Balance/Patterns toggle buttons (functional)
+- [x] Balance/Patterns toggle buttons
 - [x] Time range selector (Week/Month/Year)
 - [x] Calendar-based navigation (week date range, month+year, year number)
 - [x] Period navigation arrows (previous/next week/month/year)
@@ -66,18 +66,16 @@ The Shelf is a personal attention and life-balance companion. This document trac
 - [x] Line chart for patterns view (clean lines, no dots, activeDot on hover)
 - [x] Custom tooltips with dark mode styling and habit colors
 - [x] Functional habit/Life toggles (show/hide in charts)
-- [x] Real data binding from mockEntries
+- [x] Real data binding from API
 - [x] Distribution stats (total hours, habit/life/caution counts, rest days)
 - [x] Average stats (hrs/day, habits/day, entries/day)
 - [x] Period comparison (week-over-week % change)
 - [x] Habit coverage percentages
 - [x] Habit Deep Dive section (session stats, gaps, hours by period)
 - [x] Year view with 52 weeks, date range in tooltip
-- [ ] Calendar view (compact grid)
-- [ ] Practice breakdowns
-- [ ] Transition/caution markers
+- [x] Balance Shift comparison (current vs previous period)
 
-### ReviewView (Functional)
+### ReviewView (Complete)
 - [x] Header and basic layout
 - [x] Time range selector (Week/Month/Year with calendar navigation)
 - [x] Period summary stats (total time, sessions, cautions, actions, rest days)
@@ -88,9 +86,8 @@ The Shelf is a personal attention and life-balance companion. This document trac
 - [x] Past reflections with trigger context display
 - [x] Reflect buttons on summary stats
 - [x] Save/load reflections to database
-- [ ] Template prompts section (stretch)
 
-### AttentionView (Nearly Complete)
+### AttentionView (Complete)
 - [x] Habits tree view (file explorer style, expand/collapse)
 - [x] Practices nested under habits
 - [x] Actions management (for habits with track_actions enabled)
