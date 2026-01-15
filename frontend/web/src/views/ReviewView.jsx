@@ -3,6 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { mockPreparations } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
@@ -240,8 +246,10 @@ export default function ReviewView() {
   const [reflectionText, setReflectionText] = useState('')
   const [reflections, setReflections] = useState([])
   const [isLoadingReflections, setIsLoadingReflections] = useState(true)
-  const [selectedTrigger, setSelectedTrigger] = useState(null) // { type: 'prompt'|'accomplishment'|'metric', id, label, value }
+  const [selectedTrigger, setSelectedTrigger] = useState(null)
+  const [showAllReflections, setShowAllReflections] = useState(false)
   const reflectionFormRef = useRef(null)
+  // selectedTrigger shape: { type: 'prompt'|'accomplishment'|'metric', id, label, value }
 
   // Start a reflection from a trigger (prompt, accomplishment, or metric)
   const startReflection = (trigger) => {
@@ -859,8 +867,16 @@ export default function ReviewView() {
 
       {/* Past Reflections */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Past Reflections</CardTitle>
+          {pastReflections.length > 5 && (
+            <button
+              onClick={() => setShowAllReflections(true)}
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              View all ({pastReflections.length})
+            </button>
+          )}
         </CardHeader>
         <CardContent className="space-y-5">
           {pastReflections.length === 0 ? (
@@ -868,7 +884,7 @@ export default function ReviewView() {
               No reflections for this period yet.
             </p>
           ) : (
-            pastReflections.map(reflection => {
+            pastReflections.slice(0, 5).map(reflection => {
               // Use saved trigger fields first, fall back to derived values for legacy data
               const triggerLabel = reflection.trigger_label || (
                 reflection.entry_id ? 'Highlight' :
@@ -931,6 +947,72 @@ export default function ReviewView() {
           )}
         </CardContent>
       </Card>
+
+      {/* All Reflections Modal */}
+      <Dialog open={showAllReflections} onOpenChange={setShowAllReflections}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>All Reflections ({pastReflections.length})</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+            {pastReflections.map(reflection => {
+              const triggerLabel = reflection.trigger_label || (
+                reflection.entry_id ? 'Highlight' :
+                reflection.habit_id ? 'Habit' :
+                reflection.target_id ? 'Target' : null
+              )
+              const triggerValue = reflection.trigger_value || (
+                reflection.entry_habit_name ?
+                  `${reflection.entry_habit_name}${reflection.entry_note ? ` · ${reflection.entry_note}` : ''}` :
+                  reflection.habit_name || reflection.target_name || null
+              )
+
+              let reflectionPeriod
+              if (reflection.period_start && reflection.period_end) {
+                const startStr = formatDate(reflection.period_start)
+                const endStr = formatDate(reflection.period_end)
+                reflectionPeriod = startStr === endStr ? startStr : `${startStr} – ${endStr}`
+              } else {
+                reflectionPeriod = formatDate(reflection.created_at)
+              }
+
+              return (
+                <div
+                  key={reflection.id}
+                  className="group p-4 rounded-xl bg-muted dark:bg-muted/40"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <time className="text-xs font-semibold text-foreground/60">{reflectionPeriod}</time>
+                    <button
+                      onClick={() => handleDeleteReflection(reflection.id)}
+                      className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                      title="Delete reflection"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  {(triggerLabel || triggerValue) && (
+                    <div className="mb-4 pl-3 border-l-2 border-primary/50">
+                      {triggerLabel && (
+                        <div className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-0.5">{triggerLabel}</div>
+                      )}
+                      {triggerValue && (
+                        <div className="text-sm text-foreground/80">{triggerValue}</div>
+                      )}
+                    </div>
+                  )}
+
+                  <RichTextDisplay
+                    content={reflection.note}
+                    className="text-[15px] leading-relaxed"
+                  />
+                </div>
+              )
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

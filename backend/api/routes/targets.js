@@ -26,7 +26,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const { type, name, status, description } = req.body || {};
+    const { type, name, status, description, habit_id, start_date, end_date } = req.body || {};
 
     if (!type || !['project', 'milestone', 'idea'].includes(type)) {
       return res.status(400).json({ ok: false, error: "type must be 'project', 'milestone', or 'idea'" });
@@ -39,11 +39,11 @@ router.post('/', async (req, res, next) => {
     }
 
     const q = `
-      INSERT INTO targets (type, name, status, description)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO targets (type, name, status, description, habit_id, start_date, end_date)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
-    const r = await pool.query(q, [type, name, status, description || null]);
+    const r = await pool.query(q, [type, name, status, description || null, habit_id || null, start_date || null, end_date || null]);
     res.status(201).json({ ok: true, target: r.rows[0] });
   } catch (err) {
     next(err);

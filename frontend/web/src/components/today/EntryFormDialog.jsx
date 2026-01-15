@@ -225,7 +225,8 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
       entry.practice = selectedPractice?.name || null
       entry.habit_id = habitId ? Number(habitId) : null
       entry.practice_id = practiceId ? Number(practiceId) : null
-      entry.target_id = targetId ? Number(targetId) : null
+      // Only set target_id if the target actually exists (prevents FK constraint errors from stale localStorage)
+      entry.target_id = selectedTarget ? Number(targetId) : null
       entry.target = selectedTarget?.name || null
       entry.actions = selectedActions.length > 0 ? selectedActions : null
       entry.note = null // Habits don't have notes, use actions instead
