@@ -116,13 +116,12 @@ Changing which habits are active is meaningful and tracked.
 **Practices are concrete expressions of a habit.**
 
 They answer:
-> “How did I engage this habit today?”
+> "How did I engage this habit today?"
 
 Examples:
-- Software → Personal Project Development
-- Software → Open Source
-- Exercise → Walking
-- Exercise → Physical Therapy
+- Software → Development, Learning
+- Exercise → Walking, Gym, Physical Therapy, Cardio
+- Spanish → Textbook Learning, Conversation, Media
 
 Rules:
 - A practice belongs to exactly one habit
@@ -134,6 +133,30 @@ Practices allow:
 - sub-habit analysis
 - variety without fragmentation
 - cleaner visualizations
+
+---
+
+### 3.2.1 Behaviors (Actions)
+
+**Behaviors are granular, trackable sub-components of a practice.**
+
+They are only available for habits with `track_actions: true`.
+
+Examples:
+- Dog Training → Drills → "Crate", "Name Recall", "Place Command", "Greeting Practice"
+- Dog Training → Walk Training → "Heel", "Stop at Curbs", "Ignore Distractions"
+
+Rules:
+- Behaviors belong to a specific practice
+- Multiple behaviors can be logged per entry
+- Behaviors are stored in the entry's `actions` JSONB field
+- Behaviors allow fine-grained pattern recognition within sessions
+
+Properties:
+- `id`
+- `practice_id`
+- `name`
+- `active` (boolean)
 
 ---
 
@@ -493,14 +516,16 @@ Both are valid and informative.
 
 ---
 
-## 5. Primary UI Views (Contract)
+## 5. Primary UI Views (Contract) — All Complete
 
 Each view has a **clear responsibility**.
 No view tries to do everything.
 
+All six views are fully implemented as of v1.
+
 ---
 
-### 5.1 Shelf (Macro Attention Surface)
+### 5.1 Shelf (Macro Attention Surface) — Complete
 
 **Purpose**
 The Shelf is the home view and emotional anchor — a dashboard for orientation, not action.
@@ -512,41 +537,54 @@ It exists to:
 
 **Displays**
 
+*Welcome Header*
+- Personalized greeting based on time of day
+- Current date display
+
 *Habits Card*
-- active habits count (e.g. 4 / 5 active)
-- expandable accordion per habit showing:
-  - practice/behavior counts (e.g. "3 practices · 7 behaviors")
-  - nested collapsible per practice to reveal behaviors
-- "Go to Habits" navigation → Attention view
+- Active habits count (e.g. "4 / 5 active")
+- Expandable accordion per habit showing:
+  - Practice/behavior counts (e.g. "3 practices · 7 behaviors")
+  - Warm-up/cool-down template counts (↑/↓ icons)
+  - Nested collapsible per practice to reveal behaviors
+- "Go to Habits" navigation → Attention view (#habits)
 
 *Targets Card*
-- targets grouped by status: Active, Planned, Parking Lot
-- parked targets show count and truncated list (+N more)
-- "Go to Targets" navigation → Attention view
+- Targets grouped by status: Active, Planned, Parked
+- Drag-and-drop reordering within status groups
+- Drag-and-drop between status groups to change status
+- Target progress indicator for targets with entries
+- "Go to Targets" navigation → Attention view (#targets)
 
 *Activity Card*
 - Today: habits · life · caution · transitions · time · sun/moon icons for prep/closure status
-- This Week: habits · life · caution · transitions · highlights · time (all counts shown, including 0s)
-- This Month: habits · life · caution · transitions · highlights · time (all counts shown, including 0s)
-- Recent Highlights: up to 3 most recent highlighted entries with habit, practice, and note preview
+- This Week: habits · life · caution · transitions · highlights · time
+- This Month: habits · life · caution · transitions · highlights · time
+- All counts shown including zeros for consistency
 - "Go to Today" navigation → Today view
 
+*Recent Highlights*
+- Up to 3 most recent highlighted entries
+- Shows habit, practice, and note preview
+- Type-specific styling
+
 **Interactions**
-- expand habits to view practices and behaviors (accordion)
-- expand practices to view behaviors (collapsible)
-- navigate to Attention view (habits or targets section)
-- navigate to Today view
+- Expand habits to view practices and behaviors (accordion)
+- Expand practices to view behaviors (collapsible)
+- Drag targets to reorder or change status
+- Navigate to Attention view (habits or targets section via hash)
+- Navigate to Today view
 
 **Notes**
-- no editing occurs here — Shelf is read-only
-- day prompts ("Start your day?" / "Done for the day?") live in Today view only
-- prep/closure status shown via sun/moon icons in Activity
-- calm, grounded, safe to return to
-- transitions = structural changes to attention allocation (see README for definition)
+- No editing of habits/practices here — Shelf is read-only for structure
+- Targets can be reordered and status-changed via drag-drop
+- Day prompts ("Start your day?" / "Done for the day?") live in Today view only
+- Prep/closure status shown via sun/moon icons in Activity
+- Calm, grounded, safe to return to
 
 ---
 
-### 5.2 Today (Action & Logging)
+### 5.2 Today (Action & Logging) — Complete
 
 **Purpose**
 Today is where the day is assembled, lived, and closed.
@@ -554,117 +592,194 @@ Today is where the day is assembled, lived, and closed.
 It is the **only place** where daily actions occur.
 
 **Displays**
-- today's preparation (if present)
-- today's entries in chronological order
-- warm-up/cool-down status on habit entries
-- highlights surfaced inline
-- closure status
+
+*Header*
+- Date with navigation arrows (previous/next day)
+- "Add Entry" button
+
+*Day Preparation Card*
+- Intentions textarea
+- Rest day toggle with badge
+- Sun icon indicates preparation status
+
+*Day Summary*
+- Count of entries by type (habit/life/caution)
+- Total duration for the day
+
+*Entry List*
+- Entries in reverse chronological order
+- Left border color by type (green=habit, blue=life, orange=caution)
+- Habit badge with habit color
+- Practice name
+- Time and duration
+- Note preview
+- Behaviors displayed as comma-separated text (for habits with track_actions)
+- Highlight star indicator
+- Session dropdown for warm-up/cool-down
+
+*Day Closure Card*
+- Notes textarea
+- Moon icon indicates closure status
 
 **Interactions**
-- add habit entries (select habit → practice)
-- add life or caution entries
-- add/edit notes
-- edit or archive entries (including past days)
-- add preparation (day-level framing)
-- add closure (day-level ending)
-- toggle highlight
-- mark intentional rest
-- **warm-up flow**: invoke warm-up → creates habit entry automatically
-- **warm-up on entry**: attach warm-up to existing habit entry
-- **cool-down on entry**: complete habit session with cool-down
+- Navigate between days
+- Add entry via dialog (habit/life/caution selection)
+- For habit entries: select habit → practice → optional behaviors
+- Add/edit notes, duration, time
+- Edit or archive entries (including past days)
+- Toggle highlight on entries
+- Add preparation (day-level framing)
+- Mark rest day
+- Add closure (day-level ending)
+- Session dropdown: view warm-up, add warm-up note, view cool-down, add cool-down note
 
-**Warm-up/Cool-down on Entries**
-
-Habit entries can have warm-ups and cool-downs attached:
-
-1. **Warm-up first (creates entry)**:
-   - User selects "Start [Habit] session"
-   - System shows saved warm-up template for that habit
-   - User reads/follows warm-up script
-   - Entry is created with warm-up attached
-   - User works, then returns to add duration/notes/cool-down
-
-2. **Entry first (attach warm-up)**:
-   - User creates habit entry (after the fact)
-   - Optionally attaches warm-up note
-   - Less common but supported
-
-3. **Cool-down**:
-   - User selects "End session" on a habit entry
-   - System shows saved cool-down template
-   - User captures closing notes, next steps
-   - Cool-down attached to entry
+**Entry Form Dialog**
+- Type selector (Habit/Life/Caution)
+- Habit selector (for habit type)
+- Practice selector (filtered by habit)
+- Behaviors multi-select (for habits with track_actions)
+- Target selector (optional link to target)
+- Date/time picker
+- Duration input
+- Note textarea
+- Highlight toggle
 
 **Notes**
-- supports imperfect memory
-- corrections are allowed
-- encourages return throughout the day
-- warm-up/cool-down are per-entry for habits, not standalone records
+- Supports imperfect memory — can edit past days
+- Corrections are allowed
+- Encourages return throughout the day
+- Warm-up/cool-down are per-entry for habits
 
 ---
 
-### 5.3 Progress (Balance & Patterns)
+### 5.3 Progress (Balance & Patterns) — Complete
 
-**Purpose**  
+**Purpose**
 Progress exists to make attention visible over time.
 
 It is analytical and read-only.
 
 **Displays**
-- balance view (stacked bars, calendar)
-- patterns view (line charts)
-- habit toggles
-- practice breakdowns
-- rest days
-- life overlays
-- caution markers
-- transition markers
+
+*Header*
+- Balance/Patterns toggle buttons
+- Time range selector (Week/Month/Year)
+- Calendar navigation (previous/next period)
+- Period label (e.g., "Jan 11 – Jan 17" for week)
+
+*Balance View*
+- Stacked bar chart (Recharts) showing time by habit
+- Each habit has its assigned color
+- Life entries shown in distinct color
+- Custom tooltips with dark mode support
+- Habit toggles to show/hide in chart
+
+*Patterns View*
+- Line chart showing trends over time
+- Clean lines without dots (activeDot on hover only)
+- One line per enabled habit
+- Smooth curves for readability
+
+*Stats Section*
+- Distribution: total hours, habit/life/caution counts, rest days
+- Averages: hrs/day, habits/day, entries/day
+- Period Comparison: % change from previous period
+
+*Balance Shift*
+- Shows each habit's current % of total time
+- Shows change from previous period (+/- percentage points)
+- Sorted by current percentage
+
+*Habit Deep Dive* (expandable per habit)
+- Total Sessions count
+- Since Last: days since last entry for this habit
+- Longest Gap: maximum days between entries (all-time)
+- Hours by period breakdown
+
+*Year View*
+- 52-week grid showing activity
+- Tooltip with date range on hover
 
 **Interactions**
-- toggle balance ↔ patterns
-- toggle habits and practices
-- change time range
-- drill into specific days or habits
+- Toggle between Balance and Patterns views
+- Toggle individual habits on/off in charts
+- Change time range (Week/Month/Year)
+- Navigate to previous/next period
+- Expand habit deep dive sections
 
 **Notes**
-- no logging here
-- no editing here
-- numbers are descriptive only
+- No logging here
+- No editing here
+- Numbers are descriptive only
+- All data from API (/metrics/range endpoint)
 
 ---
 
-### 5.4 Review (Reflection & Accomplishments)
+### 5.4 Review (Reflection & Accomplishments) — Complete
 
-**Purpose**  
+**Purpose**
 Review is for meaning-making and celebration.
 
 It answers:
-> “What happened — and what does it mean to me?”
+> "What happened — and what does it mean to me?"
 
 **Displays**
-- time range selector
-- accomplishments surfaced first
-  - highlighted entries
-  - completed targets
-  - notable moments
-- optional contextual metrics
-- reflection editor
-- saved reflections list
+
+*Header*
+- Time range selector (Week/Month/Year)
+- Calendar navigation (previous/next period)
+- Period label
+
+*Period Summary*
+- Total time logged
+- Session count
+- Caution count
+- Action count (behaviors tracked)
+- Rest days
+- Each stat has a "Reflect" button to trigger reflection
+
+*Accomplishments Section*
+- Highlighted entries with type-specific icons:
+  - Activity icon (blue) for habits
+  - Leaf icon (green) for life events
+  - Alert icon (orange) for caution behaviors
+- Completed targets with target icon (green)
+- Entry details: habit badge, practice, note, date, duration
+- Each accomplishment has a "Reflect" button
+
+*Reflection Editor*
+- Tiptap-based rich text editor
+- Bold, italic, lists, headings support
+- Trigger context shown above editor (what prompted this reflection)
+- Save button
+
+*Past Reflections*
+- List of saved reflections for the period
+- Each shows trigger context (if any) and note content
+- Expandable to see full text
+- Delete option
+
+**Triggers**
+Reflections can be triggered by:
+- Prompts: auto-generated insights (e.g., "This was lighter than last period...")
+- Metrics: clicking "Reflect" on a summary stat
+- Accomplishments: clicking "Reflect" on a highlight or target
+- Free-form: writing without a trigger
 
 **Interactions**
-- toggle highlights
-- write and save reflections
-- browse past reflections
-- reference metrics in reflection
+- Change time range and navigate periods
+- Click "Reflect" on any stat or accomplishment
+- Write and save reflections with rich text
+- Browse and delete past reflections
 
 **Notes**
-- reflections are never required
-- metrics never lead
-- accomplishments set the tone
+- Reflections are never required
+- Accomplishments set the tone
+- Triggers provide context but don't constrain content
 
 ---
 
-### 5.5 Attention (Targets & Habits)
+### 5.5 Attention (Targets & Habits) — Complete
 
 **Purpose**
 Attention is where structure is managed.
@@ -672,54 +787,109 @@ Attention is where structure is managed.
 This is where you decide **what gets attention at all**.
 
 **Displays**
-- list of habits (active/inactive)
-- practices per habit
-- targets by status
-- target timelines
-- calendar view of targets
-- transition window status
-- Preparation & Closure Library (warm-up/cool-down templates per habit)
+
+*Transition Window Banner* (when active)
+- Shows transition is in progress
+- Complete Transition button with note capture
+- Cancel option
+
+*Habits Section*
+- Tree-style expandable list (file explorer metaphor)
+- Each habit shows:
+  - Name with color indicator
+  - Active/inactive badge
+  - Practice count and behavior count
+  - Warm-up/cool-down template counts (↑/↓)
+- Expand habit to see practices
+- Each practice shows behavior count
+- Expand practice to see behaviors (for habits with track_actions)
+- Inline "Add Habit", "Add Practice", "Add Behavior" forms
+- Edit dialogs for habits, practices, behaviors
+
+*Habit Edit Dialog*
+- Name, target_minutes, color picker
+- Active toggle
+- track_actions toggle (enables behaviors)
+- Warm-up Templates section (collapsible)
+- Cool-down Templates section (collapsible)
+- Template management: add, edit, delete templates
+
+*Targets Section*
+- Kanban board with 4 columns: Active, Planned, Parked, Done
+- Color-coded column headers (emerald/sky/slate/violet)
+- Drag-and-drop between columns to change status
+- "See all" modals for each column with drag-reorder
+- Add Target button with dialog
+- Target Edit Dialog: name, habit, status, start/end dates
 
 **Interactions**
-- add/edit/archive targets
-- activate/deactivate habits
-- manage practices
-- enter/exit transition windows
-- adjust target dates
-- create/edit/delete warm-up templates per habit
-- create/edit/delete cool-down templates per habit
-- preview templates with dynamic elements
+- Enter/exit transition windows
+- Add/edit/delete habits
+- Add/edit/delete practices
+- Add/edit/delete behaviors
+- Toggle habit active status
+- Toggle track_actions per habit
+- Manage warm-up/cool-down templates per habit
+- Add/edit/delete targets
+- Drag targets between Kanban columns
+- Reorder targets within columns
 
 **Notes**
-- structural changes happen here
-- transitions are initiated here
-- changes explain future metrics
-- warm-up/cool-down templates are authored here, used in Today view
-- supports hash navigation from Shelf: `/attention#habits` and `/attention#targets` scroll to respective sections
+- Structural changes happen here
+- Transitions are initiated here (Enter Transition Window button)
+- Changes explain future metrics
+- Hash navigation: `/attention#habits` and `/attention#targets`
+- Templates authored here, used in Today view
 
 ---
 
-### 5.6 Settings & Data Management
+### 5.6 Settings & Data Management — Complete
 
-**Purpose**  
+**Purpose**
 Settings control system behavior, not behavior itself.
 
 **Displays**
-- preferences
-- data health
-- import/export status
+
+*Appearance Section*
+- Theme selector: Light, Dark, Auto (6PM-6AM)
+- Visual preview of current theme
+
+*Preferences Section*
+- Timezone selector (persisted to database)
+- Shelf target sort order option
+
+*Data Health Section* (8 collapsible sections)
+- Habits Coverage: table showing each habit, practices count, date range, first/last entry
+- Practices by Habit: nested view of practices per habit with entry counts
+- Actions by Practice: behaviors/actions organized by practice
+- Entries Summary: total counts by type (habit/life/caution)
+- Targets Overview: counts by status (active/planned/parked/done)
+- Reflections: count of saved reflections
+- Transitions: history of structural changes
+- Data Quality: integrity checks and warnings
+
+*Import/Export Section*
+- Export JSON button (downloads full database export)
+- Import JSON button (file picker)
+- Import preview with duplicate detection
+- Pending imports list (files in data/imports/ folder)
+- Preview and import individual pending files
 
 **Interactions**
-- set timezone
-- adjust defaults
-- import JSON data
-- export full history
+- Change theme (immediate effect)
+- Set timezone
+- Expand/collapse data health sections
+- Export full database as JSON
+- Import JSON file with preview
+- Review and import pending files
+- See duplicate detection before confirming import
 
 **Notes**
-- import is forgiving
-- unknown fields ignored
-- history is preserved
-- designed for longevity
+- Import is forgiving (unknown fields ignored)
+- Preview mode shows what will be imported
+- Imported files move to data/logs/ after success
+- History is preserved
+- Designed for longevity
 
 ### 5.6.1 Demo Data
 
@@ -929,3 +1099,25 @@ The Shelf is a system for:
 - understanding balance
 
 It is designed to grow with you, not pressure you.
+
+---
+
+## 11. Implementation Status
+
+**v1 Web Frontend: Complete (January 2026)**
+
+All six views are fully implemented and functional:
+- Shelf (Home) — 100%
+- Today (Logging) — 100%
+- Progress (Analysis) — 100%
+- Review (Reflection) — 100%
+- Attention (Structure) — 100%
+- Settings — 100%
+
+**Backend API: Complete**
+- Full REST API with all endpoints
+- PostgreSQL database with all tables
+- Import/export with preview and duplicate detection
+- Metrics calculation and aggregation
+
+**Next Phase: SwiftUI iOS Client**

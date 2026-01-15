@@ -64,17 +64,20 @@ Success is indicated by:
 
 These terms are used consistently throughout the project:
 
-- **Habit**  
-  A recurring category of attention (e.g., Software, Spanish, Exercise).
+- **Habit**
+  A recurring category of attention (e.g., Software, Spanish, Exercise). Habits have a color for visual identification and an optional target_minutes for framing (not a quota).
 
-- **Practice**  
-  A concrete way to fulfill a habit (e.g., Walking, Textbook, Personal Project Development).
+- **Practice**
+  A concrete way to fulfill a habit (e.g., Walking, Textbook, Development). Each practice belongs to exactly one habit.
 
-- **Target**  
-  The thing I’m working on (project / milestone / idea). Targets can be active, parked, or planned.
+- **Behavior** (also called Action)
+  A granular, trackable sub-component of a practice. Only available for habits with `track_actions` enabled (e.g., Dog Training → Drills → "Crate", "Name Recall", "Place Command"). Behaviors allow fine-grained tracking within a session.
+
+- **Target**
+  The thing I'm working on (project / milestone / idea). Targets have a status: active, planned, parked, or done. They can optionally link to a habit.
 
 - **Preparation**
-  A daily framing note (soft intention). Preparation is used during start-of-day planning.
+  A daily framing note (soft intention). Preparation is used during start-of-day planning. Can mark the day as a rest day.
 
 - **Warm-up**
   A ritual or script invoked before starting a habit session. Saved as templates per habit, attached to entries when used.
@@ -83,16 +86,19 @@ These terms are used consistently throughout the project:
   A ritual for ending a habit session cleanly. Captures closure, next steps, and reflection. Attached to entries.
 
 - **Entry**
-  A record of what actually happened (logged event). Habit entries can have warm-ups and cool-downs attached.
+  A record of what actually happened (logged event). Three types: habit (with optional practice, behaviors), life (contextual events), and caution (behaviors to monitor). Entries can be highlighted and have warm-ups/cool-downs attached.
 
-- **Highlight**  
-  A celebratory flag on an entry.
+- **Highlight**
+  A celebratory flag on an entry. Highlights surface in the Accomplishments section of Review.
 
-- **Reflection**  
-  A stored narrative artifact used to interpret patterns (daily/weekly/monthly/ad-hoc).
+- **Reflection**
+  A stored narrative artifact used to interpret patterns. Can be triggered by prompts, metrics, accomplishments, or targets. Supports rich text formatting.
 
-- **Parking Lot**  
-  A persistent holding area for inactive items (targets, potential habits/practices, future ideas).
+- **Transition**
+  A structural change to attention allocation (activating/deactivating habits, adding practices). Transitions explain why patterns shift over time.
+
+- **Parking Lot**
+  A persistent holding area for inactive items (targets, potential habits/practices, future ideas). Parked items are preserved but not active.
 
 ---
 
@@ -314,32 +320,47 @@ This section provides a high-level summary of the system's architecture and tech
 
 ### Technology Stack
 
--   **Backend**: Node.js REST-style API using Express.js.
--   **Database**: PostgreSQL.
--   **Frontend**: React (with Vite) using plain JavaScript.
--   **Containerization**: Docker Compose for orchestrating the development environment (API, database, and web client).
--   **Testing**: End-to-end tests using Playwright to validate critical user flows.
+-   **Backend**: Node.js REST-style API using Express.js
+-   **Database**: PostgreSQL (running in Docker)
+-   **Frontend**: React 19 with Vite, shadcn/ui components, Tailwind CSS
+-   **Charts**: Recharts for Balance/Patterns visualizations
+-   **Rich Text**: Tiptap for reflection editing
+-   **Drag & Drop**: @hello-pangea/dnd for Kanban boards and reordering
+-   **Containerization**: Docker Compose for local development
 
 ### System Architecture
 
 The system is designed as a classic three-tier application, containerized for consistent and easy local development. The architecture emphasizes long-term data integrity and a clear separation of concerns between its primary UI views.
 
-#### UI Views (The 6 Core Surfaces)
+#### UI Views (The 6 Core Surfaces) — All Complete
 
 The user interface is broken down into six distinct views, each with a single responsibility:
 
-1.  **Shelf (Home)**: The orientation dashboard. Shows active habits (expandable with practices/behaviors), targets by status, and activity stats (Today/Week/Month with habits, life, caution, transitions, highlights). Read-only.
-2.  **Today (Logging)**: The action view. This is the only place where daily events are logged, edited, and closed out. Includes day prompts ("Start your day?" / "Done for the day?"). Habit entries can include warm-ups (before) and cool-downs (after).
-3.  **Progress (Analysis)**: The analytical view. Makes attention visible through two lenses: **Balance** (distribution of effort) and **Patterns** (trends over time). This view is read-only.
-4.  **Review (Reflection)**: The meaning-making view. Surfaced accomplishments and saved narrative reflections on patterns and progress.
-5.  **Attention (Structure)**: The management view. This is where the underlying structure of habits, practices, targets, and **warm-up/cool-down templates** is defined and adjusted.
-6.  **Settings**: System preferences, data import/export, and data health overview.
+1.  **Shelf (Home)**: The orientation dashboard. Expandable habits accordion showing practices and behaviors. Targets grouped by status (Active/Planned/Parked) with drag-drop reordering. Activity stats for Today/Week/Month. Recent Highlights section. Navigation to other views.
+
+2.  **Today (Logging)**: The action view for daily events. Date navigation to view/edit past days. Full entry CRUD with type selection (habit/life/caution). Day Preparation and Closure cards with rest day support. Session dropdown for warm-up/cool-down flows. Behaviors displayed for habits with track_actions enabled.
+
+3.  **Progress (Analysis)**: The analytical view with two lenses:
+    - **Balance**: Stacked bar charts showing time distribution by habit
+    - **Patterns**: Line charts showing trends over time
+    - Time range selection (Week/Month/Year) with calendar navigation
+    - Habit toggles to show/hide in charts
+    - Period comparison stats (current vs previous)
+    - **Balance Shift**: Shows how time allocation percentages changed
+    - **Habit Deep Dive**: Sessions, gaps, hours breakdown for selected habit
+
+4.  **Review (Reflection)**: The meaning-making view. Accomplishments section showing highlights and completed targets with type-specific icons (habit/life/caution). Rich text reflection editor with triggers (prompts, metrics, accomplishments, targets). Past reflections with context. Period summary stats.
+
+5.  **Attention (Structure)**: The management view. Tree-style habits list with inline add/edit. Practices nested under habits with behavior counts. Warm-up/cool-down template library per habit. Targets Kanban board (Active/Planned/Parked/Done) with drag-drop between columns. Transition window flow for structural changes.
+
+6.  **Settings**: Theme selector (light/dark/auto). Timezone configuration. Data Health metrics with 8 collapsible sections (Habits Coverage, Practices by Habit, etc.). Full import/export with preview mode and duplicate detection. Pending imports UI for files in data/imports folder.
 
 #### Data Model & Integrity
 
 -   **Core Principle**: History is sacred. Nothing is ever hard-deleted. Data is archived to preserve historical accuracy for long-term review.
 -   **Source of Truth**: The `entries` table is the canonical ledger of what actually happened. All metrics and visualizations are derived from it.
--   **Data Import**: The system supports a forgiving JSON import format to allow for manual or programmatic backfilling of data, with unknown fields being safely ignored.
+-   **Canonical Structure**: `data/habits.json` defines the baseline habit/practice/action structure. Log files can extend this via transitions.
+-   **Data Import**: Supports both full database export format and per-day log files. Preview mode with duplicate detection. Imported files move to data/logs/ after successful import.
 
 ---
 
@@ -391,9 +412,19 @@ In addition to demo data, the application creates a live log of daily activities
 
 ## 🚧 Project Status
 
-The Shelf is in active exploration.
+**v1 Web Frontend: Complete**
 
-The goal is to build a system that:
+All six views are fully functional:
+- Shelf, Today, Progress, Review, Attention, Settings — 100% complete
+- Full habit/practice/behavior management
+- Entry logging with warm-up/cool-down flows
+- Balance and Patterns analysis with charts
+- Rich text reflections with triggers
+- Import/export with preview and data health
+
+**Next: SwiftUI iOS client**
+
+The goal remains to build a system that:
 - reflects reality
 - reveals patterns
 - supports adjustment
