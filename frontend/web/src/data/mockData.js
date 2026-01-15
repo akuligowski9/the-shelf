@@ -140,11 +140,6 @@ export const mockPractices = [
   { id: 15, habit_id: 5, name: 'Articles', active: true },
 ]
 
-// Scheduled practices - links practices to specific dates
-export const mockScheduledPractices = [
-  // Example: { id: 1, practice_id: 15, date: '2026-01-13' }
-]
-
 // Actions per practice (checkboxes for granular tracking within a session)
 // Only for habits with track_actions: true (Exercise, Dog Training)
 export const mockActions = [

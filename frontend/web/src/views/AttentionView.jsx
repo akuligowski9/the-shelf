@@ -46,13 +46,10 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { colorPalette, getHabitBadgeClassesByColor } from '@/lib/colors'
 import { useHabits } from '@/context/HabitsContext'
-// import { mockEntries } from '@/data/mockData'  // Removed with calendar
 import HabitEditDialog from '@/components/attention/HabitEditDialog'
 import PracticeEditDialog from '@/components/attention/PracticeEditDialog'
 import ActionEditDialog from '@/components/attention/ActionEditDialog'
 import TargetEditDialog from '@/components/attention/TargetEditDialog'
-// Calendar removed - may revisit in future iteration
-// import AttentionCalendar from '@/components/attention/AttentionCalendar'
 
 // Modal list item component (draggable)
 function ModalListItem({ target, habitName, habitColorClasses, onEdit, isOnBoard, position, colorScheme, isCompleted }) {
@@ -286,9 +283,6 @@ export default function AttentionView() {
     addPractice,
     updatePracticeName,
     updatePracticeDetails,
-    // scheduledPractices,  // Removed with calendar
-    // schedulePractice,    // Removed with calendar
-    // removeScheduledPractice,  // Removed with calendar
     getActionsForPractice,
     addAction,
     updateActionName,

@@ -249,17 +249,6 @@ FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
 -- =========================
--- scheduled_practices (practices scheduled for specific dates)
--- =========================
-CREATE TABLE IF NOT EXISTS scheduled_practices (
-  id SERIAL PRIMARY KEY,
-  practice_id INT NOT NULL REFERENCES practices(id) ON DELETE CASCADE,
-  date DATE NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (practice_id, date)
-);
-
--- =========================
 -- settings (key/value JSON)
 -- =========================
 CREATE TABLE IF NOT EXISTS settings (

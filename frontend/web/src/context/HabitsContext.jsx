@@ -4,7 +4,6 @@ import {
   mockPractices as initialPractices,
   mockActions as initialActions,
   mockTargets as initialTargets,
-  mockScheduledPractices as initialScheduledPractices,
   mockWarmUpTemplates as initialWarmUpTemplates,
   mockCoolDownTemplates as initialCoolDownTemplates,
 } from '@/data/mockData'
@@ -31,7 +30,6 @@ export function HabitsProvider({ children }) {
   const [practices, setPractices] = useState(initialPractices)
   const [actions, setActions] = useState(initialActions)
   const [targets, setTargets] = useState(initialTargets)
-  const [scheduledPractices, setScheduledPractices] = useState(initialScheduledPractices)
   const [warmUpTemplates, setWarmUpTemplates] = useState(initialWarmUpTemplates)
   const [coolDownTemplates, setCoolDownTemplates] = useState(initialCoolDownTemplates)
   const [isLoading, setIsLoading] = useState(true)
@@ -257,40 +255,6 @@ export function HabitsProvider({ children }) {
   // Get practice by id
   const getPracticeById = (practiceId) => {
     return practices.find(p => p.id === practiceId)
-  }
-
-  // ---- Scheduled Practices management ----
-
-  // Get scheduled practices for a specific date
-  const getScheduledPracticesForDate = (dateStr) => {
-    return scheduledPractices
-      .filter(sp => sp.date === dateStr)
-      .map(sp => ({
-        ...sp,
-        practice: practices.find(p => p.id === sp.practice_id)
-      }))
-  }
-
-  // Schedule a practice on specific dates
-  const schedulePractice = (practiceId, dates) => {
-    const newScheduled = dates.map((date, idx) => ({
-      id: Math.max(...scheduledPractices.map(sp => sp.id), 0) + idx + 1,
-      practice_id: practiceId,
-      date,
-    }))
-    setScheduledPractices(prev => [...prev, ...newScheduled])
-  }
-
-  // Remove a scheduled practice
-  const removeScheduledPractice = (scheduledId) => {
-    setScheduledPractices(prev => prev.filter(sp => sp.id !== scheduledId))
-  }
-
-  // Remove all scheduled practices for a practice on a specific date
-  const unschedulePracticeFromDate = (practiceId, dateStr) => {
-    setScheduledPractices(prev =>
-      prev.filter(sp => !(sp.practice_id === practiceId && sp.date === dateStr))
-    )
   }
 
   // ---- Action management ----
@@ -693,12 +657,6 @@ export function HabitsProvider({ children }) {
     updatePracticeDetails,
     getPracticeById,
     deletePractice,
-    // Scheduled Practices
-    scheduledPractices,
-    getScheduledPracticesForDate,
-    schedulePractice,
-    removeScheduledPractice,
-    unschedulePracticeFromDate,
     // Actions
     actions,
     getActionsForPractice,
