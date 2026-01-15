@@ -69,6 +69,21 @@ export async function createEntry(entry) {
   return data.entry
 }
 
+export async function updateEntry(id, updates) {
+  const data = await fetchJson(`/entries/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  })
+  return data.entry
+}
+
+export async function deleteEntry(id) {
+  const data = await fetchJson(`/entries/${id}`, {
+    method: 'DELETE',
+  })
+  return data.deleted
+}
+
 // Dashboard
 export async function getTodayDashboard() {
   const data = await fetchJson('/dashboard/today')
@@ -101,6 +116,36 @@ export async function saveClosure(closure) {
     body: JSON.stringify(closure),
   })
   return data.closure
+}
+
+// Reflections
+export async function getReflections(params = {}) {
+  const query = new URLSearchParams(params).toString()
+  const data = await fetchJson(`/reflections${query ? `?${query}` : ''}`)
+  return data.reflections
+}
+
+export async function createReflection(reflection) {
+  const data = await fetchJson('/reflections', {
+    method: 'POST',
+    body: JSON.stringify(reflection),
+  })
+  return data.reflection
+}
+
+export async function updateReflection(id, updates) {
+  const data = await fetchJson(`/reflections/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  })
+  return data.reflection
+}
+
+export async function deleteReflection(id) {
+  const data = await fetchJson(`/reflections/${id}`, {
+    method: 'DELETE',
+  })
+  return data.deleted
 }
 
 // Load all initial data for the app

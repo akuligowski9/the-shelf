@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { mockEntries as initialEntries } from '@/data/mockData'
-import { getEntries, createEntry as apiCreateEntry } from '@/lib/api'
+import { getEntries, createEntry as apiCreateEntry, updateEntry as apiUpdateEntry, deleteEntry as apiDeleteEntry } from '@/lib/api'
 
 const EntriesContext = createContext(null)
 
@@ -68,16 +68,40 @@ export function EntriesProvider({ children }) {
     })
   }, [entries])
 
-  // Update local entry (optimistic update)
-  const updateEntry = (entryId, updates) => {
+  // Update an entry via API
+  const updateEntry = async (entryId, updates) => {
+    // Optimistic update
     setEntries(prev =>
       prev.map(e => e.id === entryId ? { ...e, ...updates } : e)
     )
+    try {
+      const updated = await apiUpdateEntry(entryId, updates)
+      // Replace with server response to get any computed fields
+      setEntries(prev =>
+        prev.map(e => e.id === entryId ? updated : e)
+      )
+      return updated
+    } catch (err) {
+      console.error('Failed to update entry:', err)
+      // Revert on error - refetch to get clean state
+      refresh()
+      throw err
+    }
   }
 
-  // Delete local entry (optimistic update)
-  const deleteEntry = (entryId) => {
+  // Delete an entry via API
+  const deleteEntry = async (entryId) => {
+    // Optimistic update
+    const previousEntries = entries
     setEntries(prev => prev.filter(e => e.id !== entryId))
+    try {
+      await apiDeleteEntry(entryId)
+    } catch (err) {
+      console.error('Failed to delete entry:', err)
+      // Revert on error
+      setEntries(previousEntries)
+      throw err
+    }
   }
 
   // Refresh entries for current date range

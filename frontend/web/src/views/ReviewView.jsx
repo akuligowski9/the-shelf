@@ -498,11 +498,21 @@ export default function ReviewView() {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {highlights.length === 0 && completedTargets.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">
-              No highlights or completed targets for this period.
-            </p>
-          ) : (
+          {(() => {
+            const showTargets = highlightFilter === 'all'
+            const hasContent = highlights.length > 0 || (showTargets && completedTargets.length > 0)
+
+            if (!hasContent) {
+              return (
+                <p className="text-sm text-muted-foreground py-2">
+                  {highlightFilter === 'all'
+                    ? 'No highlights or completed targets for this period.'
+                    : `No ${highlightFilter} highlights for this period.`}
+                </p>
+              )
+            }
+
+            return (
             <>
               {/* Highlighted entries */}
               {highlights.map(entry => (
@@ -530,8 +540,8 @@ export default function ReviewView() {
                 </div>
               ))}
 
-              {/* Completed targets */}
-              {completedTargets.map(target => (
+              {/* Completed targets - only show for 'all' filter */}
+              {highlightFilter === 'all' && completedTargets.map(target => (
                 <div key={target.id} className="flex items-start gap-3 py-2">
                   <div className="flex-shrink-0 mt-0.5">
                     <Target className="h-4 w-4 text-green-600" />
@@ -547,7 +557,8 @@ export default function ReviewView() {
                 </div>
               ))}
             </>
-          )}
+            )
+          })()}
         </CardContent>
       </Card>
 

@@ -33,7 +33,7 @@ export default function TodayView() {
   const { getHabitByName } = useHabits()
 
   // Entries from context (API)
-  const { entries: allEntries, setEntries: setAllEntries, createEntry } = useEntries()
+  const { entries: allEntries, setEntries: setAllEntries, createEntry, updateEntry, deleteEntry } = useEntries()
 
   // Date state
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -131,17 +131,16 @@ export default function TodayView() {
     }
 
     if (isEdit) {
-      // TODO: Add update API endpoint
-      setAllEntries(prev => prev.map(e => e.id === entry.id ? entry : e))
+      try {
+        await updateEntry(entry.id, entry)
+      } catch (err) {
+        console.error('Failed to update entry:', err)
+      }
     } else {
       try {
-        // Create entry via API
-        const newEntry = await createEntry(entry)
-        // Entry is already added to state by createEntry in context
+        await createEntry(entry)
       } catch (err) {
         console.error('Failed to create entry:', err)
-        // Fallback to local state update
-        setAllEntries(prev => [...prev, entry])
       }
     }
     setEditingEntry(null)
@@ -152,24 +151,20 @@ export default function TodayView() {
     setEntryDialogOpen(true)
   }
 
-  const handleArchiveEntry = (entryId) => {
-    setAllEntries(prev =>
-      prev.map(entry =>
-        entry.id === entryId
-          ? { ...entry, archived_at: new Date().toISOString() }
-          : entry
-      )
-    )
+  const handleArchiveEntry = async (entryId) => {
+    try {
+      await updateEntry(entryId, { archived_at: new Date().toISOString() })
+    } catch (err) {
+      console.error('Failed to archive entry:', err)
+    }
   }
 
-  const handleUnarchiveEntry = (entryId) => {
-    setAllEntries(prev =>
-      prev.map(entry =>
-        entry.id === entryId
-          ? { ...entry, archived_at: null }
-          : entry
-      )
-    )
+  const handleUnarchiveEntry = async (entryId) => {
+    try {
+      await updateEntry(entryId, { archived_at: null })
+    } catch (err) {
+      console.error('Failed to unarchive entry:', err)
+    }
   }
 
   const handleEntryDialogClose = (isOpen) => {
@@ -179,14 +174,14 @@ export default function TodayView() {
     }
   }
 
-  const toggleHighlight = (entryId) => {
-    setAllEntries(prev =>
-      prev.map(entry =>
-        entry.id === entryId
-          ? { ...entry, is_highlight: !entry.is_highlight }
-          : entry
-      )
-    )
+  const toggleHighlight = async (entryId) => {
+    const entry = allEntries.find(e => e.id === entryId)
+    if (!entry) return
+    try {
+      await updateEntry(entryId, { is_highlight: !entry.is_highlight })
+    } catch (err) {
+      console.error('Failed to toggle highlight:', err)
+    }
   }
 
   const handlePreparationSubmit = async (prep) => {

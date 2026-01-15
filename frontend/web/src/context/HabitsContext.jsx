@@ -26,6 +26,7 @@ export function HabitsProvider({ children }) {
   const [inTransition, setInTransition] = useState(false)
   const [transitionStartedAt, setTransitionStartedAt] = useState(null)
   const [transitionChanges, setTransitionChanges] = useState([]) // { habitId, habitName, from: 'active'|'inactive', to: 'active'|'inactive' }
+  const [cascadeChanges, setCascadeChanges] = useState({ targets: [], practices: [] }) // Track cascaded changes for revert
   const [habitTransitions, setHabitTransitions] = useState([]) // Completed transitions
 
   // Load data from API on mount
@@ -61,6 +62,7 @@ export function HabitsProvider({ children }) {
 
     const fromState = habit.active ? 'active' : 'inactive'
     const toState = habit.active ? 'inactive' : 'active'
+    const isDeactivating = habit.active
 
     // Track the change if we're in a transition window
     if (inTransition) {
@@ -81,9 +83,49 @@ export function HabitsProvider({ children }) {
       })
     }
 
+    // Toggle the habit
     setHabits(prev =>
       prev.map(h => h.id === habitId ? { ...h, active: !h.active } : h)
     )
+
+    // Cascade effects when deactivating
+    if (isDeactivating) {
+      // Track and move linked targets (active, planned) to parked
+      const affectedTargets = targets.filter(
+        t => t.habit_id === habitId && (t.status === 'active' || t.status === 'planned')
+      )
+      if (affectedTargets.length > 0) {
+        setCascadeChanges(prev => ({
+          ...prev,
+          targets: [...prev.targets, ...affectedTargets.map(t => ({ id: t.id, originalStatus: t.status }))]
+        }))
+        setTargets(prev =>
+          prev.map(t => {
+            if (t.habit_id === habitId && (t.status === 'active' || t.status === 'planned')) {
+              return { ...t, status: 'parked' }
+            }
+            return t
+          })
+        )
+      }
+
+      // Track and deactivate practices under this habit
+      const affectedPractices = practices.filter(p => p.habit_id === habitId && p.active)
+      if (affectedPractices.length > 0) {
+        setCascadeChanges(prev => ({
+          ...prev,
+          practices: [...prev.practices, ...affectedPractices.map(p => p.id)]
+        }))
+        setPractices(prev =>
+          prev.map(p => {
+            if (p.habit_id === habitId && p.active) {
+              return { ...p, active: false }
+            }
+            return p
+          })
+        )
+      }
+    }
   }
 
   // Get habit by name (for entry lookups)
@@ -397,6 +439,7 @@ export function HabitsProvider({ children }) {
     setInTransition(true)
     setTransitionStartedAt(new Date().toISOString())
     setTransitionChanges([])
+    setCascadeChanges({ targets: [], practices: [] })
   }
 
   // Complete and save a transition
@@ -409,12 +452,14 @@ export function HabitsProvider({ children }) {
       ended_at: new Date().toISOString(),
       note,
       changes: transitionChanges,
+      cascades: cascadeChanges,
     }
 
     setHabitTransitions(prev => [...prev, transition])
     setInTransition(false)
     setTransitionStartedAt(null)
     setTransitionChanges([])
+    setCascadeChanges({ targets: [], practices: [] })
 
     return transition
   }
@@ -423,7 +468,7 @@ export function HabitsProvider({ children }) {
   const cancelTransition = () => {
     if (!inTransition) return
 
-    // Revert all changes made during this transition
+    // Revert all habit changes made during this transition
     transitionChanges.forEach(change => {
       setHabits(prev =>
         prev.map(h => {
@@ -435,9 +480,24 @@ export function HabitsProvider({ children }) {
       )
     })
 
+    // Revert cascade changes - restore target statuses
+    cascadeChanges.targets.forEach(({ id, originalStatus }) => {
+      setTargets(prev =>
+        prev.map(t => t.id === id ? { ...t, status: originalStatus } : t)
+      )
+    })
+
+    // Revert cascade changes - reactivate practices
+    cascadeChanges.practices.forEach(practiceId => {
+      setPractices(prev =>
+        prev.map(p => p.id === practiceId ? { ...p, active: true } : p)
+      )
+    })
+
     setInTransition(false)
     setTransitionStartedAt(null)
     setTransitionChanges([])
+    setCascadeChanges({ targets: [], practices: [] })
   }
 
   const value = {
@@ -502,6 +562,7 @@ export function HabitsProvider({ children }) {
     // Transitions
     inTransition,
     transitionChanges,
+    cascadeChanges,
     habitTransitions,
     startTransition,
     completeTransition,

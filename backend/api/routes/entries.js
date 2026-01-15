@@ -128,4 +128,139 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// PUT /entries/:id - Update an entry
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      occurred_at,
+      type,
+      habit_id,
+      practice_id,
+      note,
+      duration_minutes,
+      target_id,
+      is_highlight,
+      warm_up_note,
+      cool_down_note,
+      archived_at,
+    } = req.body || {};
+
+    // Validate type if provided
+    if (type && !['habit', 'life', 'caution'].includes(type)) {
+      return res.status(400).json({ ok: false, error: "type must be 'habit', 'life', or 'caution'" });
+    }
+
+    // Build dynamic update query
+    const updates = [];
+    const params = [];
+    let paramCount = 1;
+
+    if (occurred_at !== undefined) {
+      updates.push(`occurred_at = $${paramCount}::timestamptz`);
+      params.push(occurred_at);
+      paramCount++;
+    }
+    if (type !== undefined) {
+      updates.push(`type = $${paramCount}`);
+      params.push(type);
+      paramCount++;
+    }
+    if (habit_id !== undefined) {
+      updates.push(`habit_id = $${paramCount}`);
+      params.push(habit_id || null);
+      paramCount++;
+    }
+    if (practice_id !== undefined) {
+      updates.push(`practice_id = $${paramCount}`);
+      params.push(practice_id || null);
+      paramCount++;
+    }
+    if (note !== undefined) {
+      updates.push(`note = $${paramCount}`);
+      params.push(note || null);
+      paramCount++;
+    }
+    if (duration_minutes !== undefined) {
+      updates.push(`duration_minutes = $${paramCount}::int`);
+      params.push(duration_minutes);
+      paramCount++;
+    }
+    if (target_id !== undefined) {
+      updates.push(`target_id = $${paramCount}`);
+      params.push(target_id || null);
+      paramCount++;
+    }
+    if (is_highlight !== undefined) {
+      updates.push(`is_highlight = $${paramCount}`);
+      params.push(is_highlight);
+      paramCount++;
+    }
+    if (warm_up_note !== undefined) {
+      updates.push(`warm_up_note = $${paramCount}`);
+      params.push(warm_up_note || null);
+      paramCount++;
+    }
+    if (cool_down_note !== undefined) {
+      updates.push(`cool_down_note = $${paramCount}`);
+      params.push(cool_down_note || null);
+      paramCount++;
+    }
+    if (archived_at !== undefined) {
+      updates.push(`archived_at = $${paramCount}::timestamptz`);
+      params.push(archived_at || null);
+      paramCount++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ ok: false, error: 'No fields to update' });
+    }
+
+    params.push(id);
+    const q = `
+      UPDATE entries
+      SET ${updates.join(', ')}, updated_at = NOW()
+      WHERE id = $${paramCount}
+      RETURNING *;
+    `;
+
+    const r = await pool.query(q, params);
+
+    if (r.rows.length === 0) {
+      return res.status(404).json({ ok: false, error: 'Entry not found' });
+    }
+
+    // Return entry with joined names
+    const entryWithNames = await pool.query(`
+      SELECT e.*, h.name as habit, h.color as habit_color, p.name as practice, t.name as target
+      FROM entries e
+      LEFT JOIN habits h ON e.habit_id = h.id
+      LEFT JOIN practices p ON e.practice_id = p.id
+      LEFT JOIN targets t ON e.target_id = t.id
+      WHERE e.id = $1
+    `, [id]);
+
+    res.json({ ok: true, entry: entryWithNames.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /entries/:id - Delete an entry
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const r = await pool.query('DELETE FROM entries WHERE id = $1 RETURNING id', [id]);
+
+    if (r.rows.length === 0) {
+      return res.status(404).json({ ok: false, error: 'Entry not found' });
+    }
+
+    res.json({ ok: true, deleted: id });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

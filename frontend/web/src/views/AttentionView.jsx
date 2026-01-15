@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { ChevronDown, ChevronRight, Plus, ArrowRightLeft, GripVertical, MoreHorizontal } from 'lucide-react'
+import { ChevronDown, ChevronRight, Plus, ArrowRightLeft, GripVertical, MoreHorizontal, Calendar, Clock } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -129,6 +129,13 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
     opacity: isDragging ? 0.5 : 1,
   }
 
+  const hasDate = target.start_date || target.end_date
+  const hasDuration = target.planned_duration
+
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
   return (
     <div
       ref={setNodeRef}
@@ -151,11 +158,29 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
           <MoreHorizontal className="h-4 w-4" />
         </button>
       </div>
-      {habitName && (
-        <Badge variant="outline" className={`mt-2 text-xs ${habitColorClasses} ${isCompleted ? 'opacity-50' : ''}`}>
-          {habitName}
-        </Badge>
-      )}
+      <div className="flex items-center gap-2 mt-2 flex-wrap">
+        {habitName && (
+          <Badge variant="outline" className={`text-xs ${habitColorClasses} ${isCompleted ? 'opacity-50' : ''}`}>
+            {habitName}
+          </Badge>
+        )}
+        {hasDate && (
+          <span className={`text-xs text-muted-foreground flex items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}>
+            <Calendar className="h-3 w-3" />
+            {target.start_date && target.end_date
+              ? `${formatDate(target.start_date)} - ${formatDate(target.end_date)}`
+              : target.end_date
+                ? formatDate(target.end_date)
+                : formatDate(target.start_date)}
+          </span>
+        )}
+        {!hasDate && hasDuration && (
+          <span className={`text-xs text-muted-foreground flex items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}>
+            <Clock className="h-3 w-3" />
+            ~{target.planned_duration}
+          </span>
+        )}
+      </div>
     </div>
   )
 }
@@ -283,6 +308,7 @@ export default function AttentionView() {
     // Transitions
     inTransition,
     transitionChanges,
+    cascadeChanges,
     startTransition,
     completeTransition,
     cancelTransition,
@@ -1226,10 +1252,24 @@ export default function AttentionView() {
             </div>
 
             {/* Changes summary */}
-            {transitionChanges.length > 0 && (
-              <div className="text-sm text-muted-foreground border-t pt-3">
-                <span className="font-medium">{transitionChanges.length} change{transitionChanges.length !== 1 ? 's' : ''}</span>
-                {' '}will be recorded
+            {(transitionChanges.length > 0 || cascadeChanges.targets.length > 0 || cascadeChanges.practices.length > 0) && (
+              <div className="text-sm text-muted-foreground border-t pt-3 space-y-2">
+                {transitionChanges.length > 0 && (
+                  <div>
+                    <span className="font-medium">{transitionChanges.length} habit change{transitionChanges.length !== 1 ? 's' : ''}</span>
+                    {' '}will be recorded
+                  </div>
+                )}
+                {cascadeChanges.targets.length > 0 && (
+                  <div className="text-xs">
+                    <span className="text-amber-600">→</span> {cascadeChanges.targets.length} target{cascadeChanges.targets.length !== 1 ? 's' : ''} moved to Parked
+                  </div>
+                )}
+                {cascadeChanges.practices.length > 0 && (
+                  <div className="text-xs">
+                    <span className="text-amber-600">→</span> {cascadeChanges.practices.length} practice{cascadeChanges.practices.length !== 1 ? 's' : ''} deactivated
+                  </div>
+                )}
               </div>
             )}
 
@@ -1301,9 +1341,9 @@ export default function AttentionView() {
             <DialogTitle>Complete Transition</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Summary of changes */}
+            {/* Summary of habit changes */}
             <div className="space-y-2">
-              <Label>Changes</Label>
+              <Label>Habit Changes</Label>
               <div className="text-sm space-y-1 p-3 bg-muted/50 rounded-md">
                 {transitionChanges.map((change, i) => (
                   <div key={i} className="flex items-center gap-2">
@@ -1315,6 +1355,50 @@ export default function AttentionView() {
                 ))}
               </div>
             </div>
+
+            {/* Cascade effects summary */}
+            {(cascadeChanges.targets.length > 0 || cascadeChanges.practices.length > 0) && (
+              <div className="space-y-2">
+                <Label>Cascade Effects</Label>
+                <div className="text-sm space-y-2 p-3 bg-amber-500/10 rounded-md border border-amber-500/20">
+                  {cascadeChanges.targets.length > 0 && (
+                    <div>
+                      <div className="font-medium text-amber-700 dark:text-amber-400 mb-1">
+                        {cascadeChanges.targets.length} target{cascadeChanges.targets.length !== 1 ? 's' : ''} moved to Parked:
+                      </div>
+                      <ul className="text-muted-foreground text-xs space-y-0.5 ml-3">
+                        {cascadeChanges.targets.map(({ id, originalStatus }) => {
+                          const target = targets.find(t => t.id === id)
+                          return (
+                            <li key={id}>
+                              {target?.name || `Target ${id}`}
+                              <span className="text-muted-foreground/60"> ({originalStatus} → parked)</span>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                  {cascadeChanges.practices.length > 0 && (
+                    <div>
+                      <div className="font-medium text-amber-700 dark:text-amber-400 mb-1">
+                        {cascadeChanges.practices.length} practice{cascadeChanges.practices.length !== 1 ? 's' : ''} deactivated:
+                      </div>
+                      <ul className="text-muted-foreground text-xs space-y-0.5 ml-3">
+                        {cascadeChanges.practices.map(practiceId => {
+                          const practice = practices.find(p => p.id === practiceId)
+                          return (
+                            <li key={practiceId}>
+                              {practice?.name || `Practice ${practiceId}`}
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Optional note */}
             <div className="space-y-2">

@@ -205,16 +205,18 @@ EXECUTE FUNCTION set_updated_at();
 -- =========================
 CREATE TABLE IF NOT EXISTS reflections (
   id SERIAL PRIMARY KEY,
-  reflection_type TEXT NOT NULL DEFAULT 'weekly' CHECK (reflection_type IN ('day', 'weekly', 'monthly', 'habit', 'adhoc')),
+  reflection_type TEXT NOT NULL DEFAULT 'weekly' CHECK (reflection_type IN ('day', 'weekly', 'monthly', 'habit', 'entry', 'target', 'adhoc')),
   period_start DATE,
   period_end DATE,
   habit_id INT REFERENCES habits(id) ON DELETE SET NULL,
   target_id INT REFERENCES targets(id) ON DELETE SET NULL,
+  entry_id INT REFERENCES entries(id) ON DELETE SET NULL,
   note TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CHECK (
     reflection_type = 'adhoc'
+    OR reflection_type = 'entry'
     OR (period_start IS NOT NULL AND period_end IS NOT NULL AND period_end >= period_start)
   )
 );

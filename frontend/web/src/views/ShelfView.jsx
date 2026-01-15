@@ -15,7 +15,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { Sun, Moon, ChevronRight, ChevronDown, Calendar, Clock, GripVertical } from 'lucide-react'
+import { Sun, Moon, ChevronRight, ChevronDown, Calendar, Clock, GripVertical, Bookmark } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -224,6 +224,7 @@ export default function ShelfView() {
       caution: todayEntries.filter(e => e.type === 'caution').length,
       transitions: todayEntries.filter(e => e.type === 'transition').length,
       minutes: todayEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
+      highlights: todayEntries.filter(e => e.is_highlight),
     }
   }, [todayKey])
 
@@ -241,7 +242,7 @@ export default function ShelfView() {
       life: weekEntries.filter(e => e.type === 'life').length,
       caution: weekEntries.filter(e => e.type === 'caution').length,
       transitions: weekEntries.filter(e => e.type === 'transition').length,
-      highlights: weekEntries.filter(e => e.highlight).length,
+      highlights: weekEntries.filter(e => e.is_highlight).length,
       minutes: weekEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
     }
   }, [today])
@@ -259,7 +260,7 @@ export default function ShelfView() {
       life: monthEntries.filter(e => e.type === 'life').length,
       caution: monthEntries.filter(e => e.type === 'caution').length,
       transitions: monthEntries.filter(e => e.type === 'transition').length,
-      highlights: monthEntries.filter(e => e.highlight).length,
+      highlights: monthEntries.filter(e => e.is_highlight).length,
       minutes: monthEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0),
     }
   }, [today])
@@ -267,7 +268,7 @@ export default function ShelfView() {
   // Get recent highlights
   const recentHighlights = useMemo(() => {
     return allEntries
-      .filter(e => e.highlight && !e.archived_at)
+      .filter(e => e.is_highlight && !e.archived_at)
       .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
       .slice(0, 3)
   }, [])
@@ -684,43 +685,71 @@ export default function ShelfView() {
             {(todayStats.habits + todayStats.life + todayStats.caution) === 0 ? (
               <p className="text-sm text-muted-foreground">No entries yet</p>
             ) : (
-              <div className="flex items-center gap-2 text-sm">
-                {todayStats.habits > 0 && (
-                  <>
-                    <span>{todayStats.habits} {todayStats.habits === 1 ? 'habit' : 'habits'}</span>
-                    <span className="text-muted-foreground">·</span>
-                  </>
-                )}
-                {todayStats.life > 0 && (
-                  <>
-                    <span>{todayStats.life} life</span>
-                    <span className="text-muted-foreground">·</span>
-                  </>
-                )}
-                {todayStats.caution > 0 && (
-                  <>
-                    <span>{todayStats.caution} caution</span>
-                    <span className="text-muted-foreground">·</span>
-                  </>
-                )}
-                {todayStats.transitions > 0 && (
-                  <>
-                    <span>{todayStats.transitions} {todayStats.transitions === 1 ? 'transition' : 'transitions'}</span>
-                    <span className="text-muted-foreground">·</span>
-                  </>
-                )}
-                <span>{todayStats.minutes} min</span>
-                {dayPreparation && (
-                  <>
-                    <span className="text-muted-foreground">·</span>
-                    <Sun className={`h-4 w-4 ${getDayPromptIconClass('start')}`} />
-                  </>
-                )}
-                {dayClosure && (
-                  <>
-                    <span className="text-muted-foreground">·</span>
-                    <Moon className={`h-4 w-4 ${getDayPromptIconClass('end')}`} />
-                  </>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  {todayStats.habits > 0 && (
+                    <>
+                      <span>{todayStats.habits} {todayStats.habits === 1 ? 'habit' : 'habits'}</span>
+                      <span className="text-muted-foreground">·</span>
+                    </>
+                  )}
+                  {todayStats.life > 0 && (
+                    <>
+                      <span>{todayStats.life} life</span>
+                      <span className="text-muted-foreground">·</span>
+                    </>
+                  )}
+                  {todayStats.caution > 0 && (
+                    <>
+                      <span>{todayStats.caution} caution</span>
+                      <span className="text-muted-foreground">·</span>
+                    </>
+                  )}
+                  {todayStats.transitions > 0 && (
+                    <>
+                      <span>{todayStats.transitions} {todayStats.transitions === 1 ? 'transition' : 'transitions'}</span>
+                      <span className="text-muted-foreground">·</span>
+                    </>
+                  )}
+                  <span>{todayStats.minutes} min</span>
+                  {dayPreparation && (
+                    <>
+                      <span className="text-muted-foreground">·</span>
+                      <Sun className={`h-4 w-4 ${getDayPromptIconClass('start')}`} />
+                    </>
+                  )}
+                  {dayClosure && (
+                    <>
+                      <span className="text-muted-foreground">·</span>
+                      <Moon className={`h-4 w-4 ${getDayPromptIconClass('end')}`} />
+                    </>
+                  )}
+                </div>
+                {/* Today's highlights */}
+                {todayStats.highlights.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    {todayStats.highlights.map(entry => (
+                      <div
+                        key={entry.id}
+                        className="flex items-start gap-2 text-sm"
+                      >
+                        <Bookmark className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium">
+                            {entry.habit || entry.type}
+                          </span>
+                          {entry.practice && (
+                            <span className="text-muted-foreground"> · {entry.practice}</span>
+                          )}
+                          {entry.note && (
+                            <p className="text-muted-foreground text-xs mt-0.5 line-clamp-2">
+                              {entry.note}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
@@ -782,14 +811,17 @@ export default function ShelfView() {
                 <h4 className="text-sm font-medium mb-2">Recent Highlights</h4>
                 <ul className="space-y-1.5">
                   {recentHighlights.map(entry => (
-                    <li key={entry.id} className="text-sm">
-                      <span className="text-amber-600 dark:text-amber-400">{entry.habit || entry.type}</span>
-                      {entry.practice && (
-                        <span className="text-muted-foreground"> · {entry.practice}</span>
-                      )}
-                      {entry.note && (
-                        <p className="text-muted-foreground text-xs line-clamp-1 mt-0.5">{entry.note}</p>
-                      )}
+                    <li key={entry.id} className="flex items-start gap-2 text-sm">
+                      <Bookmark className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium">{entry.habit || entry.type}</span>
+                        {entry.practice && (
+                          <span className="text-muted-foreground"> · {entry.practice}</span>
+                        )}
+                        {entry.note && (
+                          <p className="text-muted-foreground text-xs line-clamp-1 mt-0.5">{entry.note}</p>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>
