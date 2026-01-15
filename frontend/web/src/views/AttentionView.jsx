@@ -333,13 +333,13 @@ export default function AttentionView() {
   // Modal states
   const [showDoneModal, setShowDoneModal] = useState(false)
   const [showPlannedModal, setShowPlannedModal] = useState(false)
+  const [showActiveModal, setShowActiveModal] = useState(false)
   const [showParkedModal, setShowParkedModal] = useState(false)
   const [showCompleteTransitionDialog, setShowCompleteTransitionDialog] = useState(false)
   const [transitionNote, setTransitionNote] = useState('')
 
   // Column limits
   const COLUMN_LIMIT = 5
-  const DONE_COLUMN_LIMIT = 3
 
   // Get targets by status from context
   const activeTargets = getTargetsByStatus('active')
@@ -599,18 +599,28 @@ export default function AttentionView() {
                       Drag here to activate
                     </p>
                   ) : (
-                    activeTargets.map(target => {
-                      const habitName = getHabitNameById(target.habit_id)
-                      return (
-                        <KanbanCard
-                          key={target.id}
-                          target={target}
-                          habitName={habitName}
-                          habitColorClasses={getHabitColorByName(habitName)}
-                          onEdit={setEditingTarget}
-                        />
-                      )
-                    })
+                    <>
+                      {activeTargets.slice(0, COLUMN_LIMIT).map(target => {
+                        const habitName = getHabitNameById(target.habit_id)
+                        return (
+                          <KanbanCard
+                            key={target.id}
+                            target={target}
+                            habitName={habitName}
+                            habitColorClasses={getHabitColorByName(habitName)}
+                            onEdit={setEditingTarget}
+                          />
+                        )
+                      })}
+                      {activeTargets.length > COLUMN_LIMIT && (
+                        <button
+                          onClick={() => setShowActiveModal(true)}
+                          className="w-full text-xs text-muted-foreground hover:text-foreground py-2 text-center border border-dashed rounded-lg hover:bg-accent/50 transition-colors"
+                        >
+                          See all ({activeTargets.length})
+                        </button>
+                      )}
+                    </>
                   )}
                 </SortableContext>
               </KanbanColumn>
@@ -706,7 +716,7 @@ export default function AttentionView() {
                   ) : (
                     <>
                       {/* Show top completed */}
-                      {completedTargets.slice(0, DONE_COLUMN_LIMIT).map(target => {
+                      {completedTargets.slice(0, COLUMN_LIMIT).map(target => {
                         const habitName = getHabitNameById(target.habit_id)
                         return (
                           <KanbanCard
@@ -720,7 +730,7 @@ export default function AttentionView() {
                         )
                       })}
                       {/* See all button */}
-                      {(completedTargets.length > DONE_COLUMN_LIMIT || archivedTargets.length > 0) && (
+                      {(completedTargets.length > COLUMN_LIMIT || archivedTargets.length > 0) && (
                         <button
                           onClick={() => setShowDoneModal(true)}
                           className="w-full text-xs text-muted-foreground hover:text-foreground py-2 text-center border border-dashed rounded-lg hover:bg-accent/50 transition-colors"
@@ -745,6 +755,63 @@ export default function AttentionView() {
           </DndContext>
         </CardContent>
       </Card>
+
+      {/* Active Modal */}
+      <Dialog open={showActiveModal} onOpenChange={setShowActiveModal}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className={columnColors.active.text}>
+              Active ({activeTargets.length})
+            </DialogTitle>
+          </DialogHeader>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(event) => {
+              const { active, over } = event
+              if (over && active.id !== over.id) {
+                const oldIndex = activeTargets.findIndex(t => t.id === active.id)
+                const newIndex = activeTargets.findIndex(t => t.id === over.id)
+                if (oldIndex !== -1 && newIndex !== -1) {
+                  const newOrder = arrayMove(activeTargets, oldIndex, newIndex)
+                  reorderTargets(newOrder.map(t => t.id))
+                }
+              }
+            }}
+          >
+            <SortableContext
+              items={activeTargets.map(t => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {activeTargets.map((target, index) => {
+                  const habitName = getHabitNameById(target.habit_id)
+                  return (
+                    <ModalListItem
+                      key={target.id}
+                      target={target}
+                      habitName={habitName}
+                      habitColorClasses={getHabitColorByName(habitName)}
+                      onEdit={(t) => {
+                        setShowActiveModal(false)
+                        setEditingTarget(t)
+                      }}
+                      isOnBoard={index < COLUMN_LIMIT}
+                      position={index + 1}
+                      colorScheme={columnColors.active}
+                    />
+                  )
+                })}
+                {activeTargets.length > COLUMN_LIMIT && (
+                  <p className="text-xs text-muted-foreground text-center pt-2">
+                    Items 1-{COLUMN_LIMIT} are visible on the board
+                  </p>
+                )}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </DialogContent>
+      </Dialog>
 
       {/* Planned Modal */}
       <Dialog open={showPlannedModal} onOpenChange={setShowPlannedModal}>
@@ -907,16 +974,16 @@ export default function AttentionView() {
                               setShowDoneModal(false)
                               setEditingTarget(t)
                             }}
-                            isOnBoard={index < DONE_COLUMN_LIMIT}
+                            isOnBoard={index < COLUMN_LIMIT}
                             position={index + 1}
                             colorScheme={columnColors.done}
                             isCompleted={true}
                           />
                         )
                       })}
-                      {completedTargets.length > DONE_COLUMN_LIMIT && (
+                      {completedTargets.length > COLUMN_LIMIT && (
                         <p className="text-xs text-muted-foreground text-center pt-2">
-                          Items 1-{DONE_COLUMN_LIMIT} are visible on the board
+                          Items 1-{COLUMN_LIMIT} are visible on the board
                         </p>
                       )}
                     </div>

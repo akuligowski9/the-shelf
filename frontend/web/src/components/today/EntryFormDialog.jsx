@@ -20,14 +20,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Sunrise, ChevronDown, ChevronUp } from 'lucide-react'
-import {
-  mockHabits,
-  getPracticesForHabit,
-  getActionsForPractice,
-  habitTracksActions,
-  getWarmUpTemplatesForHabit,
-  renderWarmUpTemplate,
-} from '@/data/mockData'
+import { getWarmUpTemplatesForHabit, renderWarmUpTemplate } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
 
 // Helper to get/set last used target per habit from localStorage
@@ -64,7 +57,7 @@ const ENTRY_TYPES = [
 ]
 
 export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchive, editingEntry }) {
-  const { targets } = useHabits()
+  const { targets, activeHabits, getPracticesForHabit, getActionsForPractice } = useHabits()
 
   const [entryType, setEntryType] = useState('habit')
   const [habitId, setHabitId] = useState('')
@@ -80,7 +73,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
   const [warmUpCompleted, setWarmUpCompleted] = useState(false)
   const [warmUpNote, setWarmUpNote] = useState('')
 
-  const activeHabits = useMemo(() => mockHabits.filter(h => h.active), [])
+  // activeHabits comes from context
 
   // Active targets for the selected habit
   const availableTargets = useMemo(() => {
@@ -98,14 +91,15 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
   const practices = useMemo(() => {
     if (!habitId) return []
     return getPracticesForHabit(Number(habitId))
-  }, [habitId])
+  }, [habitId, getPracticesForHabit])
 
   const actions = useMemo(() => {
     if (!practiceId || !habitId) return []
     // Only show actions for habits that track them
-    if (!habitTracksActions(Number(habitId))) return []
+    const habit = activeHabits.find(h => h.id === Number(habitId))
+    if (!habit?.track_actions) return []
     return getActionsForPractice(Number(practiceId))
-  }, [practiceId, habitId])
+  }, [practiceId, habitId, activeHabits, getActionsForPractice])
 
   const selectedHabit = useMemo(() => {
     return activeHabits.find(h => h.id === Number(habitId))

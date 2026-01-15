@@ -366,6 +366,7 @@ export default function ShelfView() {
 
   // Track active drag for overlay
   const [activeDragId, setActiveDragId] = useState(null)
+  const [showAllActive, setShowAllActive] = useState(false)
   const activeDragTarget = activeDragId
     ? contextTargets.find(t => t.id === activeDragId)
     : null
@@ -583,7 +584,7 @@ export default function ShelfView() {
                 </Card>
               ) : (
                 <div className="grid gap-3">
-                  {targets.active.map(t => (
+                  {(showAllActive ? targets.active : targets.active.slice(0, 5)).map(t => (
                     <SortableTargetCard
                       key={t.id}
                       target={t}
@@ -592,6 +593,16 @@ export default function ShelfView() {
                       formatProgress={formatProgress}
                     />
                   ))}
+                  {targets.active.length > 5 && (
+                    <button
+                      onClick={() => setShowAllActive(!showAllActive)}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors text-left py-2"
+                    >
+                      {showAllActive
+                        ? 'Show less'
+                        : `+${targets.active.length - 5} more → View all`}
+                    </button>
+                  )}
                 </div>
               )}
             </SortableContext>
