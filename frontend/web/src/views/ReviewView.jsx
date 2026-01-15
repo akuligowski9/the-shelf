@@ -324,6 +324,8 @@ export default function ReviewView() {
 
   // Get habit name for an entry
   const getHabitName = (entry) => {
+    if (entry.type === 'life') return 'Life Event'
+    if (entry.type === 'caution') return 'Caution Behavior'
     if (entry.habit) return entry.habit
     const habit = habits.find(h => h.id === entry.habit_id)
     return habit?.name || 'Unknown'
