@@ -22,6 +22,7 @@ import {
   Legend,
 } from 'recharts'
 import { useHabits } from '@/context/HabitsContext'
+import { useEntries } from '@/context/EntriesContext'
 import { getPreparationsInRange, getClosuresInRange, getReflections, getMetricsForRange } from '@/lib/api'
 import { colorPalette } from '@/lib/colors'
 
@@ -118,6 +119,7 @@ function getWeekKey(dateStr) {
 
 export default function ProgressView() {
   const { habits, targets } = useHabits()
+  const { entries } = useEntries()
   const [viewMode, setViewMode] = useState('balance') // 'balance' | 'patterns'
   const [timeRange, setTimeRange] = useState('week') // 'week' | 'month' | 'year'
   const [periodOffset, setPeriodOffset] = useState(0) // 0 = current, -1 = previous, etc.
@@ -131,6 +133,7 @@ export default function ProgressView() {
   const [closures, setClosures] = useState([])
   const [reflections, setReflections] = useState([])
   const [serverMetrics, setServerMetrics] = useState(null)
+  const [prevServerMetrics, setPrevServerMetrics] = useState(null)
   const [metricsLoading, setMetricsLoading] = useState(false)
 
   // Fetch preparations, closures, and reflections from API (one-time)
@@ -229,29 +232,53 @@ export default function ProgressView() {
     return `${startDate.toLocaleDateString('en-US', formatOpts)} - ${endDate.toLocaleDateString('en-US', formatOpts)}, ${year}`
   }, [timeRange, periodOffset, dateRange])
 
-  // Fetch server metrics when date range changes
+  // Calculate previous period date range for balance shift comparison
+  const prevDateRange = useMemo(() => {
+    if (dateRange.length === 0) return []
+    const periodLength = dateRange.length
+    const firstDate = new Date(dateRange[0] + 'T12:00:00')
+    const prevDates = []
+    for (let i = periodLength; i > 0; i--) {
+      const date = new Date(firstDate)
+      date.setDate(firstDate.getDate() - i)
+      prevDates.push(formatDate(date))
+    }
+    return prevDates
+  }, [dateRange])
+
+  // Fetch server metrics when date range changes (current + previous period)
   useEffect(() => {
     if (dateRange.length === 0) return
 
     const startDate = dateRange[0]
-    // End date needs to be exclusive (day after last day in range)
     const lastDate = new Date(dateRange[dateRange.length - 1] + 'T12:00:00')
     lastDate.setDate(lastDate.getDate() + 1)
     const endDate = formatDate(lastDate)
 
     setMetricsLoading(true)
-    getMetricsForRange(startDate, endDate)
-      .then(metrics => {
-        setServerMetrics(metrics)
-      })
+
+    // Fetch current period
+    const currentPromise = getMetricsForRange(startDate, endDate)
+      .then(metrics => setServerMetrics(metrics))
       .catch(err => {
         console.error('Failed to load metrics:', err)
         setServerMetrics(null)
       })
-      .finally(() => {
-        setMetricsLoading(false)
-      })
-  }, [dateRange])
+
+    // Fetch previous period for balance shift
+    if (prevDateRange.length > 0) {
+      const prevStartDate = prevDateRange[0]
+      const prevLastDate = new Date(prevDateRange[prevDateRange.length - 1] + 'T12:00:00')
+      prevLastDate.setDate(prevLastDate.getDate() + 1)
+      const prevEndDate = formatDate(prevLastDate)
+
+      getMetricsForRange(prevStartDate, prevEndDate)
+        .then(metrics => setPrevServerMetrics(metrics))
+        .catch(() => setPrevServerMetrics(null))
+    }
+
+    currentPromise.finally(() => setMetricsLoading(false))
+  }, [dateRange, prevDateRange])
 
   // Process server metrics into chart data
   const chartData = useMemo(() => {
@@ -512,18 +539,45 @@ export default function ProgressView() {
     // Balance: Neglected habits (enabled habits with 0 time this period)
     const neglectedHabits = habitTotals.filter(h => h.hours === 0)
 
-    // Balance: Trend vs previous period (simplified - no previous period data without separate API call)
+    // Balance: Trend vs previous period
+    // Calculate previous period totals
+    let prevTotalHours = 0
+    const prevHabitHours = {}
+    let prevLifeHours = 0
+    if (prevServerMetrics?.daily) {
+      const prevHabitIdToName = new Map(prevServerMetrics.habits?.map(h => [h.id, h.name]) || [])
+      prevServerMetrics.daily.forEach(day => {
+        if (day.habits) {
+          Object.entries(day.habits).forEach(([habitId, data]) => {
+            const habitName = prevHabitIdToName.get(Number(habitId))
+            if (habitName && enabledHabitNames.has(habitName)) {
+              prevHabitHours[habitName] = (prevHabitHours[habitName] || 0) + (data.minutes || 0) / 60
+              prevTotalHours += (data.minutes || 0) / 60
+            }
+          })
+        }
+        if (includeLife && day.life) {
+          prevLifeHours += (day.life || 0) / 60
+          prevTotalHours += (day.life || 0) / 60
+        }
+      })
+    }
+
     const balanceTrend = habits
       .filter(h => enabledHabitNames.has(h.name))
       .map(habit => {
-        const currentPercent = totalHours > 0 ? (habitTotals.find(h => h.name === habit.name)?.hours || 0) / totalHours * 100 : 0
-        return { name: habit.name, color: habit.color, currentPercent: Math.round(currentPercent), change: 0 }
-      }).filter(h => h.currentPercent > 0)
+        const currentHours = habitTotals.find(h => h.name === habit.name)?.hours || 0
+        const currentPercent = totalHours > 0 ? (currentHours / totalHours) * 100 : 0
+        const prevPercent = prevTotalHours > 0 ? ((prevHabitHours[habit.name] || 0) / prevTotalHours) * 100 : 0
+        const change = Math.round(currentPercent - prevPercent)
+        return { name: habit.name, color: habit.color, currentPercent: Math.round(currentPercent), change }
+      }).filter(h => h.currentPercent > 0 || h.change !== 0)
 
+    const prevLifePercent = prevTotalHours > 0 ? (prevLifeHours / prevTotalHours) * 100 : 0
     const lifeTrend = includeLife ? {
       name: 'Life',
       currentPercent: lifePercent,
-      change: 0
+      change: Math.round(lifePercent - prevLifePercent)
     } : null
 
     // Transition metrics (transitions table was removed, using local state from context if available)
@@ -568,7 +622,7 @@ export default function ProgressView() {
       totalCompletedTargets,
       reflectionsInRange,
     }
-  }, [chartData, dateRange, habits, timeRange, periodOffset, enabledFilters, preparations, closures, reflections, targets, serverMetrics])
+  }, [chartData, dateRange, habits, timeRange, periodOffset, enabledFilters, preparations, closures, reflections, targets, serverMetrics, prevServerMetrics])
 
   // Habit-specific patterns from server metrics
   const habitPatterns = useMemo(() => {
@@ -585,11 +639,47 @@ export default function ProgressView() {
     // Average session length
     const avgSessionLength = sessionsInRange > 0 ? Math.round(habitData.minutes / sessionsInRange) : 0
 
-    // Days since last session and other historical data not available without individual entries
-    // These would need additional API support
-    const daysSinceLast = null
-    const longestGap = null
-    const totalSessions = sessionsInRange // Only have current range data
+    // Find days with entries for this habit from daily data
+    const daysWithHabit = serverMetrics.daily
+      ?.filter(d => d.habits && d.habits[habitData.id]?.minutes > 0)
+      .map(d => d.date)
+      .sort()
+      .reverse() || []
+
+    // Days since last entry
+    let daysSinceLast = null
+    if (daysWithHabit.length > 0) {
+      const lastEntryDate = new Date(daysWithHabit[0] + 'T12:00:00')
+      const today = new Date()
+      today.setHours(12, 0, 0, 0)
+      daysSinceLast = Math.floor((today - lastEntryDate) / (1000 * 60 * 60 * 24))
+    }
+
+    // Longest gap between entries (all-time from entries context)
+    let longestGap = null
+    const habitObj = habits.find(h => h.name === selectedHabit)
+    if (habitObj) {
+      const allTimeEntries = entries
+        .filter(e => e.habit_id === habitObj.id && !e.archived_at)
+        .map(e => e.occurred_at?.split('T')[0])
+        .filter(Boolean)
+        .sort()
+
+      if (allTimeEntries.length > 1) {
+        // Get unique dates
+        const uniqueDates = [...new Set(allTimeEntries)]
+        let maxGap = 0
+        for (let i = 1; i < uniqueDates.length; i++) {
+          const prevDate = new Date(uniqueDates[i - 1] + 'T12:00:00')
+          const currDate = new Date(uniqueDates[i] + 'T12:00:00')
+          const gap = Math.floor((currDate - prevDate) / (1000 * 60 * 60 * 24))
+          if (gap > maxGap) maxGap = gap
+        }
+        longestGap = maxGap
+      }
+    }
+
+    const totalSessions = sessionsInRange
 
     return {
       avgSessionLength,
@@ -599,7 +689,7 @@ export default function ProgressView() {
       sessionsInRange,
       hoursInRange: Math.round(hoursInRange * 10) / 10,
     }
-  }, [selectedHabit, serverMetrics])
+  }, [selectedHabit, serverMetrics, entries, habits])
 
   // Toggle a filter
   const toggleFilter = (filterName) => {
@@ -1171,14 +1261,18 @@ export default function ProgressView() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-xl font-semibold">{habitPatterns.daysSinceLast}d</div>
+                    <div className="text-xl font-semibold">
+                      {habitPatterns.daysSinceLast != null ? `${habitPatterns.daysSinceLast}d` : '—'}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       Since Last
                       <InfoTip text="Days since your last entry. Not a streak counter." />
                     </div>
                   </div>
                   <div>
-                    <div className="text-xl font-semibold">{habitPatterns.longestGap}d</div>
+                    <div className="text-xl font-semibold">
+                      {habitPatterns.longestGap != null ? `${habitPatterns.longestGap}d` : '—'}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       Longest Gap
                       <InfoTip text="Longest break between entries." />

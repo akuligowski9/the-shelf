@@ -1,6 +1,6 @@
 # The Shelf — Progress Report
 
-Last updated: 2026-01-14
+Last updated: 2026-01-15
 
 ---
 
@@ -31,7 +31,7 @@ The Shelf is a personal attention and life-balance companion. This document trac
 | ProgressView | ~85% | Balance/Patterns charts, calendar navigation, custom tooltips, habit deep dive |
 | ReviewView | ~85% | Rich text reflections, triggers, past reflections, period metrics, accomplishments |
 | AttentionView | ~95% | Kanban targets, tree view habits, templates, actions, hash nav, transitions |
-| SettingsView | ~85% | Theme toggle, data health metrics, import/export placeholders |
+| SettingsView | 100% | Theme, timezone, data health, import/export with preview |
 
 ### ShelfView (Complete)
 - [x] Welcome header with date
@@ -111,15 +111,19 @@ The Shelf is a personal attention and life-balance companion. This document trac
 - [x] Transition window flow (enter, make changes, complete with note)
 - [ ] Template preview with dynamic elements
 
-### SettingsView (Mostly Complete)
+### SettingsView (Complete)
 - [x] Theme selector (light/dark/auto with 6PM-6AM)
 - [x] ThemeContext with localStorage persistence
+- [x] Timezone selector (persisted to settings)
+- [x] Shelf target sort order setting
 - [x] Data Health metrics (8 collapsible sections)
 - [x] Habits Coverage table with percentages
 - [x] Date Active/Inactive columns
-- [ ] Functional timezone selector
-- [ ] Import JSON (blocked on backend)
-- [ ] Export JSON (blocked on backend)
+- [x] Transitions history display
+- [x] Export JSON (full database export)
+- [x] Import JSON (full export or per-day log format)
+- [x] Pending imports UI (files in data/imports/)
+- [x] Import preview with duplicate detection
 
 ### Context/State Management
 - [x] HabitsContext (habits, practices, behaviors, targets)
@@ -144,9 +148,13 @@ The Shelf is a personal attention and life-balance companion. This document trac
   - [x] /settings (GET, PUT by key)
   - [x] /dashboard/today (aggregated view)
   - [x] /metrics/weekly (real aggregation: per-habit minutes/days, highlights, life entries)
+  - [x] /metrics/range (flexible date range metrics)
+  - [x] /data/export (full database export)
+  - [x] /data/import (full export or per-day log format)
+  - [x] /data/pending (list files in imports folder)
+  - [x] /data/import-file (import file and move to logs)
+  - [x] /data/preview-file (preview import with duplicate detection)
 - [ ] Database migrations (using direct SQL currently)
-- [ ] Import endpoint
-- [ ] Export endpoint
 - [x] Warm-up/Cool-down templates API (GET/POST/PUT/DELETE /habits/:id/prompts)
 
 ---
@@ -230,10 +238,10 @@ The Shelf is a personal attention and life-balance companion. This document trac
 
 ## Gap Analysis Summary
 
-### v1 - Required for Functional Use
+### v1 - Required for Functional Use (Complete)
 1. ~~**Warm-up/Cool-down Templates Persistence**~~ — DONE (habit_prompts table + API)
-2. ~~**Metrics Calculation**~~ — DONE (`/metrics/weekly` returns real aggregated data)
-3. **Import/Export** — Settings UI has placeholders, need backend endpoints
+2. ~~**Metrics Calculation**~~ — DONE (`/metrics/weekly` and `/metrics/range` return real aggregated data)
+3. ~~**Import/Export**~~ — DONE (full export, per-day import, pending imports UI, preview mode)
 
 ### v2 - Future Enhancements
 4. **Template Preview** — Dynamic element substitution (`{{last_session_note}}`)

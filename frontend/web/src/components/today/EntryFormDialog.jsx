@@ -67,6 +67,9 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
   const [durationMinutes, setDurationMinutes] = useState('')
   const [note, setNote] = useState('')
 
+  // Timestamp state (for editing)
+  const [occurredAt, setOccurredAt] = useState('')
+
   // Warm-up state
   const [showWarmUp, setShowWarmUp] = useState(false)
   const [warmUpTemplateId, setWarmUpTemplateId] = useState('')
@@ -133,6 +136,19 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     }
   }, [warmUpTemplates, editingEntry])
 
+  // Helper to convert ISO to datetime-local format
+  const toDatetimeLocal = (isoString) => {
+    if (!isoString) return ''
+    const date = new Date(isoString)
+    // Format as YYYY-MM-DDTHH:mm in local time
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+
   // Populate form when editing
   useEffect(() => {
     if (editingEntry) {
@@ -142,6 +158,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
       setSelectedActions(editingEntry.actions || [])
       setWarmUpNote(editingEntry.warm_up_note || '')
       setWarmUpCompleted(!!editingEntry.warm_up_at)
+      setOccurredAt(toDatetimeLocal(editingEntry.occurred_at))
 
       if (editingEntry.type === 'habit') {
         const habit = activeHabits.find(h => h.name === editingEntry.habit)
@@ -171,6 +188,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     setSelectedActions([])
     setDurationMinutes('')
     setNote('')
+    setOccurredAt('')
     setShowWarmUp(false)
     setWarmUpTemplateId('')
     setWarmUpCompleted(false)
@@ -180,10 +198,18 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
   const handleSubmit = (e) => {
     e.preventDefault()
 
+    // Convert datetime-local to ISO, or use existing/new timestamp
+    const getOccurredAt = () => {
+      if (occurredAt) {
+        return new Date(occurredAt).toISOString()
+      }
+      return editingEntry?.occurred_at || new Date().toISOString()
+    }
+
     const entry = {
       id: editingEntry?.id || Date.now(),
       type: entryType,
-      occurred_at: editingEntry?.occurred_at || new Date().toISOString(),
+      occurred_at: getOccurredAt(),
       duration_minutes: durationMinutes ? Number(durationMinutes) : null,
       is_highlight: editingEntry?.is_highlight || false,
       // Warm-up data
@@ -295,6 +321,18 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
               </SelectContent>
             </Select>
           </div>
+
+          {/* Timestamp (shown when editing) */}
+          {editingEntry && (
+            <div className="space-y-2">
+              <Label>Time</Label>
+              <Input
+                type="datetime-local"
+                value={occurredAt}
+                onChange={(e) => setOccurredAt(e.target.value)}
+              />
+            </div>
+          )}
 
           {/* Habit Selector (only for habit type) */}
           {entryType === 'habit' && (

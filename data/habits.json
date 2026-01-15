@@ -19,7 +19,8 @@
       "track_actions": false,
       "practices": [
         { "id": 3, "name": "Textbook Learning", "active": true },
-        { "id": 4, "name": "Conversation", "active": true }
+        { "id": 4, "name": "Conversation", "active": true },
+        { "id": 17, "name": "Media", "active": true }
       ]
     },
     {
@@ -31,6 +32,7 @@
       "practices": [
         { "id": 5, "name": "Walking", "active": true },
         { "id": 6, "name": "Gym", "active": true },
+        { "id": 16, "name": "Cardio", "active": true },
         {
           "id": 7,
           "name": "Physical Therapy",
@@ -75,8 +77,7 @@
           "name": "Drills",
           "active": true,
           "actions": ["Crate", "Name Recall", "Greeting Practice", "Patience", "Calming"]
-        },
-        { "id": 13, "name": "Care", "active": true }
+        }
       ]
     },
     {
@@ -100,7 +101,6 @@
     "Abs and Legs": "Legs",
     "Loose-Leash Drills": "Walk Training",
     "Training": "Drills",
-    "Miscellaneous Care": "Care",
     "Code Book": "Books"
   }
 }

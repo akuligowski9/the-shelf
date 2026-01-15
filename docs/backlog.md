@@ -249,21 +249,23 @@ Provide a quick view of recent accomplishments for motivation and closure.
 
 ---
 
-## 16. Settings: Import/Export Functionality
+## 16. ~~Settings: Import/Export Functionality~~ DONE
 
 **Description**
-Implement functional import and export in the Settings view. Currently UI placeholders exist but the actual functionality requires backend support for data persistence.
+Implement functional import and export in the Settings view.
 
 **Acceptance Criteria**
-- Export downloads all data as JSON (habits, practices, behaviors, targets, entries, preparations, closures, reflections)
-- Import accepts JSON file and validates structure
-- Import is forgiving (unknown fields ignored, partial data accepted)
-- Import/export respects the format defined in `docs/import-spec.md`
-- Confirmation dialog before import (to prevent accidental overwrites)
+- [x] Export downloads all data as JSON (habits, practices, actions, targets, entries, preparations, closures, reflections, settings, prompts)
+- [x] Import accepts JSON file and validates structure
+- [x] Import is forgiving (unknown fields ignored, partial data accepted)
+- [x] Import/export respects the format defined in `docs/import-spec.md`
+- [x] Pending imports UI (files in data/imports/ folder)
+- [x] Preview mode with duplicate detection before import
+- [x] Imported files move to data/logs/ after successful import
 
-**Priority**: P2 (blocked on backend)
+**Status**: Complete - Full import/export with preview mode, pending imports UI, and file-based import workflow.
+
+**Priority**: P2
 **Story Points**: 5
-
-**Note**: Revisit when backend persistence is further along.
 
 ---
