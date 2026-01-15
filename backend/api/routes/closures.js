@@ -3,20 +3,34 @@ const pool = require('../db/pool');
 
 const router = express.Router();
 
-// GET /closures?scope=day&date=YYYY-MM-DD
-// For day scope, returns closure for that date
+// GET /closures?scope=day&date=YYYY-MM-DD (single day)
+// GET /closures?scope=day&from=YYYY-MM-DD&to=YYYY-MM-DD (range query)
 router.get('/', async (req, res, next) => {
   try {
-    const { scope, date } = req.query;
+    const { scope, date, from, to } = req.query;
 
     if (!scope || !['day', 'session'].includes(scope)) {
       return res.status(400).json({ ok: false, error: "scope must be 'day' or 'session'" });
     }
-    if (!date) {
-      return res.status(400).json({ ok: false, error: 'date is required (YYYY-MM-DD)' });
+
+    // Range query
+    if (from && to) {
+      const r = await pool.query(
+        `SELECT * FROM closures
+         WHERE scope = $1
+           AND occurred_at >= $2::date
+           AND occurred_at < ($3::date + INTERVAL '1 day')
+         ORDER BY occurred_at ASC`,
+        [scope, from, to]
+      );
+      return res.json({ ok: true, closures: r.rows });
     }
 
-    // For day scope, get closure where occurred_at falls on that date
+    // Single day query
+    if (!date) {
+      return res.status(400).json({ ok: false, error: 'date or from/to range is required' });
+    }
+
     const r = await pool.query(
       `SELECT * FROM closures
        WHERE scope = $1

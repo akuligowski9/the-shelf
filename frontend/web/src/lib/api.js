@@ -96,6 +96,11 @@ export async function getPreparation(periodType, periodStart) {
   return data.preparation
 }
 
+export async function getPreparationsInRange(periodType, from, to) {
+  const data = await fetchJson(`/preparations?period_type=${periodType}&from=${from}&to=${to}`)
+  return data.preparations
+}
+
 export async function savePreparation(preparation) {
   const data = await fetchJson('/preparations', {
     method: 'PUT',
@@ -108,6 +113,11 @@ export async function savePreparation(preparation) {
 export async function getClosure(scope, date) {
   const data = await fetchJson(`/closures?scope=${scope}&date=${date}`)
   return data.closure
+}
+
+export async function getClosuresInRange(scope, from, to) {
+  const data = await fetchJson(`/closures?scope=${scope}&from=${from}&to=${to}`)
+  return data.closures
 }
 
 export async function saveClosure(closure) {

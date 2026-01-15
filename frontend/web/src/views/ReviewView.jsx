@@ -238,6 +238,7 @@ export default function ReviewView() {
   const [reflectionText, setReflectionText] = useState('')
   const [reflections, setReflections] = useState(mockReflections)
   const [expandedReflection, setExpandedReflection] = useState(null)
+  const [selectedTrigger, setSelectedTrigger] = useState(null) // { type: 'prompt'|'accomplishment'|'metric', label: string, value: string }
 
   const dateRange = useMemo(() => getDateRange(timeRange, periodOffset), [timeRange, periodOffset])
   const previousDateRange = useMemo(() => getPreviousPeriodRange(timeRange, periodOffset), [timeRange, periodOffset])
@@ -260,6 +261,85 @@ export default function ReviewView() {
   const reflectionPrompts = useMemo(() => {
     return generateReflectionPrompts(currentMetrics, previousMetrics, periodLabel)
   }, [currentMetrics, previousMetrics, periodLabel])
+
+  // Build available triggers for reflection
+  const availableTriggers = useMemo(() => {
+    const triggers = []
+
+    // Add prompts as triggers
+    reflectionPrompts.forEach(prompt => {
+      triggers.push({
+        type: 'prompt',
+        id: `prompt-${prompt.id}`,
+        label: 'Prompt',
+        value: prompt.text,
+      })
+    })
+
+    // Add highlights as triggers (unfiltered - all highlights in range)
+    allEntries
+      .filter(entry => {
+        if (!entry.is_highlight) return false
+        const entryDate = new Date(entry.occurred_at)
+        return entryDate >= dateRange.start && entryDate <= dateRange.end
+      })
+      .forEach(entry => {
+        const habitName = entry.habit || entry.type
+        triggers.push({
+          type: 'accomplishment',
+          id: `highlight-${entry.id}`,
+          label: 'Highlight',
+          value: entry.practice ? `${habitName} · ${entry.practice}` : habitName,
+          subtext: entry.note,
+        })
+      })
+
+    // Add completed targets as triggers
+    targets.filter(t => t.status === 'completed').forEach(target => {
+      triggers.push({
+        type: 'accomplishment',
+        id: `target-${target.id}`,
+        label: 'Target Completed',
+        value: target.name,
+      })
+    })
+
+    // Add key metrics as triggers
+    if (currentMetrics.totalHours > 0) {
+      triggers.push({
+        type: 'metric',
+        id: 'metric-total-time',
+        label: 'Metric',
+        value: `${currentMetrics.totalHours} hours total`,
+      })
+    }
+    if (currentMetrics.habitEntries > 0) {
+      triggers.push({
+        type: 'metric',
+        id: 'metric-habit-sessions',
+        label: 'Metric',
+        value: `${currentMetrics.habitEntries} habit sessions`,
+      })
+    }
+    if (currentMetrics.restDays > 0) {
+      triggers.push({
+        type: 'metric',
+        id: 'metric-rest-days',
+        label: 'Metric',
+        value: `${currentMetrics.restDays} rest days`,
+      })
+    }
+    if (currentMetrics.dominantHabit) {
+      triggers.push({
+        type: 'metric',
+        id: 'metric-dominant',
+        label: 'Metric',
+        value: `${currentMetrics.dominantHabit.name} was ${currentMetrics.dominantHabit.percent}% of time`,
+      })
+    }
+
+    return triggers
+  }, [reflectionPrompts, allEntries, targets, dateRange, currentMetrics])
 
   // Get highlighted entries within the date range, filtered by type
   const highlights = useMemo(() => {
@@ -318,11 +398,17 @@ export default function ReviewView() {
       period_end: formatDateKey(dateRange.end),
       period_label: periodLabel,
       note: reflectionText.trim(),
+      trigger: selectedTrigger ? {
+        type: selectedTrigger.type,
+        label: selectedTrigger.label,
+        value: selectedTrigger.value,
+      } : null,
       created_at: new Date().toISOString(),
     }
 
     setReflections(prev => [newReflection, ...prev])
     setReflectionText('')
+    setSelectedTrigger(null)
   }
 
   return (
@@ -595,7 +681,46 @@ export default function ReviewView() {
             What patterns do you notice? What does this period mean to you?
           </p>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
+          {/* Trigger Selector */}
+          {availableTriggers.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                What prompted this reflection? (optional)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {availableTriggers.slice(0, 6).map(trigger => (
+                  <button
+                    key={trigger.id}
+                    onClick={() => setSelectedTrigger(
+                      selectedTrigger?.id === trigger.id ? null : trigger
+                    )}
+                    className={`text-xs px-2 py-1.5 rounded-md border transition-colors text-left max-w-[200px] truncate ${
+                      selectedTrigger?.id === trigger.id
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                    }`}
+                    title={trigger.value}
+                  >
+                    <span className="text-muted-foreground">{trigger.label}:</span>{' '}
+                    <span className="truncate">{trigger.value}</span>
+                  </button>
+                ))}
+                {availableTriggers.length > 6 && (
+                  <span className="text-xs text-muted-foreground self-center">
+                    +{availableTriggers.length - 6} more
+                  </span>
+                )}
+              </div>
+              {selectedTrigger && (
+                <div className="text-xs p-2 rounded-md bg-primary/5 border border-primary/20">
+                  <span className="text-muted-foreground">Selected:</span>{' '}
+                  <span className="font-medium">{selectedTrigger.value}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <textarea
             value={reflectionText}
             onChange={(e) => setReflectionText(e.target.value)}
@@ -642,24 +767,37 @@ export default function ReviewView() {
                   )}
                   className="w-full flex items-center justify-between text-left"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className="text-xs">
                       {reflection.type}
                     </Badge>
+                    {reflection.trigger && (
+                      <Badge variant="secondary" className="text-xs">
+                        {reflection.trigger.label}
+                      </Badge>
+                    )}
                     <span className="text-xs text-muted-foreground">
                       {reflection.period_label}
                     </span>
                   </div>
                   {expandedReflection === reflection.id ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                   )}
                 </button>
                 {expandedReflection === reflection.id && (
-                  <p className="text-sm mt-3 pt-3 border-t border-border">
-                    {reflection.note}
-                  </p>
+                  <div className="mt-3 pt-3 border-t border-border space-y-2">
+                    {reflection.trigger && (
+                      <div className="text-xs p-2 rounded-md bg-muted/50">
+                        <span className="text-muted-foreground">{reflection.trigger.label}:</span>{' '}
+                        <span className="font-medium">{reflection.trigger.value}</span>
+                      </div>
+                    )}
+                    <p className="text-sm">
+                      {reflection.note}
+                    </p>
+                  </div>
                 )}
               </div>
             ))

@@ -4,15 +4,29 @@ const pool = require('../db/pool');
 const router = express.Router();
 
 // GET /preparations?period_type=day|week&period_start=YYYY-MM-DD
+// GET /preparations?period_type=day|week&from=YYYY-MM-DD&to=YYYY-MM-DD (range query)
 router.get('/', async (req, res, next) => {
   try {
-    const { period_type, period_start } = req.query;
+    const { period_type, period_start, from, to } = req.query;
 
     if (!period_type || !['day', 'week'].includes(period_type)) {
       return res.status(400).json({ ok: false, error: "period_type must be 'day' or 'week'" });
     }
+
+    // Range query
+    if (from && to) {
+      const r = await pool.query(
+        `SELECT * FROM preparations
+         WHERE period_type = $1 AND period_start >= $2::date AND period_start <= $3::date
+         ORDER BY period_start ASC`,
+        [period_type, from, to]
+      );
+      return res.json({ ok: true, preparations: r.rows });
+    }
+
+    // Single day query
     if (!period_start) {
-      return res.status(400).json({ ok: false, error: 'period_start is required (YYYY-MM-DD)' });
+      return res.status(400).json({ ok: false, error: 'period_start or from/to range is required' });
     }
 
     const r = await pool.query(
