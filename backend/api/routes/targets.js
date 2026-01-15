@@ -54,7 +54,7 @@ router.post('/', async (req, res, next) => {
 router.patch('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, name, description, type } = req.body || {};
+    const { status, name, description, type, start_date, end_date, planned_duration, habit_id } = req.body || {};
 
     // Allow partial updates, but validate if provided
     if (status && !['active', 'parked', 'planned', 'done', 'archived'].includes(status)) {
@@ -64,24 +64,55 @@ router.patch('/:id', async (req, res, next) => {
       return res.status(400).json({ ok: false, error: "type must be 'project', 'milestone', or 'idea'" });
     }
 
+    // Build dynamic update - need this approach to allow setting dates to null
+    const updates = [];
+    const params = [id];
+    let paramCount = 2;
+
+    if (status !== undefined) {
+      updates.push(`status = $${paramCount++}`);
+      params.push(status);
+    }
+    if (name !== undefined) {
+      updates.push(`name = $${paramCount++}`);
+      params.push(name);
+    }
+    if (description !== undefined) {
+      updates.push(`description = $${paramCount++}`);
+      params.push(description);
+    }
+    if (type !== undefined) {
+      updates.push(`type = $${paramCount++}`);
+      params.push(type);
+    }
+    if (start_date !== undefined) {
+      updates.push(`start_date = $${paramCount++}::date`);
+      params.push(start_date);
+    }
+    if (end_date !== undefined) {
+      updates.push(`end_date = $${paramCount++}::date`);
+      params.push(end_date);
+    }
+    if (planned_duration !== undefined) {
+      updates.push(`planned_duration = $${paramCount++}`);
+      params.push(planned_duration);
+    }
+    if (habit_id !== undefined) {
+      updates.push(`habit_id = $${paramCount++}`);
+      params.push(habit_id);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ ok: false, error: 'No fields to update' });
+    }
+
     const q = `
       UPDATE targets
-      SET
-        status = COALESCE($2, status),
-        name = COALESCE($3, name),
-        description = COALESCE($4, description),
-        type = COALESCE($5, type)
-      WHERE id = $1::uuid
-      RETURNING *;
+      SET ${updates.join(', ')}, updated_at = NOW()
+      WHERE id = $1      RETURNING *;
     `;
 
-    const r = await pool.query(q, [
-      id,
-      status ?? null,
-      name ?? null,
-      description ?? null,
-      type ?? null,
-    ]);
+    const r = await pool.query(q, params);
 
     if (!r.rows[0]) return res.status(404).json({ ok: false, error: 'target not found' });
 
@@ -96,7 +127,7 @@ router.delete('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const r = await pool.query('DELETE FROM targets WHERE id = $1::uuid RETURNING id', [id]);
+    const r = await pool.query('DELETE FROM targets WHERE id = $1 RETURNING id', [id]);
 
     if (r.rows.length === 0) {
       return res.status(404).json({ ok: false, error: 'Target not found' });
