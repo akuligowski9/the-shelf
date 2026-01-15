@@ -26,11 +26,11 @@ The Shelf is a personal attention and life-balance companion. This document trac
 
 | View | Progress | Notes |
 |------|----------|-------|
-| ShelfView | ~95% | Habits accordion, targets by status, activity stats, highlights |
+| ShelfView | ~95% | Habits accordion, targets by status, activity stats, highlights, target progress |
 | TodayView | ~95% | Entries CRUD, prep/closure, warm-up/cool-down flows |
 | ProgressView | ~85% | Balance/Patterns charts, calendar navigation, custom tooltips, habit deep dive |
-| ReviewView | ~20% | Layout only, needs functional reflections |
-| AttentionView | ~90% | Kanban targets, tree view habits, templates, actions, hash nav |
+| ReviewView | ~85% | Rich text reflections, triggers, past reflections, period metrics, accomplishments |
+| AttentionView | ~95% | Kanban targets, tree view habits, templates, actions, hash nav, transitions |
 | SettingsView | ~85% | Theme toggle, data health metrics, import/export placeholders |
 
 ### ShelfView (Complete)
@@ -77,16 +77,18 @@ The Shelf is a personal attention and life-balance companion. This document trac
 - [ ] Practice breakdowns
 - [ ] Transition/caution markers
 
-### ReviewView (Placeholder)
+### ReviewView (Functional)
 - [x] Header and basic layout
-- [x] Time range card (static)
-- [x] Accomplishments list (hardcoded)
-- [x] Reflection textarea
-- [ ] Functional time range selector
-- [ ] Real accomplishments from data
-- [ ] Save/load reflections
-- [ ] Toggle highlights
-- [ ] Contextual metrics
+- [x] Time range selector (Week/Month/Year with calendar navigation)
+- [x] Period summary stats (total time, sessions, cautions, actions, rest days)
+- [x] Accomplishments from real data (highlights, completed targets)
+- [x] Type-specific icons for highlights (habit/life/caution)
+- [x] Rich text reflection editor (Tiptap-based)
+- [x] Reflection triggers (prompts, metrics, highlights, targets)
+- [x] Past reflections with trigger context display
+- [x] Reflect buttons on summary stats
+- [x] Save/load reflections to database
+- [ ] Template prompts section (stretch)
 
 ### AttentionView (Nearly Complete)
 - [x] Habits tree view (file explorer style, expand/collapse)
@@ -106,8 +108,7 @@ The Shelf is a personal attention and life-balance companion. This document trac
 - [x] Warm-up/Cool-down template library (in HabitEditDialog)
 - [x] Session template counts in habit tree (↑/↓ icons)
 - [x] Hash navigation support (#habits, #targets)
-- [x] Transition window indicator (static)
-- [ ] Transition window enter/exit functionality
+- [x] Transition window flow (enter, make changes, complete with note)
 - [ ] Template preview with dynamic elements
 
 ### SettingsView (Mostly Complete)
@@ -129,43 +130,45 @@ The Shelf is a personal attention and life-balance companion. This document trac
 
 ## Backend (Node.js + Express)
 
-### Status: Not Started
+### Status: Functional (v1)
 
-- [ ] Express.js REST API setup
-- [ ] PostgreSQL connection
-- [ ] Database migrations
-- [ ] Core endpoints:
-  - [ ] GET/POST /habits
-  - [ ] GET/POST /practices
-  - [ ] GET/POST /targets
-  - [ ] GET/POST /entries
-  - [ ] GET/POST /preparations
-  - [ ] GET/POST /closures
-  - [ ] GET/POST /reflections
-  - [ ] GET /metrics/*
+- [x] Express.js REST API setup
+- [x] PostgreSQL connection (via pool)
+- [x] Core endpoints:
+  - [x] /habits (GET, POST, PUT, DELETE + practices/actions sub-routes)
+  - [x] /targets (GET, POST, PATCH, DELETE, reorder)
+  - [x] /entries (GET, POST, PUT, DELETE with date range filters)
+  - [x] /preparations (GET, PUT - upsert by period)
+  - [x] /closures (GET, PUT - upsert by scope/date)
+  - [x] /reflections (GET, POST, PUT, DELETE with triggers)
+  - [x] /settings (GET, PUT by key)
+  - [x] /dashboard/today (aggregated view)
+  - [x] /metrics/weekly (real aggregation: per-habit minutes/days, highlights, life entries)
+- [ ] Database migrations (using direct SQL currently)
 - [ ] Import endpoint
 - [ ] Export endpoint
+- [x] Warm-up/Cool-down templates API (GET/POST/PUT/DELETE /habits/:id/prompts)
 
 ---
 
 ## Database (PostgreSQL)
 
-### Status: Not Started
+### Status: Functional (v1)
 
-- [ ] Schema definition
-- [ ] Tables:
-  - [ ] habits
-  - [ ] practices
-  - [ ] habit_prompts (warm-up/cool-down templates)
-  - [ ] targets
-  - [ ] entries
-  - [ ] preparations
-  - [ ] closures
-  - [ ] reflections
-  - [ ] habit_transitions
-  - [ ] settings
-  - [ ] daily_metrics
-  - [ ] daily_metric_items
+- [x] PostgreSQL running in Docker
+- [x] Core tables created:
+  - [x] habits (with color, target_minutes, track_actions)
+  - [x] practices
+  - [x] actions
+  - [x] targets (with status, dates, habit_id)
+  - [x] entries (with habit_id, target_id, duration, notes, highlights)
+  - [x] preparations (with period_type, intentions)
+  - [x] closures (with scope, notes)
+  - [x] reflections (with triggers: trigger_label, trigger_value)
+  - [x] settings (key-value store)
+- [x] habit_prompts table (warm-up/cool-down templates)
+- [ ] habit_transitions table
+- [ ] daily_metrics / daily_metric_items (computed metrics)
 
 ---
 
@@ -227,15 +230,15 @@ The Shelf is a personal attention and life-balance companion. This document trac
 
 ## Gap Analysis Summary
 
-### High Priority (Blocks Core Experience)
-1. **Backend**: API endpoints for data persistence
-2. **ReviewView**: Functional reflection save/load
+### v1 - Required for Functional Use
+1. ~~**Warm-up/Cool-down Templates Persistence**~~ — DONE (habit_prompts table + API)
+2. ~~**Metrics Calculation**~~ — DONE (`/metrics/weekly` returns real aggregated data)
+3. **Import/Export** — Settings UI has placeholders, need backend endpoints
 
-### Medium Priority
-3. **AttentionView**: Transition window enter/exit flow
-4. **SettingsView**: Import/Export functionality
-
-### Lower Priority (Polish)
-5. **ProgressView**: Calendar view (compact grid), practice breakdowns, transition markers
-6. **AttentionView**: Template preview with dynamic elements
-7. **Testing**: Playwright E2E tests
+### v2 - Future Enhancements
+4. **Template Preview** — Dynamic element substitution (`{{last_session_note}}`)
+5. **ProgressView: Practice Breakdowns** — Drill into practice-level data
+6. **ProgressView: Calendar View** — Compact grid visualization
+7. **ProgressView: Transition Markers** — Overlay markers for transitions/cautions
+8. **Database Migrations** — Formal migration system vs direct SQL
+9. **Playwright E2E Tests** — Automated testing for critical flows

@@ -4,8 +4,6 @@ import {
   mockPractices as initialPractices,
   mockActions as initialActions,
   mockTargets as initialTargets,
-  mockWarmUpTemplates as initialWarmUpTemplates,
-  mockCoolDownTemplates as initialCoolDownTemplates,
 } from '@/data/mockData'
 import {
   loadInitialData,
@@ -22,6 +20,11 @@ import {
   updateTarget as apiUpdateTarget,
   deleteTarget as apiDeleteTarget,
   reorderTargets as apiReorderTargets,
+  createPrompt as apiCreatePrompt,
+  updatePrompt as apiUpdatePrompt,
+  deletePrompt as apiDeletePrompt,
+  getHabitTransitions as apiGetHabitTransitions,
+  createHabitTransition as apiCreateHabitTransition,
 } from '@/lib/api'
 
 const HabitsContext = createContext(null)
@@ -31,8 +34,7 @@ export function HabitsProvider({ children }) {
   const [practices, setPractices] = useState(initialPractices)
   const [actions, setActions] = useState(initialActions)
   const [targets, setTargets] = useState(initialTargets)
-  const [warmUpTemplates, setWarmUpTemplates] = useState(initialWarmUpTemplates)
-  const [coolDownTemplates, setCoolDownTemplates] = useState(initialCoolDownTemplates)
+  const [prompts, setPrompts] = useState([]) // Unified prompts (warmup + cooldown)
   const [isLoading, setIsLoading] = useState(true)
 
   // Transition window state
@@ -44,14 +46,21 @@ export function HabitsProvider({ children }) {
 
   // Load data from API on mount
   useEffect(() => {
-    loadInitialData()
-      .then(data => {
+    Promise.all([
+      loadInitialData(),
+      apiGetHabitTransitions(50).catch(() => []),
+    ])
+      .then(([data, transitions]) => {
         setHabits(data.habits)
         setPractices(data.practices)
         setActions(data.actions)
         if (data.targets.length > 0) {
           setTargets(data.targets)
         }
+        if (data.prompts) {
+          setPrompts(data.prompts)
+        }
+        setHabitTransitions(transitions)
       })
       .catch(err => {
         console.error('Failed to load data from API, using mock data:', err)
@@ -506,70 +515,130 @@ export function HabitsProvider({ children }) {
 
   // Get warm-up templates for a habit
   const getWarmUpTemplatesForHabit = (habitId) => {
-    return warmUpTemplates.filter(t => t.habit_id === habitId)
+    return prompts.filter(t => t.habit_id === habitId && t.type === 'warmup')
   }
 
   // Get cool-down templates for a habit
   const getCoolDownTemplatesForHabit = (habitId) => {
-    return coolDownTemplates.filter(t => t.habit_id === habitId)
+    return prompts.filter(t => t.habit_id === habitId && t.type === 'cooldown')
   }
 
   // Add a warm-up template
-  const addWarmUpTemplate = (habitId, name, content = '', hasDynamicElements = false) => {
-    const newId = Math.max(...warmUpTemplates.map(t => t.id), 0) + 1
-    setWarmUpTemplates(prev => [
-      ...prev,
-      { id: newId, habit_id: habitId, name, content, has_dynamic_elements: hasDynamicElements, active: true }
-    ])
-    return newId
+  const addWarmUpTemplate = async (habitId, name, content = '', hasDynamicElements = false) => {
+    try {
+      const newPrompt = await apiCreatePrompt(habitId, {
+        type: 'warmup',
+        name,
+        content,
+        has_dynamic_elements: hasDynamicElements,
+        active: true,
+      })
+      setPrompts(prev => [...prev, newPrompt])
+      return newPrompt.id
+    } catch (err) {
+      console.error('Failed to create warm-up template:', err)
+      return null
+    }
   }
 
   // Add a cool-down template
-  const addCoolDownTemplate = (habitId, name, content = '', hasDynamicElements = false) => {
-    const newId = Math.max(...coolDownTemplates.map(t => t.id), 0) + 1
-    setCoolDownTemplates(prev => [
-      ...prev,
-      { id: newId, habit_id: habitId, name, content, has_dynamic_elements: hasDynamicElements, active: true }
-    ])
-    return newId
+  const addCoolDownTemplate = async (habitId, name, content = '', hasDynamicElements = false) => {
+    try {
+      const newPrompt = await apiCreatePrompt(habitId, {
+        type: 'cooldown',
+        name,
+        content,
+        has_dynamic_elements: hasDynamicElements,
+        active: true,
+      })
+      setPrompts(prev => [...prev, newPrompt])
+      return newPrompt.id
+    } catch (err) {
+      console.error('Failed to create cool-down template:', err)
+      return null
+    }
   }
 
   // Update a warm-up template
-  const updateWarmUpTemplate = (templateId, updates) => {
-    setWarmUpTemplates(prev =>
+  const updateWarmUpTemplate = async (templateId, updates) => {
+    // Optimistic update
+    setPrompts(prev =>
       prev.map(t => t.id === templateId ? { ...t, ...updates } : t)
     )
+    try {
+      await apiUpdatePrompt(templateId, updates)
+    } catch (err) {
+      console.error('Failed to update warm-up template:', err)
+    }
   }
 
   // Update a cool-down template
-  const updateCoolDownTemplate = (templateId, updates) => {
-    setCoolDownTemplates(prev =>
+  const updateCoolDownTemplate = async (templateId, updates) => {
+    // Optimistic update
+    setPrompts(prev =>
       prev.map(t => t.id === templateId ? { ...t, ...updates } : t)
     )
+    try {
+      await apiUpdatePrompt(templateId, updates)
+    } catch (err) {
+      console.error('Failed to update cool-down template:', err)
+    }
   }
 
   // Delete a warm-up template
-  const deleteWarmUpTemplate = (templateId) => {
-    setWarmUpTemplates(prev => prev.filter(t => t.id !== templateId))
+  const deleteWarmUpTemplate = async (templateId) => {
+    // Optimistic update
+    setPrompts(prev => prev.filter(t => t.id !== templateId))
+    try {
+      await apiDeletePrompt(templateId)
+    } catch (err) {
+      console.error('Failed to delete warm-up template:', err)
+    }
   }
 
   // Delete a cool-down template
-  const deleteCoolDownTemplate = (templateId) => {
-    setCoolDownTemplates(prev => prev.filter(t => t.id !== templateId))
+  const deleteCoolDownTemplate = async (templateId) => {
+    // Optimistic update
+    setPrompts(prev => prev.filter(t => t.id !== templateId))
+    try {
+      await apiDeletePrompt(templateId)
+    } catch (err) {
+      console.error('Failed to delete cool-down template:', err)
+    }
   }
 
   // Toggle warm-up template active status
-  const toggleWarmUpTemplateActive = (templateId) => {
-    setWarmUpTemplates(prev =>
-      prev.map(t => t.id === templateId ? { ...t, active: !t.active } : t)
+  const toggleWarmUpTemplateActive = async (templateId) => {
+    const template = prompts.find(t => t.id === templateId)
+    if (!template) return
+
+    const newActiveState = !template.active
+    // Optimistic update
+    setPrompts(prev =>
+      prev.map(t => t.id === templateId ? { ...t, active: newActiveState } : t)
     )
+    try {
+      await apiUpdatePrompt(templateId, { active: newActiveState })
+    } catch (err) {
+      console.error('Failed to toggle warm-up template active:', err)
+    }
   }
 
   // Toggle cool-down template active status
-  const toggleCoolDownTemplateActive = (templateId) => {
-    setCoolDownTemplates(prev =>
-      prev.map(t => t.id === templateId ? { ...t, active: !t.active } : t)
+  const toggleCoolDownTemplateActive = async (templateId) => {
+    const template = prompts.find(t => t.id === templateId)
+    if (!template) return
+
+    const newActiveState = !template.active
+    // Optimistic update
+    setPrompts(prev =>
+      prev.map(t => t.id === templateId ? { ...t, active: newActiveState } : t)
     )
+    try {
+      await apiUpdatePrompt(templateId, { active: newActiveState })
+    } catch (err) {
+      console.error('Failed to toggle cool-down template active:', err)
+    }
   }
 
   // ---- Transition Window Management ----
@@ -583,25 +652,38 @@ export function HabitsProvider({ children }) {
   }
 
   // Complete and save a transition
-  const completeTransition = (note = '') => {
+  const completeTransition = async (note = '') => {
     if (!inTransition) return null
 
-    const transition = {
-      id: Math.max(...habitTransitions.map(t => t.id), 0) + 1,
+    const transitionData = {
       started_at: transitionStartedAt,
       ended_at: new Date().toISOString(),
-      note,
+      note: note || null,
       changes: transitionChanges,
       cascades: cascadeChanges,
     }
 
-    setHabitTransitions(prev => [...prev, transition])
+    // Save to API
+    try {
+      const savedTransition = await apiCreateHabitTransition(transitionData)
+      setHabitTransitions(prev => [savedTransition, ...prev])
+    } catch (err) {
+      console.error('Failed to save transition:', err)
+      // Still add locally even if API fails
+      const localTransition = {
+        ...transitionData,
+        id: Date.now(),
+        created_at: new Date().toISOString(),
+      }
+      setHabitTransitions(prev => [localTransition, ...prev])
+    }
+
     setInTransition(false)
     setTransitionStartedAt(null)
     setTransitionChanges([])
     setCascadeChanges({ targets: [], practices: [] })
 
-    return transition
+    return transitionData
   }
 
   // Cancel a transition (revert all changes)
@@ -682,9 +764,8 @@ export function HabitsProvider({ children }) {
     updateTargetDates,
     reorderTargets,
     deleteTarget,
-    // Templates
-    warmUpTemplates,
-    coolDownTemplates,
+    // Templates (prompts)
+    prompts,
     getWarmUpTemplatesForHabit,
     getCoolDownTemplatesForHabit,
     addWarmUpTemplate,

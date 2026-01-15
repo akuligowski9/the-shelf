@@ -147,6 +147,20 @@ export async function reorderTargets(targetIds) {
   return data.reordered
 }
 
+// Habit Transitions
+export async function getHabitTransitions(limit = 15) {
+  const data = await fetchJson(`/transitions?limit=${limit}`)
+  return data.transitions
+}
+
+export async function createHabitTransition(transition) {
+  const data = await fetchJson('/transitions', {
+    method: 'POST',
+    body: JSON.stringify(transition),
+  })
+  return data.transition
+}
+
 // Entries
 export async function getEntries(from, to) {
   const data = await fetchJson(`/entries?from=${from}&to=${to}`)
@@ -245,6 +259,11 @@ export async function getWeeklyMetrics(startDate) {
   return data.metrics
 }
 
+export async function getMetricsForRange(startDate, endDate) {
+  const data = await fetchJson(`/metrics/range?start=${startDate}&end=${endDate}`)
+  return data.metrics
+}
+
 // Reflections
 export async function getReflections(params = {}) {
   const query = new URLSearchParams(params).toString()
@@ -275,14 +294,63 @@ export async function deleteReflection(id) {
   return data.deleted
 }
 
+// Prompts (Warm-up / Cool-down Templates)
+export async function getPrompts() {
+  const data = await fetchJson('/habits/prompts')
+  return data.prompts
+}
+
+export async function getPromptsForHabit(habitId) {
+  const data = await fetchJson(`/habits/${habitId}/prompts`)
+  return data.prompts
+}
+
+export async function createPrompt(habitId, prompt) {
+  const data = await fetchJson(`/habits/${habitId}/prompts`, {
+    method: 'POST',
+    body: JSON.stringify(prompt),
+  })
+  return data.prompt
+}
+
+export async function updatePrompt(id, updates) {
+  const data = await fetchJson(`/habits/prompts/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  })
+  return data.prompt
+}
+
+export async function deletePrompt(id) {
+  const data = await fetchJson(`/habits/prompts/${id}`, {
+    method: 'DELETE',
+  })
+  return data.deleted
+}
+
+// Data Import/Export
+export async function exportData() {
+  const data = await fetchJson('/data/export')
+  return data.data
+}
+
+export async function importData(data) {
+  const result = await fetchJson('/data/import', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+  return result.results
+}
+
 // Load all initial data for the app
 export async function loadInitialData() {
-  const [habits, practices, actions, targets] = await Promise.all([
+  const [habits, practices, actions, targets, prompts] = await Promise.all([
     getHabits(),
     getPractices(),
     getActions(),
-    getTargets().catch(() => []), // targets endpoint might not exist yet
+    getTargets().catch(() => []),
+    getPrompts().catch(() => []),
   ])
 
-  return { habits, practices, actions, targets }
+  return { habits, practices, actions, targets, prompts }
 }

@@ -57,32 +57,36 @@ Allow targets to be moved between Active and Parked states from the UI.
 
 ---
 
-## 4. Define and Surface Highlights
+## 4. ~~Define and Surface Highlights~~ DONE
 
-**Description**  
+**Description**
 Decide what constitutes a "highlight" and how it is marked or surfaced.
 
 **Acceptance Criteria**
-- Decision: manual vs derived highlight
-- Highlight visible on dashboard
-- Highlight included in weekly metrics
+- [x] Decision: manual vs derived highlight
+- [x] Highlight visible on dashboard
+- [x] Highlight included in weekly metrics
 
-**Priority**: P1  
+**Status**: Complete - Highlights are manual (user marks entries). Visible on ShelfView and ReviewView with type-specific icons (habit/life/caution).
+
+**Priority**: P1
 **Story Points**: 2
 
 ---
 
-## 5. Entry Creation (Manual Logging)
+## 5. ~~Entry Creation (Manual Logging)~~ DONE
 
-**Description**  
+**Description**
 Enable manual creation of entries (habit or life) from the UI.
 
 **Acceptance Criteria**
-- Simple form to add an entry
-- Supports habit + practice OR life entry
-- Entry appears on dashboard after creation
+- [x] Simple form to add an entry
+- [x] Supports habit + practice OR life entry
+- [x] Entry appears on dashboard after creation
 
-**Priority**: P1  
+**Status**: Complete - Full entry CRUD in TodayView with form dialog, practice selection, duration, notes, highlighting, and archiving.
+
+**Priority**: P1
 **Story Points**: 5
 
 ---
@@ -136,17 +140,19 @@ Allow importing existing JSON daily logs into the database.
 
 ---
 
-## 9. Weekly Reflection View
+## 9. ~~Weekly Reflection View~~ DONE
 
-**Description**  
+**Description**
 Create a view for weekly reflection that emphasizes attention, balance, and learning.
 
 **Acceptance Criteria**
-- Weekly reflections visible and readable
-- No streaks or scoring language
-- Reflection tied to calendar week
+- [x] Weekly reflections visible and readable
+- [x] No streaks or scoring language
+- [x] Reflection tied to calendar week
 
-**Priority**: P2  
+**Status**: Complete - ReviewView with rich text editor, triggers, past reflections, period summary stats, and accomplishments. Supports week/month/year periods.
+
+**Priority**: P2
 **Story Points**: 3
 
 ---
@@ -226,15 +232,17 @@ Decide on minimal visual identity elements (spacing, tone, maybe one accent colo
 
 ---
 
-## 15. "Today / Yesterday" Accomplishment View
+## 15. ~~"Today / Yesterday" Accomplishment View~~ DONE
 
 **Description**
 Provide a quick view of recent accomplishments for motivation and closure.
 
 **Acceptance Criteria**
-- Today and Yesterday entries visible
-- Highlights emphasized gently
-- No pressure language
+- [x] Today and Yesterday entries visible
+- [x] Highlights emphasized gently
+- [x] No pressure language
+
+**Status**: Complete - ShelfView shows Recent Highlights, ReviewView shows Accomplishments with completed targets and highlighted entries.
 
 **Priority**: P2
 **Story Points**: 3

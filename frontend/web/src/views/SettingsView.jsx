@@ -14,11 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Info, Download, Upload, Loader2 } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useTheme } from '@/context/ThemeContext'
 import { useEntries } from '@/context/EntriesContext'
 import { useHabits } from '@/context/HabitsContext'
-import { getSettings, setSetting, getPreparationsInRange, getClosuresInRange } from '@/lib/api'
+import { getSettings, setSetting, exportData, importData } from '@/lib/api'
 
 // Common timezones grouped by region
 const TIMEZONES = [
@@ -51,15 +57,15 @@ function getDefaultTimezone() {
 
 export default function SettingsView() {
   const { theme, setTheme } = useTheme()
-  const { habits, practices, actions, targets, warmUpTemplates, coolDownTemplates } = useHabits()
+  const { habits, habitTransitions } = useHabits()
   const { entries } = useEntries()
   const [timezone, setTimezoneState] = useState(getDefaultTimezone)
   const [shelfSort, setShelfSortState] = useState('priority')
   const [settingsLoaded, setSettingsLoaded] = useState(false)
-
-  // Preparations and closures data from API
-  const [preparations, setPreparations] = useState([])
-  const [closures, setClosures] = useState([])
+  const [showAllTransitions, setShowAllTransitions] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importResults, setImportResults] = useState(null)
 
   // Load settings from API on mount
   useEffect(() => {
@@ -74,21 +80,6 @@ export default function SettingsView() {
       .finally(() => setSettingsLoaded(true))
   }, [])
 
-  // Load preparations and closures for metrics
-  useEffect(() => {
-    // Fetch all preparations and closures (using a wide date range)
-    const from = '2020-01-01'
-    const to = new Date().toISOString().split('T')[0]
-
-    getPreparationsInRange('day', from, to)
-      .then(preps => setPreparations(preps))
-      .catch(() => setPreparations([]))
-
-    getClosuresInRange('day', from, to)
-      .then(cls => setClosures(cls))
-      .catch(() => setClosures([]))
-  }, [])
-
   const setTimezone = (tz) => {
     setTimezoneState(tz)
     setSetting('timezone', tz).catch(err => console.error('Failed to save timezone:', err))
@@ -99,6 +90,54 @@ export default function SettingsView() {
     setSetting('shelf_target_sort', sort).catch(err => console.error('Failed to save shelf sort:', err))
   }
 
+  // Handle export
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const data = await exportData()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `the-shelf-export-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Export failed:', err)
+      alert('Export failed: ' + err.message)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  // Handle import
+  const handleImport = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = async (e) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      setImporting(true)
+      setImportResults(null)
+      try {
+        const text = await file.text()
+        const data = JSON.parse(text)
+        const results = await importData(data)
+        setImportResults(results)
+      } catch (err) {
+        console.error('Import failed:', err)
+        alert('Import failed: ' + err.message)
+      } finally {
+        setImporting(false)
+      }
+    }
+    input.click()
+  }
+
   const selectedTimezone = TIMEZONES.find(tz => tz.value === timezone)
   const selectedShelfSort = SHELF_SORT_OPTIONS.find(opt => opt.value === shelfSort)
 
@@ -107,63 +146,63 @@ export default function SettingsView() {
     const activeEntries = entries.filter(e => !e.archived_at)
     const habitEntries = activeEntries.filter(e => e.type === 'habit')
 
-    // Get unique days with entries
-    const uniqueDays = new Set(activeEntries.map(e => e.occurred_at.split('T')[0]))
-    const daysWithEntries = uniqueDays.size
-
     // Date range
     const dates = activeEntries.map(e => new Date(e.occurred_at)).sort((a, b) => a - b)
     const firstEntry = dates[0]
     const lastEntry = dates[dates.length - 1]
 
-    // Time metrics
-    const totalMinutes = activeEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0)
-
-    // Ritual adoption
-    const warmUpsUsed = activeEntries.filter(e => e.warm_up_at).length
-    const coolDownsUsed = activeEntries.filter(e => e.cool_down_note).length
-
-    // Unique habits logged
-    const uniqueHabitsLogged = new Set(habitEntries.map(e => e.habit)).size
-
-    // Averages
-    const avgEntriesPerDay = daysWithEntries > 0 ? (activeEntries.length / daysWithEntries).toFixed(1) : 0
-    const avgMinutesPerEntry = habitEntries.length > 0
-      ? Math.round(habitEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / habitEntries.length)
-      : 0
-    const avgMinutesPerDay = daysWithEntries > 0 ? Math.round(totalMinutes / daysWithEntries) : 0
-
-    // Rest days from preparations
-    const restDays = preparations.filter(p => p.rest_day).length
-
-    // Prep/Closure rates and habits per day
-    const daysWithPreps = new Set(preparations.map(p => p.period_start)).size
-    const daysWithCloses = new Set(closures.map(c => c.occurred_at?.split('T')[0])).size
-    const prepRate = daysWithEntries > 0 ? Math.round((daysWithPreps / daysWithEntries) * 100) : 0
-    const closureRate = daysWithEntries > 0 ? Math.round((daysWithCloses / daysWithEntries) * 100) : 0
-
-    // Average habits per day (count habit entries per day, then average)
-    const habitsByDay = {}
-    habitEntries.forEach(e => {
-      const day = e.occurred_at.split('T')[0]
-      if (!habitsByDay[day]) habitsByDay[day] = new Set()
-      habitsByDay[day].add(e.habit)
-    })
-    const daysWithHabits = Object.keys(habitsByDay).length
-    const totalUniqueHabitsPerDay = Object.values(habitsByDay).reduce((acc, set) => acc + set.size, 0)
-    const avgHabitsPerDay = daysWithHabits > 0 ? (totalUniqueHabitsPerDay / daysWithHabits).toFixed(1) : 0
-
-    // Per-habit coverage (percentage of days logged this week/month)
+    // Check if last entry is today
     const today = new Date()
+    const todayStr = today.toISOString().split('T')[0]
+    const lastEntryStr = lastEntry ? lastEntry.toISOString().split('T')[0] : null
+    const isLastEntryToday = lastEntryStr === todayStr
+
+    // Calculate days since tracking started
+    const daysSinceStart = firstEntry
+      ? Math.ceil((today - firstEntry) / (1000 * 60 * 60 * 24))
+      : 0
+
+    // Find gaps (weeks with no entries)
+    const uniqueDays = new Set(activeEntries.map(e => e.occurred_at.split('T')[0]))
+    const gaps = []
+    if (firstEntry && daysSinceStart > 7) {
+      // Check each week since start
+      const weekStart = new Date(firstEntry)
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay()) // Start of week
+      while (weekStart < today) {
+        const weekEnd = new Date(weekStart)
+        weekEnd.setDate(weekEnd.getDate() + 6)
+
+        // Check if any entries in this week
+        let hasEntry = false
+        for (const day of uniqueDays) {
+          const d = new Date(day)
+          if (d >= weekStart && d <= weekEnd) {
+            hasEntry = true
+            break
+          }
+        }
+
+        if (!hasEntry && weekEnd < today) {
+          gaps.push(weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
+        }
+
+        weekStart.setDate(weekStart.getDate() + 7)
+      }
+    }
+
+    // Find orphaned entries (referencing non-existent habits)
+    const habitNames = new Set(habits.map(h => h.name))
+    const orphanedEntries = habitEntries.filter(e => !habitNames.has(e.habit))
+
+    // Per-habit coverage (percentage of days logged this week/month/year/all)
     const weekAgo = new Date(today)
     weekAgo.setDate(weekAgo.getDate() - 7)
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
     const daysInMonth = Math.ceil((today - monthStart) / (1000 * 60 * 60 * 24)) + 1
-
     const yearStart = new Date(today.getFullYear(), 0, 1)
     const daysInYear = Math.ceil((today - yearStart) / (1000 * 60 * 60 * 24)) + 1
 
-    // Include all habits (active and inactive) for full history
     const habitCoverage = habits.map(habit => {
       const habitEntriesForHabit = habitEntries.filter(e => e.habit === habit.name)
       const habitDays = new Set(habitEntriesForHabit.map(e => e.occurred_at.split('T')[0]))
@@ -172,7 +211,6 @@ export default function SettingsView() {
       const monthDays = [...habitDays].filter(d => new Date(d) >= monthStart).length
       const yearDays = [...habitDays].filter(d => new Date(d) >= yearStart).length
 
-      // All-time: days logged / days since first entry
       const sortedDates = habitEntriesForHabit
         .map(e => new Date(e.occurred_at))
         .sort((a, b) => a - b)
@@ -202,61 +240,22 @@ export default function SettingsView() {
     })
 
     return {
-      // Counts
+      // Audit
       totalEntries: activeEntries.length,
-      habitEntries: habitEntries.length,
-      lifeEvents: activeEntries.filter(e => e.type === 'life_event' || e.type === 'life').length,
-      cautionEntries: activeEntries.filter(e => e.type === 'caution_behavior' || e.type === 'caution').length,
-      transitions: activeEntries.filter(e => e.type === 'transition').length,
-
-      // Structure
-      activeHabits: habits.filter(h => h.active).length,
-      activePractices: practices.filter(p => p.active).length,
-      totalActions: actions.length,
-
-      // Targets
-      totalTargets: targets.length,
-      activeTargets: targets.filter(t => t.status === 'active').length,
-      plannedTargets: targets.filter(t => t.status === 'planned').length,
-      completedTargets: targets.filter(t => t.status === 'completed').length,
-      parkedTargets: targets.filter(t => t.status === 'parked').length,
-
-      // Accomplishments
-      highlights: activeEntries.filter(e => e.highlight).length,
-      reflections: 0, // TODO: add mockReflections data
-
-      // Usage
-      daysWithEntries,
-      restDays,
-      totalMinutes,
-      totalHours: Math.floor(totalMinutes / 60),
-      remainingMinutes: totalMinutes % 60,
-      firstEntry: firstEntry ? firstEntry.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—',
-      lastEntry: lastEntry ? lastEntry.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—',
-
-      // Rituals
-      warmUpsUsed,
-      coolDownsUsed,
-      uniqueHabitsLogged,
-      daysWithPreparations: daysWithPreps,
-      daysWithClosures: daysWithCloses,
-
-      // Templates (Structure)
-      warmUpTemplatesCount: warmUpTemplates?.length || 0,
-      coolDownTemplatesCount: coolDownTemplates?.length || 0,
-
-      // Averages
-      avgEntriesPerDay,
-      avgMinutesPerEntry,
-      avgMinutesPerDay,
-      avgHabitsPerDay,
-      prepRate,
-      closureRate,
+      firstEntry: firstEntry
+        ? firstEntry.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '—',
+      lastEntry: isLastEntryToday
+        ? 'Today'
+        : (lastEntry ? lastEntry.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'),
+      daysSinceStart,
+      gaps,
+      orphanedCount: orphanedEntries.length,
 
       // Habit coverage
       habitCoverage,
     }
-  }, [entries, habits, practices, actions, targets, preparations, closures, warmUpTemplates, coolDownTemplates])
+  }, [entries, habits])
 
   const themeLabels = {
     light: 'Light',
@@ -363,10 +362,49 @@ export default function SettingsView() {
                 Import entries from a JSON file
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              Import
+            <Button variant="outline" size="sm" onClick={handleImport} disabled={importing}>
+              {importing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import
+                </>
+              )}
             </Button>
           </div>
+
+          {/* Import Results */}
+          {importResults && (
+            <div className="bg-muted/50 rounded-md p-3 text-sm">
+              <div className="font-medium mb-2">Import Complete</div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                {Object.entries(importResults).map(([key, value]) => {
+                  if (value.inserted === 0 && value.skipped === 0) return null
+                  return (
+                    <div key={key} className="flex justify-between">
+                      <span className="text-muted-foreground capitalize">{key}</span>
+                      <span>
+                        <span className="text-green-600 dark:text-green-400">+{value.inserted}</span>
+                        {value.skipped > 0 && (
+                          <span className="text-muted-foreground ml-1">({value.skipped} skipped)</span>
+                        )}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+              <button
+                onClick={() => setImportResults(null)}
+                className="text-xs text-muted-foreground hover:text-foreground mt-2"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           <Separator />
 
@@ -377,8 +415,18 @@ export default function SettingsView() {
                 Download all your data as JSON
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              Export
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+              {exporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </>
+              )}
             </Button>
           </div>
         </CardContent>
@@ -389,140 +437,66 @@ export default function SettingsView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Data Health</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-1">
-          {/* Usage */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-2 w-full py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground [&[data-state=open]>svg]:rotate-180">
-              <ChevronDown className="h-3 w-3 transition-transform duration-200" />
-              Usage
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm pb-2 pt-1">
-                <div>
-                  <span className="text-muted-foreground">Days Logged:</span>{' '}
-                  <span className="font-medium">{metrics.daysWithEntries}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Rest Days:</span>{' '}
-                  <span className="font-medium">{metrics.restDays}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Total Time:</span>{' '}
-                  <span className="font-medium">{metrics.totalHours}h {metrics.remainingMinutes}m</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">First Entry:</span>{' '}
-                  <span className="font-medium">{metrics.firstEntry}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Last Entry:</span>{' '}
-                  <span className="font-medium">{metrics.lastEntry}</span>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          <Separator />
-
-          {/* Entries */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-2 w-full py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground [&[data-state=open]>svg]:rotate-180">
-              <ChevronDown className="h-3 w-3 transition-transform duration-200" />
-              Entries
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm pb-2 pt-1">
-                <div>
-                  <span className="text-muted-foreground">Total:</span>{' '}
-                  <span className="font-medium">{metrics.totalEntries}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Habits:</span>{' '}
-                  <span className="font-medium">{metrics.habitEntries}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Life Events:</span>{' '}
-                  <span className="font-medium">{metrics.lifeEvents}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Caution:</span>{' '}
-                  <span className="font-medium">{metrics.cautionEntries}</span>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          <Separator />
-
-          {/* Rituals */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-2 w-full py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground [&[data-state=open]>svg]:rotate-180">
-              <ChevronDown className="h-3 w-3 transition-transform duration-200" />
-              Rituals
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm pb-2 pt-1">
-                <div>
-                  <span className="text-muted-foreground">Days with Prep:</span>{' '}
-                  <span className="font-medium">{metrics.daysWithPreparations}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Days with Closure:</span>{' '}
-                  <span className="font-medium">{metrics.daysWithClosures}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Warm-ups Used:</span>{' '}
-                  <span className="font-medium">{metrics.warmUpsUsed}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Cool-downs Used:</span>{' '}
-                  <span className="font-medium">{metrics.coolDownsUsed}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Unique Habits:</span>{' '}
-                  <span className="font-medium">{metrics.uniqueHabitsLogged}</span>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          <Separator />
-
-          {/* Structure */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-2 w-full py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground [&[data-state=open]>svg]:rotate-180">
-              <ChevronDown className="h-3 w-3 transition-transform duration-200" />
-              Structure
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm pb-2 pt-1">
-                <div>
-                  <span className="text-muted-foreground">Active Habits:</span>{' '}
-                  <span className="font-medium">{metrics.activeHabits}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Active Practices:</span>{' '}
-                  <span className="font-medium">{metrics.activePractices}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Actions:</span>{' '}
-                  <span className="font-medium">{metrics.totalActions}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Transitions:</span>{' '}
-                  <span className="font-medium">{metrics.transitions}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Warm-up Templates:</span>{' '}
-                  <span className="font-medium">{metrics.warmUpTemplatesCount}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Cool-down Templates:</span>{' '}
-                  <span className="font-medium">{metrics.coolDownTemplatesCount}</span>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+        <CardContent className="space-y-3">
+          {/* Audit Summary */}
+          <div className="text-sm space-y-1.5">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Tracking since</span>
+              <span className="font-medium">{metrics.firstEntry}{metrics.daysSinceStart > 0 && ` (${metrics.daysSinceStart} days)`}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Last entry</span>
+              <span className="font-medium">{metrics.lastEntry}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Total entries</span>
+              <span className="font-medium">{metrics.totalEntries}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground flex items-center gap-1">
+                Gaps
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-muted-foreground/60 hover:text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-xs text-xs">
+                      <p>Weeks with zero entries since you started tracking. Helps identify periods where logging dropped off.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </span>
+              <span className="font-medium">
+                {metrics.gaps.length === 0 ? (
+                  <span className="text-green-600 dark:text-green-400">None</span>
+                ) : (
+                  <span className="text-amber-600 dark:text-amber-400">{metrics.gaps.length} week{metrics.gaps.length > 1 ? 's' : ''}</span>
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground flex items-center gap-1">
+                Orphaned
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-muted-foreground/60 hover:text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-xs text-xs">
+                      <p>Entries referencing habits that no longer exist. Usually from deleted habits or import mismatches.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </span>
+              <span className="font-medium">
+                {metrics.orphanedCount === 0 ? (
+                  <span className="text-green-600 dark:text-green-400">None</span>
+                ) : (
+                  <span className="text-red-600 dark:text-red-400">{metrics.orphanedCount} entr{metrics.orphanedCount > 1 ? 'ies' : 'y'}</span>
+                )}
+              </span>
+            </div>
+          </div>
 
           <Separator />
 
@@ -531,6 +505,22 @@ export default function SettingsView() {
             <CollapsibleTrigger className="flex items-center gap-2 w-full py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground [&[data-state=open]>svg]:rotate-180">
               <ChevronDown className="h-3 w-3 transition-transform duration-200" />
               Habits (Coverage)
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Info className="h-3 w-3 text-muted-foreground/60 hover:text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-xs text-xs">
+                    <p className="font-medium mb-1">Coverage = days logged / total days</p>
+                    <ul className="space-y-0.5 text-muted-foreground">
+                      <li><strong>Week:</strong> Last 7 days</li>
+                      <li><strong>Month:</strong> Days elapsed this month</li>
+                      <li><strong>Year:</strong> Days elapsed this year</li>
+                      <li><strong>All:</strong> Days since first entry</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="text-sm pb-2 pt-1 overflow-x-auto">
@@ -564,99 +554,60 @@ export default function SettingsView() {
             </CollapsibleContent>
           </Collapsible>
 
-          <Separator />
+          {habitTransitions.length > 0 && (
+            <>
+              <Separator />
 
-          {/* Targets */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-2 w-full py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground [&[data-state=open]>svg]:rotate-180">
-              <ChevronDown className="h-3 w-3 transition-transform duration-200" />
-              Targets
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm pb-2 pt-1">
-                <div>
-                  <span className="text-muted-foreground">Total:</span>{' '}
-                  <span className="font-medium">{metrics.totalTargets}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Active:</span>{' '}
-                  <span className="font-medium">{metrics.activeTargets}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Planned:</span>{' '}
-                  <span className="font-medium">{metrics.plannedTargets}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Completed:</span>{' '}
-                  <span className="font-medium">{metrics.completedTargets}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Parked:</span>{' '}
-                  <span className="font-medium">{metrics.parkedTargets}</span>
+              {/* Transitions */}
+              <div className="pt-2">
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Transitions</div>
+                <div className="space-y-3">
+                  {habitTransitions
+                    .slice(0, showAllTransitions ? undefined : 5)
+                    .map(t => {
+                      const changes = Array.isArray(t.changes) ? t.changes : []
+                      return (
+                        <div key={t.id} className="text-xs space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">
+                              {new Date(t.ended_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                            {changes.length > 0 && (
+                              <span className="font-medium">
+                                {changes.length} habit{changes.length !== 1 ? 's' : ''} changed
+                              </span>
+                            )}
+                          </div>
+                          {changes.length > 0 && (
+                            <div className="text-muted-foreground/70 pl-0.5">
+                              {changes.map((c, i) => (
+                                <span key={i}>
+                                  {c.habitName || `Habit ${c.habit_id}`}: {c.from ? 'active' : 'inactive'} → {c.to ? 'active' : 'inactive'}
+                                  {i < changes.length - 1 && ', '}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {t.note && (
+                            <div className="text-muted-foreground/60 italic pl-0.5">"{t.note}"</div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  {habitTransitions.length > 5 && (
+                    <button
+                      onClick={() => setShowAllTransitions(!showAllTransitions)}
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {showAllTransitions
+                        ? 'Show less'
+                        : `+${habitTransitions.length - 5} more → View all`}
+                    </button>
+                  )}
                 </div>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          <Separator />
-
-          {/* Accomplishments */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-2 w-full py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground [&[data-state=open]>svg]:rotate-180">
-              <ChevronDown className="h-3 w-3 transition-transform duration-200" />
-              Accomplishments
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm pb-2 pt-1">
-                <div>
-                  <span className="text-muted-foreground">Highlights:</span>{' '}
-                  <span className="font-medium">{metrics.highlights}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Reflections:</span>{' '}
-                  <span className="font-medium">{metrics.reflections}</span>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          <Separator />
-
-          {/* Averages */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center gap-2 w-full py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide hover:text-foreground [&[data-state=open]>svg]:rotate-180">
-              <ChevronDown className="h-3 w-3 transition-transform duration-200" />
-              Averages
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm pb-2 pt-1">
-                <div>
-                  <span className="text-muted-foreground">Entries/Day:</span>{' '}
-                  <span className="font-medium">{metrics.avgEntriesPerDay}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Habits/Day:</span>{' '}
-                  <span className="font-medium">{metrics.avgHabitsPerDay}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Minutes/Day:</span>{' '}
-                  <span className="font-medium">{metrics.avgMinutesPerDay}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Minutes/Entry:</span>{' '}
-                  <span className="font-medium">{metrics.avgMinutesPerEntry}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Prep Rate:</span>{' '}
-                  <span className="font-medium">{metrics.prepRate}%</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Closure Rate:</span>{' '}
-                  <span className="font-medium">{metrics.closureRate}%</span>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+            </>
+          )}
         </CardContent>
       </Card>
 

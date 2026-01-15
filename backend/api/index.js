@@ -12,6 +12,8 @@ const preparationsRouter = require('./routes/preparations');
 const closuresRouter = require('./routes/closures');
 const dashboardRouter = require('./routes/dashboard');
 const metricsRouter = require('./routes/metrics');
+const transitionsRouter = require('./routes/transitions');
+const dataRouter = require('./routes/data');
 
 const app = express();
 
@@ -35,6 +37,8 @@ app.use('/preparations', preparationsRouter);
 app.use('/closures', closuresRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/metrics', metricsRouter);
+app.use('/transitions', transitionsRouter);
+app.use('/data', dataRouter);
 
 // basic error handler
 app.use((err, _req, res, _next) => {

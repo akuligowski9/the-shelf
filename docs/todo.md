@@ -1,266 +1,112 @@
 # The Shelf — To-Do List
 
-Tasks organized by priority and area. Each task includes its source.
+Last updated: 2026-01-15
 
 ---
 
-## Frontend — High Priority
+## v1 — Required for Functional Use
 
-### ~~NEXT SESSION: Bridge Targets Gap~~ ✓ DONE
-- [x] **Link entries to targets** — When logging a habit entry, optionally select which target you're working toward
-  - Implemented with smart defaults (remembers last target per habit via localStorage)
-  - Target shown on entry cards in TodayView
-  - Target progress (time + sessions) displayed on ShelfView
+These items are needed before the app can be used daily.
 
----
+### ~~1. Warm-up/Cool-down Template Persistence~~ DONE
+**Status**: Complete
 
-### AttentionView
-- [x] **Warm-up/Cool-down Template Library** — Manage templates per habit in HabitEditDialog.
-  - Source: tech-spec.md (Section 3.5.1, 5.5)
+- [x] Create `habit_prompts` table (id, habit_id, type, name, content, sort_order, timestamps)
+- [x] Add API endpoints: GET/POST/PUT/DELETE `/habits/:id/prompts`
+- [x] Connect frontend to API (HabitsContext uses API for all template operations)
 
-- [x] ~~**Attention Calendar**~~ — Removed for now. Targets displayed as cards on ShelfView instead. May revisit if date-driven view becomes needed.
-  - Source: design decision (simplified, cards on shelf instead)
-
-- [ ] **Transition Window Flow** — Implement enter/exit transition window. When in a transition window, track habit changes as a single transition event.
-  - Source: README.md (Transitions section), tech-spec.md (Section 3.8)
-
-- [x] **Target Edit Dialog** — Add ability to edit target name and habit association.
-  - Source: conversation context
-
-- [x] **Hash Navigation** — Support `/attention#habits` and `/attention#targets` for direct navigation from Shelf view.
-  - Source: tech-spec.md (Section 5.5)
-
-### ProgressView
-- [x] **Install Recharts** — Add recharts dependency for chart visualizations.
-  - Source: tech-spec.md (Section 4.4)
-
-- [x] **Balance View — Stacked Bar Chart** — Daily stacked bars showing habits (color-coded), life entries, and caution behaviors.
-  - Source: README.md (Metrics section), tech-spec.md (Section 4.4)
-
-- [x] **Patterns View — Line Charts** — One line per habit with toggle on/off. Clean lines without dots, activeDot on hover.
-  - Source: tech-spec.md (Section 4.4)
-
-- [x] **Calendar-Based Navigation** — Week shows date range with year, month shows "January 2026", year shows "2026".
-  - Source: conversation context
-
-- [x] **Period Navigation Arrows** — Navigate between previous/next week/month/year.
-  - Source: conversation context
-
-- [x] **Custom Tooltips** — Dark mode compatible tooltips with habit colors, date ranges for year view.
-  - Source: conversation context
-
-- [x] **Habit/Life Toggles** — Functional toggles to show/hide habits and Life in charts.
-  - Source: tech-spec.md (Section 5.3)
-
-- [x] **Time Range Selector** — Functional week/month/year selector with calendar-based periods.
-  - Source: tech-spec.md (Section 5.3)
-
-- [x] **Summary Stats** — Distribution, averages, period comparison, habit coverage.
-  - Source: conversation context
-
-- [x] **Habit Deep Dive** — Habit-specific patterns: avg session, days since last, longest gap, session counts.
-  - Source: conversation context
-
-- [x] ~~**Calendar View**~~ — Moved to AttentionView. Charts already show daily composition; calendar would duplicate data.
-  - Source: design decision (consolidate to one calendar)
-
-- [ ] **Practice Breakdowns** — Drill down into practice-level data within habits. (Deferred: post-backend)
-  - Source: tech-spec.md (Section 5.3)
-
-- [ ] **Transition & Caution Markers** — Overlay markers on charts for transitions and caution spikes.
-  - Source: tech-spec.md (Section 4.4)
-
-### ReviewView
-- [x] **Functional Reflection Editor** — Save reflections to state/storage, load past reflections.
-  - Source: tech-spec.md (Section 5.4)
-
-- [x] **Real Accomplishments Data** — Surface highlighted entries and completed targets from context.
-  - Source: tech-spec.md (Section 5.4)
-
-- [x] **Time Range Selector** — Filter accomplishments and reflections by time period.
-  - Source: tech-spec.md (Section 5.4)
-
-- [x] **Contextual Metrics** — Show relevant metrics alongside reflections.
-  - Source: tech-spec.md (Section 5.4)
+**Source**: tech-spec.md Section 3.5.1
 
 ---
 
-## Frontend — Medium Priority
+### ~~2. Metrics Calculation~~ DONE
+**Status**: Complete
 
-### SettingsView
-- [ ] **Import JSON** — File upload, validate structure, merge into state.
-  - Source: import-spec.md, backlog.md (#16)
+Backend provides `/metrics/range?start=X&end=Y` for any date range (week/month/year):
+- Per-habit: id, name, color, minutes, days_touched, sessions
+- Totals: minutes, sessions, life/caution entries, rest days, highlights by type
+- Daily breakdown for charts
 
-- [ ] **Export JSON** — Download all data as JSON following import-spec format.
-  - Source: tech-spec.md (Section 5.6), backlog.md (#16)
+Frontend ProgressView uses server-side metrics (reduced data transfer, better scalability).
 
-- [x] **Timezone Selector** — Functional timezone selection with persistence.
-  - Source: tech-spec.md (Section 5.6)
-
-### TodayView
-- [x] **Edit Past Days** — Navigation allows viewing past days, ensure editing works correctly.
-  - Source: tech-spec.md (Section 5.2 - "supports imperfect memory")
-
-### General
-- [ ] **Entry persistence** — Connect entry CRUD to backend when available.
-  - Source: conversation context
+**Source**: data-model.md, tech-spec.md Section 4.4
 
 ---
 
-## Backend — High Priority
+### ~~3. Import/Export~~ DONE
+**Status**: Complete
 
-- [ ] **Express.js Setup** — Initialize Express app with middleware, CORS, error handling.
-  - Source: README.md (Technical Overview)
+- [x] GET `/data/export` — Returns full database as JSON (habits, practices, actions, targets, entries, preparations, closures, reflections, settings, prompts)
+- [x] POST `/data/import` — Accepts full export or per-day log format, validates, upserts with duplicate detection
+- [x] Frontend buttons functional with loading states and results display
 
-- [ ] **PostgreSQL Connection** — Database connection pool, environment config.
-  - Source: README.md (Technical Overview)
-
-- [ ] **Database Migrations** — Create migration system for schema versioning.
-  - Source: data-model.md
-
-### Core Endpoints
-
-- [ ] **Habits API** — GET /habits, POST /habits, PATCH /habits/:id
-  - Source: data-model.md
-
-- [ ] **Practices API** — GET /practices, POST /practices, PATCH /practices/:id
-  - Source: data-model.md
-
-- [ ] **Behaviors API** — GET /behaviors, POST /behaviors, PATCH /behaviors/:id
-  - Source: conversation context (behaviors are a frontend concept, may need backend support)
-
-- [ ] **Targets API** — GET /targets, POST /targets, PATCH /targets/:id
-  - Source: data-model.md
-
-- [ ] **Entries API** — GET /entries, POST /entries, PATCH /entries/:id
-  - Source: data-model.md
-
-- [ ] **Preparations API** — GET /preparations, POST /preparations
-  - Source: data-model.md
-
-- [ ] **Closures API** — GET /closures, POST /closures
-  - Source: data-model.md
-
-- [ ] **Reflections API** — GET /reflections, POST /reflections
-  - Source: data-model.md
-
-- [ ] **Warm-up Templates API** — GET /habits/:id/warmups, POST, PATCH, DELETE
-  - Source: tech-spec.md (Section 3.5.1)
-
-- [ ] **Cool-down Templates API** — GET /habits/:id/cooldowns, POST, PATCH, DELETE
-  - Source: tech-spec.md (Section 3.5.1)
-
-### Metrics & Import
-
-- [ ] **Daily Metrics Calculation** — Compute and store daily aggregates from entries.
-  - Source: data-model.md (Daily Metrics section)
-
-- [ ] **Metrics API** — GET /metrics/daily, GET /metrics/weekly, GET /metrics/range
-  - Source: data-model.md
-
-- [ ] **Import API** — POST /import with JSON body, validate per import-spec.md
-  - Source: import-spec.md
-
-- [ ] **Export API** — GET /export, return full data as JSON
-  - Source: tech-spec.md (Section 5.6)
+**Source**: import-spec.md, tech-spec.md Section 5.6
 
 ---
 
-## Database
+## v1 Complete
 
-- [ ] **Schema: habits** — id, name, active, target_minutes, color, sort_order, timestamps
-  - Source: data-model.md
-
-- [ ] **Schema: practices** — id, habit_id, name, active, sort_order, timestamps
-  - Source: data-model.md
-
-- [ ] **Schema: behaviors** — id, practice_id, name, active, timestamps
-  - Source: conversation context
-
-- [ ] **Schema: habit_prompts** — id, habit_id, type (warmup/cooldown), name, content, has_dynamic_elements, active
-  - Source: data-model.md, tech-spec.md (Section 3.5.1)
-
-- [ ] **Schema: targets** — id, name, status, habit_id, start_date, end_date, done_at, timestamps
-  - Source: data-model.md
-
-- [ ] **Schema: entries** — id, type, occurred_on, occurred_at, habit_id, practice_id, target_id, duration_minutes, note, is_highlight, source, archived_at, warm_up_template_id, warm_up_note, cool_down_note, timestamps
-  - Source: data-model.md, tech-spec.md
-
-- [ ] **Schema: preparations** — id, period_type, period_start, note, habit_id, target_id, rest_day, timestamps
-  - Source: data-model.md
-
-- [ ] **Schema: closures** — id, scope, occurred_at, habit_id, practice_id, note, timestamps
-  - Source: data-model.md
-
-- [ ] **Schema: reflections** — id, reflection_type, period_start, period_end, habit_id, target_id, note, timestamps
-  - Source: data-model.md
-
-- [ ] **Schema: habit_transitions** — id, started_at, ended_at, note, timestamps
-  - Source: data-model.md
-
-- [ ] **Schema: settings** — key, value (JSON), timestamps
-  - Source: data-model.md
-
-- [ ] **Schema: daily_metrics** — date, is_rest_day, totals
-  - Source: data-model.md
-
-- [ ] **Schema: daily_metric_items** — date, bucket_type, bucket_id, minutes, count
-  - Source: data-model.md
+All v1 items needed for functional daily use are now complete.
 
 ---
 
-## Infrastructure
+## v2 — Future Enhancements
 
-- [ ] **Docker Compose Verification** — Test full stack startup (db, api, web).
-  - Source: README.md (Local Development)
+These can wait. The app is usable without them.
 
-- [ ] **Database Init Scripts** — Seed scripts for initial schema and demo data.
-  - Source: tech-spec.md (Section 5.6.1)
+### Template Preview with Dynamic Elements
+Preview templates with variables like `{{last_session_note}}` substituted.
+- [ ] Parse template content for `{{variable}}` patterns
+- [ ] Fetch relevant data (last entry, etc.)
+- [ ] Show preview in HabitEditDialog
 
-- [ ] **Live Data Logging** — JSON file per day in data/logs/YYYY-MM-DD.json
-  - Source: tech-spec.md (Section 5.6.2)
-
----
-
-## Testing
-
-- [ ] **Playwright Setup** — Install and configure Playwright for E2E tests.
-  - Source: tech-spec.md (Section 7)
-
-- [ ] **Test: Start → Log → Close** — Complete daily flow.
-  - Source: tech-spec.md (Section 7)
-
-- [ ] **Test: Edit History** — Modify past entries.
-  - Source: tech-spec.md (Section 7)
-
-- [ ] **Test: Transition Windows** — Enter, make changes, exit.
-  - Source: tech-spec.md (Section 7)
-
-- [ ] **Test: Rest Day Inference** — Days with no entries show as rest days.
-  - Source: tech-spec.md (Section 7)
-
-- [ ] **Test: Import/Export** — Round-trip data integrity.
-  - Source: tech-spec.md (Section 7)
-
-- [ ] **Test: Review Persistence** — Save and load reflections.
-  - Source: tech-spec.md (Section 7)
+**Source**: tech-spec.md Section 3.5.1
 
 ---
 
-## Documentation
+### ProgressView Enhancements
+- [ ] Practice breakdowns — Drill into practice-level data within habits
+- [ ] Calendar view — Compact grid visualization
+- [ ] Transition/caution markers — Overlay on charts
 
-- [ ] **API Documentation** — Document all endpoints (can use api.md).
-  - Source: docs/api.md (empty file exists)
-
-- [ ] **Re-entry Guide** — One-page guide for returning to the project after time away.
-  - Source: backlog.md (#13)
+**Source**: tech-spec.md Section 5.3
 
 ---
 
-## Deferred / Future
+### Testing
+- [ ] Playwright setup
+- [ ] E2E tests: Start → Log → Close
+- [ ] E2E tests: Edit history
+- [ ] E2E tests: Import/export round-trip
 
-- [ ] **SwiftUI Planning** — Map React views to SwiftUI for potential mobile app.
-  - Source: backlog.md (#12)
+**Source**: tech-spec.md Section 7
 
-- [ ] **Calendar Programs** — Time-bound programs (e.g., "4 weeks of PT").
-  - Source: backlog.md (#11)
+---
+
+### Database Migrations
+Currently using direct SQL. Consider a migration system for schema versioning.
+
+---
+
+## Completed (Reference)
+
+### Frontend
+- [x] ShelfView — Habits, targets, activity stats, highlights, target progress
+- [x] TodayView — Entries CRUD, prep/closure, warm-up/cool-down flows
+- [x] ProgressView — Balance/Patterns charts, calendar nav, habit deep dive
+- [x] ReviewView — Rich text reflections, triggers, past reflections, period metrics
+- [x] AttentionView — Kanban targets, tree view habits, templates UI, hash nav, transition window flow
+- [x] SettingsView — Theme toggle, data health metrics
+
+### Backend
+- [x] Express.js REST API
+- [x] PostgreSQL connection
+- [x] All core CRUD endpoints (habits, practices, actions, targets, entries, preparations, closures, reflections, settings)
+- [x] Dashboard aggregation endpoint
+
+### Database
+- [x] Core tables (habits, practices, actions, targets, entries, preparations, closures, reflections, settings)
+
+### Infrastructure
+- [x] Docker Compose for local development
+- [x] PostgreSQL container

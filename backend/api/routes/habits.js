@@ -324,4 +324,138 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
+// ---- Habit Prompts (Warm-up / Cool-down Templates) ----
+
+// GET /habits/prompts - Get all prompts
+router.get('/prompts', async (_req, res, next) => {
+  try {
+    const r = await pool.query(
+      'SELECT * FROM habit_prompts ORDER BY habit_id, type, COALESCE(sort_order, 9999), name ASC'
+    );
+    res.json({ ok: true, prompts: r.rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /habits/:habitId/prompts - Get prompts for a specific habit
+router.get('/:habitId/prompts', async (req, res, next) => {
+  try {
+    const { habitId } = req.params;
+    const r = await pool.query(
+      'SELECT * FROM habit_prompts WHERE habit_id = $1 ORDER BY type, COALESCE(sort_order, 9999), name ASC',
+      [habitId]
+    );
+    res.json({ ok: true, prompts: r.rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /habits/:habitId/prompts - Create a prompt for a habit
+router.post('/:habitId/prompts', async (req, res, next) => {
+  try {
+    const { habitId } = req.params;
+    const { type, name, content, has_dynamic_elements, active, sort_order } = req.body || {};
+
+    if (!type || !['warmup', 'cooldown'].includes(type)) {
+      return res.status(400).json({ ok: false, error: 'type must be "warmup" or "cooldown"' });
+    }
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({ ok: false, error: 'name is required' });
+    }
+
+    const q = `
+      INSERT INTO habit_prompts (habit_id, type, name, content, has_dynamic_elements, active, sort_order)
+      VALUES ($1, $2, $3, $4, COALESCE($5, false), COALESCE($6, true), $7)
+      RETURNING *;
+    `;
+    const r = await pool.query(q, [
+      habitId,
+      type,
+      name,
+      content ?? null,
+      has_dynamic_elements ?? null,
+      active ?? null,
+      sort_order ?? null,
+    ]);
+
+    res.status(201).json({ ok: true, prompt: r.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /habits/prompts/:id - Update a prompt
+router.put('/prompts/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, content, has_dynamic_elements, active, sort_order } = req.body || {};
+
+    const updates = [];
+    const params = [];
+    let paramCount = 1;
+
+    if (name !== undefined) {
+      updates.push(`name = $${paramCount++}`);
+      params.push(name);
+    }
+    if (content !== undefined) {
+      updates.push(`content = $${paramCount++}`);
+      params.push(content);
+    }
+    if (has_dynamic_elements !== undefined) {
+      updates.push(`has_dynamic_elements = $${paramCount++}`);
+      params.push(has_dynamic_elements);
+    }
+    if (active !== undefined) {
+      updates.push(`active = $${paramCount++}`);
+      params.push(active);
+    }
+    if (sort_order !== undefined) {
+      updates.push(`sort_order = $${paramCount++}`);
+      params.push(sort_order);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ ok: false, error: 'No fields to update' });
+    }
+
+    params.push(id);
+    const q = `
+      UPDATE habit_prompts
+      SET ${updates.join(', ')}, updated_at = NOW()
+      WHERE id = $${paramCount}
+      RETURNING *;
+    `;
+
+    const r = await pool.query(q, params);
+
+    if (r.rows.length === 0) {
+      return res.status(404).json({ ok: false, error: 'Prompt not found' });
+    }
+
+    res.json({ ok: true, prompt: r.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /habits/prompts/:id - Delete a prompt
+router.delete('/prompts/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const r = await pool.query('DELETE FROM habit_prompts WHERE id = $1 RETURNING id', [id]);
+
+    if (r.rows.length === 0) {
+      return res.status(404).json({ ok: false, error: 'Prompt not found' });
+    }
+
+    res.json({ ok: true, deleted: id });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

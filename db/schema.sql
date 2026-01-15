@@ -102,6 +102,21 @@ FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
 -- =========================
+-- habit_transitions (habit active/inactive changes)
+-- =========================
+CREATE TABLE IF NOT EXISTS habit_transitions (
+  id SERIAL PRIMARY KEY,
+  started_at TIMESTAMPTZ NOT NULL,
+  ended_at TIMESTAMPTZ NOT NULL,
+  note TEXT,
+  changes JSONB NOT NULL DEFAULT '[]',
+  cascades JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_habit_transitions_ended_at ON habit_transitions (ended_at DESC);
+
+-- =========================
 -- entries (canonical ledger)
 -- =========================
 CREATE TABLE IF NOT EXISTS entries (

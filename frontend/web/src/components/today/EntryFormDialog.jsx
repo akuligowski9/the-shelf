@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Sunrise, ChevronDown, ChevronUp } from 'lucide-react'
-import { getWarmUpTemplatesForHabit, renderWarmUpTemplate } from '@/data/mockData'
+import { renderWarmUpTemplate } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
 
 // Helper to get/set last used target per habit from localStorage
@@ -57,7 +57,7 @@ const ENTRY_TYPES = [
 ]
 
 export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchive, editingEntry }) {
-  const { targets, activeHabits, getPracticesForHabit, getActionsForPractice } = useHabits()
+  const { targets, activeHabits, getPracticesForHabit, getActionsForPractice, getWarmUpTemplatesForHabit } = useHabits()
 
   const [entryType, setEntryType] = useState('habit')
   const [habitId, setHabitId] = useState('')

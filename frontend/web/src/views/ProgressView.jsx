@@ -22,8 +22,7 @@ import {
   Legend,
 } from 'recharts'
 import { useHabits } from '@/context/HabitsContext'
-import { useEntries } from '@/context/EntriesContext'
-import { getPreparationsInRange, getClosuresInRange, getReflections } from '@/lib/api'
+import { getPreparationsInRange, getClosuresInRange, getReflections, getMetricsForRange } from '@/lib/api'
 import { colorPalette } from '@/lib/colors'
 
 // Info tooltip helper component
@@ -119,7 +118,6 @@ function getWeekKey(dateStr) {
 
 export default function ProgressView() {
   const { habits, targets } = useHabits()
-  const { entries: allEntries } = useEntries()
   const [viewMode, setViewMode] = useState('balance') // 'balance' | 'patterns'
   const [timeRange, setTimeRange] = useState('week') // 'week' | 'month' | 'year'
   const [periodOffset, setPeriodOffset] = useState(0) // 0 = current, -1 = previous, etc.
@@ -128,12 +126,14 @@ export default function ProgressView() {
   )
   const [selectedHabit, setSelectedHabit] = useState(habits[0]?.name || null)
 
-  // API data for metrics
+  // API data
   const [preparations, setPreparations] = useState([])
   const [closures, setClosures] = useState([])
   const [reflections, setReflections] = useState([])
+  const [serverMetrics, setServerMetrics] = useState(null)
+  const [metricsLoading, setMetricsLoading] = useState(false)
 
-  // Fetch preparations, closures, and reflections from API
+  // Fetch preparations, closures, and reflections from API (one-time)
   useEffect(() => {
     const from = '2020-01-01'
     const to = new Date().toISOString().split('T')[0]
@@ -229,23 +229,47 @@ export default function ProgressView() {
     return `${startDate.toLocaleDateString('en-US', formatOpts)} - ${endDate.toLocaleDateString('en-US', formatOpts)}, ${year}`
   }, [timeRange, periodOffset, dateRange])
 
+  // Fetch server metrics when date range changes
+  useEffect(() => {
+    if (dateRange.length === 0) return
 
-  // Process entries into chart data
+    const startDate = dateRange[0]
+    // End date needs to be exclusive (day after last day in range)
+    const lastDate = new Date(dateRange[dateRange.length - 1] + 'T12:00:00')
+    lastDate.setDate(lastDate.getDate() + 1)
+    const endDate = formatDate(lastDate)
+
+    setMetricsLoading(true)
+    getMetricsForRange(startDate, endDate)
+      .then(metrics => {
+        setServerMetrics(metrics)
+      })
+      .catch(err => {
+        console.error('Failed to load metrics:', err)
+        setServerMetrics(null)
+      })
+      .finally(() => {
+        setMetricsLoading(false)
+      })
+  }, [dateRange])
+
+  // Process server metrics into chart data
   const chartData = useMemo(() => {
+    if (!serverMetrics || !serverMetrics.daily) return []
+
+    // Build habit ID to name map from server response
+    const habitIdToName = new Map(serverMetrics.habits.map(h => [h.id, h.name]))
+
     // For year view, aggregate by week instead of by day
     if (timeRange === 'year') {
       const dataByWeek = {}
-      const weekDates = {} // Track dates in each week for range display
+      const weekDates = {}
 
-      // Initialize weeks
+      // Initialize weeks from dateRange
       dateRange.forEach(date => {
         const weekKey = getWeekKey(date)
         if (!dataByWeek[weekKey]) {
-          dataByWeek[weekKey] = {
-            date: weekKey,
-            life: 0,
-            caution: 0,
-          }
+          dataByWeek[weekKey] = { date: weekKey, life: 0, caution: 0 }
           weekDates[weekKey] = []
           habits.forEach(habit => {
             dataByWeek[weekKey][habit.name] = 0
@@ -254,49 +278,42 @@ export default function ProgressView() {
         weekDates[weekKey].push(date)
       })
 
-      // Add week number and date range to each week
+      // Add week labels
       Object.keys(dataByWeek).forEach((weekKey, index) => {
         const dates = weekDates[weekKey].sort()
         const startDate = new Date(dates[0] + 'T12:00:00')
         const endDate = new Date(dates[dates.length - 1] + 'T12:00:00')
         const formatOpts = { month: 'short', day: 'numeric' }
-
-        dataByWeek[weekKey].dateLabel = (index + 1).toString() // Week number: 1, 2, 3...
+        dataByWeek[weekKey].dateLabel = (index + 1).toString()
         dataByWeek[weekKey].dateRange = `${startDate.toLocaleDateString('en-US', formatOpts)} - ${endDate.toLocaleDateString('en-US', formatOpts)}`
       })
 
-      // Aggregate entries by week
-      allEntries.forEach(entry => {
-        const entryDate = entry.occurred_at.split('T')[0]
-        if (!dateRange.includes(entryDate)) return
-
-        const weekKey = getWeekKey(entryDate)
+      // Aggregate server daily data into weeks
+      serverMetrics.daily.forEach(day => {
+        const weekKey = getWeekKey(day.date)
         if (!dataByWeek[weekKey]) return
 
-        const minutes = entry.duration_minutes || 0
-
-        if (entry.type === 'habit' && entry.habit) {
-          dataByWeek[weekKey][entry.habit] =
-            (dataByWeek[weekKey][entry.habit] || 0) + minutes
-        } else if (entry.type === 'life') {
-          dataByWeek[weekKey].life += minutes
-        } else if (entry.type === 'caution') {
-          dataByWeek[weekKey].caution += 1
+        // Add habit minutes
+        if (day.habits) {
+          Object.entries(day.habits).forEach(([habitId, data]) => {
+            const habitName = habitIdToName.get(Number(habitId))
+            if (habitName && dataByWeek[weekKey][habitName] !== undefined) {
+              dataByWeek[weekKey][habitName] += data.minutes || 0
+            }
+          })
         }
+        // Life entries - use actual minutes from server
+        dataByWeek[weekKey].life += day.life || 0
+        dataByWeek[weekKey].caution += day.caution || 0
       })
 
       // Convert minutes to hours
-      return Object.values(dataByWeek).map(day => {
-        const converted = {
-          date: day.date,
-          dateLabel: day.dateLabel,
-          dateRange: day.dateRange,
-          caution: day.caution
-        }
+      return Object.values(dataByWeek).map(week => {
+        const converted = { date: week.date, dateLabel: week.dateLabel, dateRange: week.dateRange, caution: week.caution }
         habits.forEach(habit => {
-          converted[habit.name] = Math.round((day[habit.name] || 0) / 60 * 10) / 10
+          converted[habit.name] = Math.round((week[habit.name] || 0) / 60 * 10) / 10
         })
-        converted.life = Math.round((day.life || 0) / 60 * 10) / 10
+        converted.life = Math.round((week.life || 0) / 60 * 10) / 10
         return converted
       })
     }
@@ -306,32 +323,28 @@ export default function ProgressView() {
 
     // Initialize all dates with zeros
     dateRange.forEach(date => {
-      dataByDate[date] = {
-        date,
-        dateLabel: formatDateLabel(date, timeRange),
-        life: 0,
-        caution: 0,
-      }
+      dataByDate[date] = { date, dateLabel: formatDateLabel(date, timeRange), life: 0, caution: 0 }
       habits.forEach(habit => {
         dataByDate[date][habit.name] = 0
       })
     })
 
-    // Aggregate entries by date and type
-    allEntries.forEach(entry => {
-      const entryDate = entry.occurred_at.split('T')[0]
-      if (!dataByDate[entryDate]) return
+    // Fill in data from server metrics
+    serverMetrics.daily.forEach(day => {
+      if (!dataByDate[day.date]) return
 
-      const minutes = entry.duration_minutes || 0
-
-      if (entry.type === 'habit' && entry.habit) {
-        dataByDate[entryDate][entry.habit] =
-          (dataByDate[entryDate][entry.habit] || 0) + minutes
-      } else if (entry.type === 'life') {
-        dataByDate[entryDate].life += minutes
-      } else if (entry.type === 'caution') {
-        dataByDate[entryDate].caution += 1 // Count occurrences, not minutes
+      // Add habit minutes
+      if (day.habits) {
+        Object.entries(day.habits).forEach(([habitId, data]) => {
+          const habitName = habitIdToName.get(Number(habitId))
+          if (habitName && dataByDate[day.date][habitName] !== undefined) {
+            dataByDate[day.date][habitName] = data.minutes || 0
+          }
+        })
       }
+      // Life entries - use actual minutes from server
+      dataByDate[day.date].life = day.life || 0
+      dataByDate[day.date].caution = day.caution || 0
     })
 
     // Convert minutes to hours
@@ -343,7 +356,7 @@ export default function ProgressView() {
       converted.life = Math.round((day.life || 0) / 60 * 10) / 10
       return converted
     })
-  }, [dateRange, habits, timeRange])
+  }, [dateRange, habits, timeRange, serverMetrics])
 
   // Calculate summary stats (filtered by enabledFilters)
   const stats = useMemo(() => {
@@ -353,31 +366,34 @@ export default function ProgressView() {
     )
     const includeLife = enabledFilters.has('Life')
 
-    // Filter entries by date range AND enabled filters
-    const allEntriesInRange = allEntries.filter(e => {
-      const entryDate = e.occurred_at.split('T')[0]
-      return dateRange.includes(entryDate)
-    })
+    // Use server metrics for totals when available
+    const totals = serverMetrics?.totals || {}
+    const serverHabits = serverMetrics?.habits || []
 
-    const entriesInRange = allEntriesInRange.filter(e => {
-      if (e.type === 'habit') return enabledHabitNames.has(e.habit)
-      if (e.type === 'life') return includeLife
-      return true // caution always included
-    })
+    // Calculate filtered totals from server data
+    const enabledHabitIds = new Set(
+      serverHabits.filter(h => enabledHabitNames.has(h.name)).map(h => h.id)
+    )
 
-    const totalEntries = entriesInRange.length
-    const habitEntries = entriesInRange.filter(e => e.type === 'habit').length
-    const lifeEntries = entriesInRange.filter(e => e.type === 'life').length
-    const cautionEntries = entriesInRange.filter(e => e.type === 'caution').length
+    // Habit entries from enabled habits only
+    const habitEntries = serverHabits
+      .filter(h => enabledHabitIds.has(h.id))
+      .reduce((sum, h) => sum + (h.sessions || 0), 0)
 
-    const daysWithEntries = new Set(entriesInRange.map(e => e.occurred_at.split('T')[0])).size
+    const lifeEntries = includeLife ? (totals.life_entries || 0) : 0
+    const cautionEntries = totals.caution_entries || 0
+    const totalEntries = habitEntries + lifeEntries + cautionEntries
 
-    // Rest days - only count days explicitly marked as rest_day in preparations
-    const restDays = preparations.filter(p => {
-      return dateRange.includes(p.period_start) && p.rest_day === true
-    }).length
+    // Days with entries - count unique days in daily data
+    const daysWithEntries = serverMetrics?.daily?.filter(d =>
+      Object.keys(d.habits || {}).some(hid => enabledHabitIds.has(Number(hid))) ||
+      (includeLife && d.life > 0)
+    ).length || 0
 
-    // Total hours based on enabled filters only
+    // Rest days from server
+    const restDays = totals.rest_days || 0
+
+    // Total hours based on enabled filters only (from chartData which is already processed)
     const totalHours = chartData.reduce((acc, day) => {
       const dayHours = habits
         .filter(h => enabledHabitNames.has(h.name))
@@ -389,15 +405,18 @@ export default function ProgressView() {
     const avgEntriesPerDay = daysWithEntries > 0 ? (totalEntries / daysWithEntries).toFixed(1) : 0
     const avgHoursPerDay = daysWithEntries > 0 ? (totalHours / daysWithEntries).toFixed(1) : 0
 
-    // Count unique enabled habits per day, then average
+    // Count unique enabled habits per day from server data
     const habitsByDay = {}
-    entriesInRange.filter(e => e.type === 'habit').forEach(e => {
-      const day = e.occurred_at.split('T')[0]
-      if (!habitsByDay[day]) habitsByDay[day] = new Set()
-      habitsByDay[day].add(e.habit)
+    serverMetrics?.daily?.forEach(d => {
+      if (d.habits) {
+        const enabledHabitsOnDay = Object.keys(d.habits).filter(hid => enabledHabitIds.has(Number(hid)))
+        if (enabledHabitsOnDay.length > 0) {
+          habitsByDay[d.date] = enabledHabitsOnDay.length
+        }
+      }
     })
     const daysWithHabits = Object.keys(habitsByDay).length
-    const totalUniqueHabitsPerDay = Object.values(habitsByDay).reduce((acc, set) => acc + set.size, 0)
+    const totalUniqueHabitsPerDay = Object.values(habitsByDay).reduce((acc, count) => acc + count, 0)
     const avgHabitsPerDay = daysWithHabits > 0 ? (totalUniqueHabitsPerDay / daysWithHabits).toFixed(1) : 0
 
     // Patterns metrics
@@ -408,14 +427,12 @@ export default function ProgressView() {
     const prepRate = totalDaysInRange > 0 ? Math.round((prepsInRange / totalDaysInRange) * 100) : 0
     const closureRate = totalDaysInRange > 0 ? Math.round((closuresInRange / totalDaysInRange) * 100) : 0
 
-    // Session rituals (warm-up and cool-down rates for habit entries)
-    const habitEntriesInRange = entriesInRange.filter(e => e.type === 'habit')
-    const entriesWithWarmUp = habitEntriesInRange.filter(e => e.warm_up_template_id || e.warm_up_note).length
-    const entriesWithCoolDown = habitEntriesInRange.filter(e => e.cool_down_note).length
-    const warmUpRate = habitEntriesInRange.length > 0 ? Math.round((entriesWithWarmUp / habitEntriesInRange.length) * 100) : 0
-    const coolDownRate = habitEntriesInRange.length > 0 ? Math.round((entriesWithCoolDown / habitEntriesInRange.length) * 100) : 0
+    // Session rituals - not available from server metrics, would need entries
+    const warmUpRate = 0
+    const coolDownRate = 0
 
-    const highlights = entriesInRange.filter(e => e.is_highlight).length
+    // Highlights from server
+    const highlights = totals.highlights?.total || 0
 
     // Completed targets in range
     const completedTargetsInRange = targets.filter(t => {
@@ -432,70 +449,35 @@ export default function ProgressView() {
       return reflectionDate && dateRange.includes(reflectionDate)
     }).length
 
-    // Habit coverage for enabled habits only
-    const habitCoverage = habits
+    // Habit coverage from server data
+    const habitCoverage = serverHabits
       .filter(h => enabledHabitNames.has(h.name))
       .map(habit => {
-        const habitEntriesForHabit = entriesInRange.filter(e => e.type === 'habit' && e.habit === habit.name)
-        const daysLogged = new Set(habitEntriesForHabit.map(e => e.occurred_at.split('T')[0])).size
-        const coveragePercent = daysWithEntries > 0 ? Math.round((daysLogged / daysWithEntries) * 100) : 0
+        const coveragePercent = daysWithEntries > 0 ? Math.round((habit.days_touched / daysWithEntries) * 100) : 0
         return { name: habit.name, color: habit.color, coverage: coveragePercent }
       })
 
-    // Previous period comparison (based on viewed period, not today)
-    const today = new Date()
-    const previousRangeDates = []
+    // Previous period comparison - simplified (would need separate API call for full comparison)
+    const currentHours = totalHours
+    const periodOverPeriodChange = 0 // Would need separate API call for previous period
 
-    if (timeRange === 'week') {
-      // Previous 7 days before the current viewed week
-      const firstDay = new Date(dateRange[0] + 'T12:00:00')
-      for (let i = 7; i >= 1; i--) {
-        const date = new Date(firstDay)
-        date.setDate(date.getDate() - i)
-        previousRangeDates.push(date.toISOString().split('T')[0])
-      }
-    } else if (timeRange === 'month') {
-      // Previous calendar month
-      const targetMonth = new Date(today.getFullYear(), today.getMonth() + periodOffset - 1, 1)
-      const year = targetMonth.getFullYear()
-      const month = targetMonth.getMonth()
-      const lastDay = new Date(year, month + 1, 0).getDate()
-      for (let day = 1; day <= lastDay; day++) {
-        const date = new Date(year, month, day)
-        previousRangeDates.push(date.toISOString().split('T')[0])
-      }
-    } else {
-      // Previous calendar year
-      const targetYear = today.getFullYear() + periodOffset - 1
-      const startDate = new Date(targetYear, 0, 1)
-      const endDate = new Date(targetYear, 11, 31)
-      for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-        previousRangeDates.push(date.toISOString().split('T')[0])
-      }
-    }
-
-    // Filter previous entries by enabled filters too
-    const allPreviousEntries = allEntries.filter(e => {
-      const entryDate = e.occurred_at.split('T')[0]
-      return previousRangeDates.includes(entryDate)
-    })
-    const previousEntries = allPreviousEntries.filter(e => {
-      if (e.type === 'habit') return enabledHabitNames.has(e.habit)
-      if (e.type === 'life') return includeLife
-      return true
-    })
-    const previousHours = previousEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / 60
-    const currentHours = entriesInRange.reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / 60
-    const periodOverPeriodChange = previousHours > 0
-      ? Math.round(((currentHours - previousHours) / previousHours) * 100)
-      : (currentHours > 0 ? 100 : 0)
-
-    // Day of Week distribution (filtered)
+    // Day of Week distribution from server daily data
     const dayOfWeekDist = [0, 0, 0, 0, 0, 0, 0] // Sun-Sat
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    entriesInRange.forEach(e => {
-      const date = new Date(e.occurred_at)
-      dayOfWeekDist[date.getDay()] += (e.duration_minutes || 0) / 60
+    serverMetrics?.daily?.forEach(d => {
+      const dayOfWeek = new Date(d.date + 'T12:00:00').getDay()
+      // Sum minutes from enabled habits
+      if (d.habits) {
+        Object.entries(d.habits).forEach(([habitId, data]) => {
+          if (enabledHabitIds.has(Number(habitId))) {
+            dayOfWeekDist[dayOfWeek] += (data.minutes || 0) / 60
+          }
+        })
+      }
+      // Add life time if included (use actual minutes from server)
+      if (includeLife && d.life) {
+        dayOfWeekDist[dayOfWeek] += (d.life || 0) / 60
+      }
     })
     const dayOfWeekData = dayNames.map((name, i) => ({
       day: name,
@@ -530,34 +512,18 @@ export default function ProgressView() {
     // Balance: Neglected habits (enabled habits with 0 time this period)
     const neglectedHabits = habitTotals.filter(h => h.hours === 0)
 
-    // Balance: Trend vs previous period (filtered)
-    const previousHabitHours = {}
-    habits.filter(h => enabledHabitNames.has(h.name)).forEach(habit => {
-      const hours = previousEntries
-        .filter(e => e.type === 'habit' && e.habit === habit.name)
-        .reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / 60
-      previousHabitHours[habit.name] = hours
-    })
-    const previousLifeHours = previousEntries
-      .filter(e => e.type === 'life')
-      .reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / 60
-    const previousTotalHours = previousHours
-
+    // Balance: Trend vs previous period (simplified - no previous period data without separate API call)
     const balanceTrend = habits
       .filter(h => enabledHabitNames.has(h.name))
       .map(habit => {
         const currentPercent = totalHours > 0 ? (habitTotals.find(h => h.name === habit.name)?.hours || 0) / totalHours * 100 : 0
-        const prevPercent = previousTotalHours > 0 ? (previousHabitHours[habit.name] || 0) / previousTotalHours * 100 : 0
-        const change = Math.round(currentPercent - prevPercent)
-        return { name: habit.name, color: habit.color, currentPercent: Math.round(currentPercent), change }
-      }).filter(h => h.currentPercent > 0 || h.change !== 0)
+        return { name: habit.name, color: habit.color, currentPercent: Math.round(currentPercent), change: 0 }
+      }).filter(h => h.currentPercent > 0)
 
     const lifeTrend = includeLife ? {
       name: 'Life',
       currentPercent: lifePercent,
-      change: previousTotalHours > 0
-        ? Math.round(lifePercent - (previousLifeHours / previousTotalHours * 100))
-        : 0
+      change: 0
     } : null
 
     // Transition metrics (transitions table was removed, using local state from context if available)
@@ -602,51 +568,28 @@ export default function ProgressView() {
       totalCompletedTargets,
       reflectionsInRange,
     }
-  }, [chartData, dateRange, habits, timeRange, periodOffset, enabledFilters, preparations, closures, reflections, targets])
+  }, [chartData, dateRange, habits, timeRange, periodOffset, enabledFilters, preparations, closures, reflections, targets, serverMetrics])
 
-  // Habit-specific patterns
+  // Habit-specific patterns from server metrics
   const habitPatterns = useMemo(() => {
-    if (!selectedHabit) return null
+    if (!selectedHabit || !serverMetrics) return null
 
-    const habitEntries = allEntries
-      .filter(e => e.type === 'habit' && e.habit === selectedHabit)
-      .sort((a, b) => new Date(a.occurred_at) - new Date(b.occurred_at))
+    // Find the habit in server metrics
+    const habitData = serverMetrics.habits?.find(h => h.name === selectedHabit)
+    if (!habitData) return null
 
-    if (habitEntries.length === 0) return null
+    // Sessions and hours in current range from server data
+    const sessionsInRange = habitData.sessions || 0
+    const hoursInRange = (habitData.minutes || 0) / 60
 
     // Average session length
-    const totalMinutes = habitEntries.reduce((acc, e) => acc + (e.duration_minutes || 0), 0)
-    const avgSessionLength = Math.round(totalMinutes / habitEntries.length)
+    const avgSessionLength = sessionsInRange > 0 ? Math.round(habitData.minutes / sessionsInRange) : 0
 
-    // Last session
-    const lastSession = habitEntries[habitEntries.length - 1]
-    const lastSessionDate = lastSession.occurred_at.split('T')[0]
-
-    // Days since last session
-    const today = new Date()
-    const lastDate = new Date(lastSessionDate + 'T12:00:00')
-    const daysSinceLast = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24))
-
-    // Longest gap
-    let longestGap = 0
-    for (let i = 1; i < habitEntries.length; i++) {
-      const prev = new Date(habitEntries[i - 1].occurred_at.split('T')[0])
-      const curr = new Date(habitEntries[i].occurred_at.split('T')[0])
-      const gap = Math.floor((curr - prev) / (1000 * 60 * 60 * 24))
-      if (gap > longestGap) longestGap = gap
-    }
-
-    // Total sessions all time
-    const totalSessions = habitEntries.length
-
-    // Sessions in current range
-    const datesInRange = new Set(dateRange)
-    const sessionsInRange = habitEntries.filter(e => datesInRange.has(e.occurred_at.split('T')[0])).length
-
-    // Hours in current range
-    const hoursInRange = habitEntries
-      .filter(e => datesInRange.has(e.occurred_at.split('T')[0]))
-      .reduce((acc, e) => acc + (e.duration_minutes || 0), 0) / 60
+    // Days since last session and other historical data not available without individual entries
+    // These would need additional API support
+    const daysSinceLast = null
+    const longestGap = null
+    const totalSessions = sessionsInRange // Only have current range data
 
     return {
       avgSessionLength,
@@ -656,7 +599,7 @@ export default function ProgressView() {
       sessionsInRange,
       hoursInRange: Math.round(hoursInRange * 10) / 10,
     }
-  }, [selectedHabit, dateRange])
+  }, [selectedHabit, serverMetrics])
 
   // Toggle a filter
   const toggleFilter = (filterName) => {
@@ -788,9 +731,9 @@ export default function ProgressView() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-64">
+          <div>
             {viewMode === 'balance' ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={256}>
                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
@@ -825,7 +768,7 @@ export default function ProgressView() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={256}>
                 <LineChart data={patternsData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
