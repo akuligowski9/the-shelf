@@ -24,7 +24,7 @@ import {
 import { useTheme } from '@/context/ThemeContext'
 import { useEntries } from '@/context/EntriesContext'
 import { useHabits } from '@/context/HabitsContext'
-import { getSettings, setSetting, exportData, importData } from '@/lib/api'
+import { getSettings, setSetting, exportData, importData, getPendingImports, importFile, previewFile } from '@/lib/api'
 
 // Common timezones grouped by region
 const TIMEZONES = [
@@ -66,6 +66,12 @@ export default function SettingsView() {
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
   const [importResults, setImportResults] = useState(null)
+  const [pendingFiles, setPendingFiles] = useState([])
+  const [pendingLoading, setPendingLoading] = useState(false)
+  const [importingFile, setImportingFile] = useState(null)
+  const [fileImportResults, setFileImportResults] = useState(null)
+  const [previewData, setPreviewData] = useState(null)
+  const [previewLoading, setPreviewLoading] = useState(null)
 
   // Load settings from API on mount
   useEffect(() => {
@@ -78,6 +84,19 @@ export default function SettingsView() {
       })
       .catch(err => console.error('Failed to load settings:', err))
       .finally(() => setSettingsLoaded(true))
+  }, [])
+
+  // Load pending imports
+  const loadPendingFiles = () => {
+    setPendingLoading(true)
+    getPendingImports()
+      .then(files => setPendingFiles(files))
+      .catch(err => console.error('Failed to load pending imports:', err))
+      .finally(() => setPendingLoading(false))
+  }
+
+  useEffect(() => {
+    loadPendingFiles()
   }, [])
 
   const setTimezone = (tz) => {
@@ -136,6 +155,46 @@ export default function SettingsView() {
       }
     }
     input.click()
+  }
+
+  // Handle previewing a file before import
+  const handlePreviewFile = async (filename) => {
+    setPreviewLoading(filename)
+    setPreviewData(null)
+    setFileImportResults(null)
+    try {
+      const preview = await previewFile(filename)
+      setPreviewData(preview)
+    } catch (err) {
+      console.error('Preview failed:', err)
+      setFileImportResults({ filename, error: err.message })
+    } finally {
+      setPreviewLoading(null)
+    }
+  }
+
+  // Handle confirming import after preview
+  const handleConfirmImport = async () => {
+    if (!previewData) return
+    const filename = previewData.filename
+    setImportingFile(filename)
+    try {
+      const result = await importFile(filename)
+      setFileImportResults({ filename, ...result })
+      setPreviewData(null)
+      // Remove from pending list
+      setPendingFiles(prev => prev.filter(f => f !== filename))
+    } catch (err) {
+      console.error('Import failed:', err)
+      setFileImportResults({ filename, error: err.message })
+    } finally {
+      setImportingFile(null)
+    }
+  }
+
+  // Cancel preview
+  const handleCancelPreview = () => {
+    setPreviewData(null)
   }
 
   const selectedTimezone = TIMEZONES.find(tz => tz.value === timezone)
@@ -348,6 +407,176 @@ export default function SettingsView() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pending Imports */}
+      {(pendingFiles.length > 0 || fileImportResults || previewData) && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Pending Imports</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Preview Mode */}
+            {previewData ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="font-medium">Preview: {previewData.filename}</div>
+                  <div className="text-sm text-muted-foreground">{previewData.date}</div>
+                </div>
+
+                {/* Summary */}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {Object.entries(previewData.summary).map(([key, counts]) => {
+                    if (counts.insert === 0 && counts.skip === 0) return null
+                    return (
+                      <div key={key} className="flex justify-between bg-muted/30 rounded px-2 py-1">
+                        <span className="capitalize">{key}</span>
+                        <span>
+                          <span className="text-green-600 dark:text-green-400">+{counts.insert}</span>
+                          {counts.skip > 0 && (
+                            <span className="text-amber-600 dark:text-amber-400 ml-1">−{counts.skip}</span>
+                          )}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Entries to insert */}
+                {previewData.entries.will_insert.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">Will Import:</div>
+                    <div className="space-y-1">
+                      {previewData.entries.will_insert.map((entry, i) => (
+                        <div key={i} className="text-xs bg-green-500/10 rounded px-2 py-1 flex justify-between">
+                          <span>
+                            <span className="font-medium">{entry.habit || entry.type}</span>
+                            {entry.duration_minutes && <span className="text-muted-foreground ml-1">({entry.duration_minutes}m)</span>}
+                          </span>
+                          {entry.note && <span className="text-muted-foreground truncate ml-2 max-w-[200px]">{entry.note}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Entries to skip */}
+                {previewData.entries.will_skip.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">Will Skip:</div>
+                    <div className="space-y-1">
+                      {previewData.entries.will_skip.map((entry, i) => (
+                        <div key={i} className="text-xs bg-amber-500/10 rounded px-2 py-1 flex justify-between">
+                          <span>
+                            <span className="font-medium">{entry.habit || entry.type}</span>
+                            {entry.duration_minutes && <span className="text-muted-foreground ml-1">({entry.duration_minutes}m)</span>}
+                          </span>
+                          <span className="text-amber-600 dark:text-amber-400">{entry.reason}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleConfirmImport}
+                    disabled={importingFile !== null || previewData.entries.will_insert.length === 0}
+                    className="flex-1"
+                  >
+                    {importingFile ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Importing...
+                      </>
+                    ) : (
+                      `Import ${previewData.entries.will_insert.length} entries`
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelPreview}
+                    disabled={importingFile !== null}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : pendingFiles.length > 0 ? (
+              <>
+                <div className="text-sm text-muted-foreground mb-2">
+                  {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''} in data/imports/
+                </div>
+                <div className="space-y-2">
+                  {pendingFiles.map(file => (
+                    <div key={file} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
+                      <span className="text-sm font-mono">{file}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePreviewFile(file)}
+                        disabled={previewLoading !== null || importingFile !== null}
+                      >
+                        {previewLoading === file ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          'Preview'
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground">No pending imports</div>
+            )}
+
+            {/* File Import Results */}
+            {fileImportResults && !previewData && (
+              <div className={`rounded-md p-3 text-sm mt-3 ${fileImportResults.error ? 'bg-red-500/10' : 'bg-muted/50'}`}>
+                <div className="font-medium mb-1">
+                  {fileImportResults.error ? 'Import Failed' : `Imported ${fileImportResults.filename}`}
+                </div>
+                {fileImportResults.error ? (
+                  <div className="text-red-600 dark:text-red-400 text-xs">{fileImportResults.error}</div>
+                ) : (
+                  <>
+                    <div className="text-xs text-muted-foreground mb-1">Moved to {fileImportResults.moved_to}</div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      {Object.entries(fileImportResults.results || {}).map(([key, value]) => {
+                        if (value.inserted === 0 && value.skipped === 0) return null
+                        return (
+                          <div key={key} className="flex justify-between">
+                            <span className="text-muted-foreground capitalize">{key}</span>
+                            <span>
+                              <span className="text-green-600 dark:text-green-400">+{value.inserted}</span>
+                              {value.skipped > 0 && (
+                                <span className="text-muted-foreground ml-1">({value.skipped} skipped)</span>
+                              )}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+                <button
+                  onClick={() => setFileImportResults(null)}
+                  className="text-xs text-muted-foreground hover:text-foreground mt-2"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Data Management */}
       <Card>

@@ -1,7 +1,14 @@
 const express = require('express');
+const fs = require('fs').promises;
+const path = require('path');
 const pool = require('../db/pool');
 
 const router = express.Router();
+
+// Data directories
+const DATA_DIR = path.join(__dirname, '../../../data');
+const IMPORTS_DIR = path.join(DATA_DIR, 'imports');
+const LOGS_DIR = path.join(DATA_DIR, 'logs');
 
 /**
  * GET /data/export
@@ -414,6 +421,424 @@ router.post('/import', async (req, res, next) => {
 
     res.json({ ok: true, results });
   } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /data/pending
+ * List files in data/imports/ waiting to be imported
+ */
+router.get('/pending', async (req, res, next) => {
+  try {
+    const files = await fs.readdir(IMPORTS_DIR);
+    const jsonFiles = files.filter(f => f.endsWith('.json')).sort();
+    res.json({ ok: true, files: jsonFiles });
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      return res.json({ ok: true, files: [] });
+    }
+    next(err);
+  }
+});
+
+/**
+ * POST /data/preview-file
+ * Preview what would be imported from a file (without actually importing)
+ */
+router.post('/preview-file', async (req, res, next) => {
+  const { filename } = req.body;
+
+  if (!filename) {
+    return res.status(400).json({ ok: false, error: 'filename is required' });
+  }
+
+  if (!filename.endsWith('.json') || filename.includes('/') || filename.includes('..')) {
+    return res.status(400).json({ ok: false, error: 'Invalid filename' });
+  }
+
+  const sourcePath = path.join(IMPORTS_DIR, filename);
+
+  try {
+    const content = await fs.readFile(sourcePath, 'utf-8');
+    const data = JSON.parse(content);
+
+    const isFullExport = data.version !== undefined;
+    const isDayLog = data.date !== undefined;
+
+    if (!isFullExport && !isDayLog) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Invalid import format. Must have either "version" or "date".',
+      });
+    }
+
+    // Build lookup maps
+    const habitsR = await pool.query('SELECT id, name FROM habits');
+    const habitMap = new Map(habitsR.rows.map(h => [h.name.toLowerCase(), h.id]));
+    const habitIdToName = new Map(habitsR.rows.map(h => [h.id, h.name]));
+
+    const practicesR = await pool.query('SELECT id, name, habit_id FROM practices');
+    const practiceMap = new Map();
+    practicesR.rows.forEach(p => {
+      practiceMap.set(`${p.habit_id}:${p.name.toLowerCase()}`, p.id);
+    });
+
+    const targetsR = await pool.query('SELECT id, name FROM targets');
+    const targetMap = new Map(targetsR.rows.map(t => [t.name.toLowerCase(), t.id]));
+
+    const resolveHabitId = (habitName) => {
+      if (!habitName) return null;
+      return habitMap.get(habitName.toLowerCase()) || null;
+    };
+
+    const preview = {
+      filename,
+      date: data.date,
+      entries: { will_insert: [], will_skip: [] },
+      preparations: { will_insert: [], will_skip: [] },
+      closures: { will_insert: [], will_skip: [] },
+      reflections: { will_insert: [], will_skip: [] },
+    };
+
+    // Preview entries
+    if (Array.isArray(data.entries)) {
+      for (const entry of data.entries) {
+        if (!entry.type || !entry.occurred_at) continue;
+
+        const habitId = resolveHabitId(entry.habit);
+        const existingR = await pool.query(
+          `SELECT id FROM entries
+           WHERE type = $1 AND occurred_at = $2
+           AND COALESCE(habit_id, -1) = COALESCE($3, -1)`,
+          [entry.type, entry.occurred_at, habitId]
+        );
+
+        const entryPreview = {
+          type: entry.type,
+          habit: entry.habit || null,
+          occurred_at: entry.occurred_at,
+          duration_minutes: entry.duration_minutes || null,
+          note: entry.note ? (entry.note.length > 50 ? entry.note.slice(0, 50) + '...' : entry.note) : null,
+        };
+
+        if (existingR.rows.length > 0) {
+          preview.entries.will_skip.push({ ...entryPreview, reason: 'duplicate' });
+        } else if (entry.type === 'habit' && !habitId) {
+          preview.entries.will_skip.push({ ...entryPreview, reason: 'unknown habit' });
+        } else {
+          preview.entries.will_insert.push(entryPreview);
+        }
+      }
+    }
+
+    // Preview preparations
+    if (Array.isArray(data.preparations)) {
+      for (const prep of data.preparations) {
+        const periodType = prep.period_type || 'day';
+        const periodStart = prep.period_start || (isDayLog ? data.date : null);
+        if (!periodStart) continue;
+
+        const existingR = await pool.query(
+          'SELECT id FROM preparations WHERE period_type = $1 AND period_start = $2',
+          [periodType, periodStart]
+        );
+
+        const prepPreview = {
+          period_type: periodType,
+          period_start: periodStart,
+          note: prep.note ? (prep.note.length > 50 ? prep.note.slice(0, 50) + '...' : prep.note) : null,
+        };
+
+        if (existingR.rows.length > 0) {
+          preview.preparations.will_skip.push({ ...prepPreview, reason: 'duplicate' });
+        } else {
+          preview.preparations.will_insert.push(prepPreview);
+        }
+      }
+    }
+
+    // Preview closures
+    if (Array.isArray(data.closures)) {
+      for (const closure of data.closures) {
+        const scope = closure.scope || 'day';
+        const occurredAt = closure.occurred_at || (isDayLog ? `${data.date}T23:59:59` : null);
+        if (!occurredAt) continue;
+
+        const existingR = await pool.query(
+          'SELECT id FROM closures WHERE scope = $1 AND occurred_at = $2',
+          [scope, occurredAt]
+        );
+
+        const closurePreview = {
+          scope,
+          occurred_at: occurredAt,
+          note: closure.note ? (closure.note.length > 50 ? closure.note.slice(0, 50) + '...' : closure.note) : null,
+        };
+
+        if (existingR.rows.length > 0) {
+          preview.closures.will_skip.push({ ...closurePreview, reason: 'duplicate' });
+        } else {
+          preview.closures.will_insert.push(closurePreview);
+        }
+      }
+    }
+
+    // Preview reflections
+    if (Array.isArray(data.reflections)) {
+      for (const reflection of data.reflections) {
+        if (!reflection.note) continue;
+
+        const createdAt = reflection.created_at || new Date().toISOString();
+        const existingR = await pool.query(
+          `SELECT id FROM reflections WHERE note = $1 AND DATE(created_at) = DATE($2)`,
+          [reflection.note, createdAt]
+        );
+
+        const reflectionPreview = {
+          note: reflection.note.length > 50 ? reflection.note.slice(0, 50) + '...' : reflection.note,
+          reflection_type: reflection.reflection_type || 'adhoc',
+        };
+
+        if (existingR.rows.length > 0) {
+          preview.reflections.will_skip.push({ ...reflectionPreview, reason: 'duplicate' });
+        } else {
+          preview.reflections.will_insert.push(reflectionPreview);
+        }
+      }
+    }
+
+    // Summary counts
+    preview.summary = {
+      entries: { insert: preview.entries.will_insert.length, skip: preview.entries.will_skip.length },
+      preparations: { insert: preview.preparations.will_insert.length, skip: preview.preparations.will_skip.length },
+      closures: { insert: preview.closures.will_insert.length, skip: preview.closures.will_skip.length },
+      reflections: { insert: preview.reflections.will_insert.length, skip: preview.reflections.will_skip.length },
+    };
+
+    res.json({ ok: true, preview });
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      return res.status(404).json({ ok: false, error: `File not found: ${filename}` });
+    }
+    next(err);
+  }
+});
+
+/**
+ * POST /data/import-file
+ * Import a specific file from data/imports/ and move it to data/logs/
+ */
+router.post('/import-file', async (req, res, next) => {
+  const { filename } = req.body;
+
+  if (!filename) {
+    return res.status(400).json({ ok: false, error: 'filename is required' });
+  }
+
+  // Security: only allow .json files, no path traversal
+  if (!filename.endsWith('.json') || filename.includes('/') || filename.includes('..')) {
+    return res.status(400).json({ ok: false, error: 'Invalid filename' });
+  }
+
+  const sourcePath = path.join(IMPORTS_DIR, filename);
+  const destPath = path.join(LOGS_DIR, filename);
+
+  try {
+    // Read the file
+    const content = await fs.readFile(sourcePath, 'utf-8');
+    const data = JSON.parse(content);
+
+    // Forward to the import handler by making internal request
+    // For simplicity, we'll just call the same import logic
+    // This duplicates some code but keeps it simple
+
+    const results = {
+      entries: { inserted: 0, skipped: 0 },
+      preparations: { inserted: 0, skipped: 0 },
+      closures: { inserted: 0, skipped: 0 },
+      reflections: { inserted: 0, skipped: 0 },
+    };
+
+    // Determine format
+    const isFullExport = data.version !== undefined;
+    const isDayLog = data.date !== undefined;
+
+    if (!isFullExport && !isDayLog) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Invalid import format in file. Must have either "version" or "date".',
+      });
+    }
+
+    // Build lookup maps
+    const habitsR = await pool.query('SELECT id, name FROM habits');
+    const habitMap = new Map(habitsR.rows.map(h => [h.name.toLowerCase(), h.id]));
+
+    const practicesR = await pool.query('SELECT id, name, habit_id FROM practices');
+    const practiceMap = new Map();
+    practicesR.rows.forEach(p => {
+      practiceMap.set(`${p.habit_id}:${p.name.toLowerCase()}`, p.id);
+    });
+
+    const targetsR = await pool.query('SELECT id, name FROM targets');
+    const targetMap = new Map(targetsR.rows.map(t => [t.name.toLowerCase(), t.id]));
+
+    const resolveHabitId = (habitName) => {
+      if (!habitName) return null;
+      return habitMap.get(habitName.toLowerCase()) || null;
+    };
+
+    const resolvePracticeId = (habitId, practiceName) => {
+      if (!habitId || !practiceName) return null;
+      return practiceMap.get(`${habitId}:${practiceName.toLowerCase()}`) || null;
+    };
+
+    const resolveTargetId = (targetName) => {
+      if (!targetName) return null;
+      return targetMap.get(targetName.toLowerCase()) || null;
+    };
+
+    // Import entries
+    if (Array.isArray(data.entries)) {
+      for (const entry of data.entries) {
+        if (!entry.type || !entry.occurred_at) continue;
+
+        const habitId = resolveHabitId(entry.habit);
+        const practiceId = habitId ? resolvePracticeId(habitId, entry.practice) : null;
+        const targetId = resolveTargetId(entry.target);
+
+        const existingR = await pool.query(
+          `SELECT id FROM entries
+           WHERE type = $1 AND occurred_at = $2
+           AND COALESCE(habit_id, -1) = COALESCE($3, -1)`,
+          [entry.type, entry.occurred_at, habitId]
+        );
+        if (existingR.rows.length > 0) {
+          results.entries.skipped++;
+          continue;
+        }
+
+        await pool.query(
+          `INSERT INTO entries (type, habit_id, practice_id, target_id, occurred_at, duration_minutes, note, is_highlight, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [
+            entry.type,
+            habitId,
+            practiceId,
+            targetId,
+            entry.occurred_at,
+            entry.duration_minutes || null,
+            entry.note || null,
+            entry.is_highlight || false,
+            entry.created_at || new Date(),
+          ]
+        );
+        results.entries.inserted++;
+      }
+    }
+
+    // Import preparations
+    if (Array.isArray(data.preparations)) {
+      for (const prep of data.preparations) {
+        const periodType = prep.period_type || 'day';
+        const periodStart = prep.period_start || (isDayLog ? data.date : null);
+        if (!periodStart) continue;
+
+        const existingR = await pool.query(
+          'SELECT id FROM preparations WHERE period_type = $1 AND period_start = $2',
+          [periodType, periodStart]
+        );
+        if (existingR.rows.length > 0) {
+          results.preparations.skipped++;
+          continue;
+        }
+
+        const habitId = resolveHabitId(prep.habit);
+        const practiceId = habitId ? resolvePracticeId(habitId, prep.practice) : null;
+        const targetId = resolveTargetId(prep.target);
+
+        await pool.query(
+          `INSERT INTO preparations (period_type, period_start, occurred_at, note, habit_id, practice_id, target_id, rest_day, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [periodType, periodStart, prep.occurred_at || null, prep.note || null, habitId, practiceId, targetId, prep.rest_day || false, prep.created_at || new Date()]
+        );
+        results.preparations.inserted++;
+      }
+    }
+
+    // Import closures
+    if (Array.isArray(data.closures)) {
+      for (const closure of data.closures) {
+        const scope = closure.scope || 'day';
+        const occurredAt = closure.occurred_at || (isDayLog ? `${data.date}T23:59:59` : null);
+        if (!occurredAt) continue;
+
+        const existingR = await pool.query(
+          'SELECT id FROM closures WHERE scope = $1 AND occurred_at = $2',
+          [scope, occurredAt]
+        );
+        if (existingR.rows.length > 0) {
+          results.closures.skipped++;
+          continue;
+        }
+
+        const habitId = resolveHabitId(closure.habit);
+        const practiceId = habitId ? resolvePracticeId(habitId, closure.practice) : null;
+
+        await pool.query(
+          `INSERT INTO closures (scope, occurred_at, note, habit_id, practice_id, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [scope, occurredAt, closure.note || null, habitId, practiceId, closure.created_at || new Date()]
+        );
+        results.closures.inserted++;
+      }
+    }
+
+    // Import reflections
+    if (Array.isArray(data.reflections)) {
+      for (const reflection of data.reflections) {
+        if (!reflection.note) continue;
+
+        const habitId = resolveHabitId(reflection.habit);
+        const targetId = resolveTargetId(reflection.target);
+        const createdAt = reflection.created_at || new Date();
+
+        const existingR = await pool.query(
+          `SELECT id FROM reflections WHERE note = $1 AND DATE(created_at) = DATE($2)`,
+          [reflection.note, createdAt]
+        );
+        if (existingR.rows.length > 0) {
+          results.reflections.skipped++;
+          continue;
+        }
+
+        await pool.query(
+          `INSERT INTO reflections (note, reflection_type, period_start, period_end, habit_id, target_id, triggers, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            reflection.note,
+            reflection.reflection_type || 'adhoc',
+            reflection.period_start || null,
+            reflection.period_end || null,
+            habitId,
+            targetId,
+            reflection.triggers ? JSON.stringify(reflection.triggers) : null,
+            createdAt,
+          ]
+        );
+        results.reflections.inserted++;
+      }
+    }
+
+    // Move file to logs/
+    await fs.rename(sourcePath, destPath);
+
+    res.json({ ok: true, filename, moved_to: `logs/${filename}`, results });
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      return res.status(404).json({ ok: false, error: `File not found: ${filename}` });
+    }
     next(err);
   }
 });

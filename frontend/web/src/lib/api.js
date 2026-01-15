@@ -342,6 +342,27 @@ export async function importData(data) {
   return result.results
 }
 
+export async function getPendingImports() {
+  const data = await fetchJson('/data/pending')
+  return data.files
+}
+
+export async function importFile(filename) {
+  const result = await fetchJson('/data/import-file', {
+    method: 'POST',
+    body: JSON.stringify({ filename }),
+  })
+  return result
+}
+
+export async function previewFile(filename) {
+  const result = await fetchJson('/data/preview-file', {
+    method: 'POST',
+    body: JSON.stringify({ filename }),
+  })
+  return result.preview
+}
+
 // Load all initial data for the app
 export async function loadInitialData() {
   const [habits, practices, actions, targets, prompts] = await Promise.all([

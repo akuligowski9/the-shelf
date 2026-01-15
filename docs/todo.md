@@ -54,6 +54,16 @@ All v1 items needed for functional daily use are now complete.
 
 These can wait. The app is usable without them.
 
+### Import Practice/Action Drill Down
+Extend import preview to show practice and action resolution:
+- [ ] Show which practices will be matched vs created
+- [ ] Show which actions will be matched vs created
+- [ ] Auto-create missing practices/actions during import (optional)
+
+**Source**: User request
+
+---
+
 ### Template Preview with Dynamic Elements
 Preview templates with variables like `{{last_session_note}}` substituted.
 - [ ] Parse template content for `{{variable}}` patterns
