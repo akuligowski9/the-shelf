@@ -278,20 +278,34 @@ export default function ShelfView() {
       .slice(0, 3)
   }, [])
 
-  // Calculate progress for each target (total time from entries)
+  // Calculate progress for each target based on entries for that habit
   const targetProgress = useMemo(() => {
     const progress = {}
-    allEntries.forEach(entry => {
-      if (entry.target_id && !entry.archived_at) {
-        if (!progress[entry.target_id]) {
-          progress[entry.target_id] = { minutes: 0, sessions: 0 }
+    contextTargets.forEach(target => {
+      if (!target.habit_id) return
+
+      // Count entries for this target's habit since the target started
+      const targetStart = target.start_date ? new Date(target.start_date) : null
+      const relevantEntries = allEntries.filter(entry => {
+        if (entry.archived_at) return false
+        if (entry.habit_id !== target.habit_id) return false
+        // If target has a start date, only count entries after that date
+        if (targetStart) {
+          const entryDate = new Date(entry.occurred_at)
+          if (entryDate < targetStart) return false
         }
-        progress[entry.target_id].minutes += entry.duration_minutes || 0
-        progress[entry.target_id].sessions += 1
+        return true
+      })
+
+      if (relevantEntries.length > 0) {
+        progress[target.id] = {
+          minutes: relevantEntries.reduce((sum, e) => sum + (e.duration_minutes || 0), 0),
+          sessions: relevantEntries.length
+        }
       }
     })
     return progress
-  }, [])
+  }, [allEntries, contextTargets])
 
   // Get shelf sort preference from localStorage
   const getShelfSort = () => {
