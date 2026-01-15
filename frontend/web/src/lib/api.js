@@ -139,6 +139,14 @@ export async function deleteTarget(id) {
   return data.deleted
 }
 
+export async function reorderTargets(targetIds) {
+  const data = await fetchJson('/targets/reorder', {
+    method: 'PUT',
+    body: JSON.stringify({ target_ids: targetIds }),
+  })
+  return data.reordered
+}
+
 // Entries
 export async function getEntries(from, to) {
   const data = await fetchJson(`/entries?from=${from}&to=${to}`)
@@ -210,6 +218,31 @@ export async function saveClosure(closure) {
     body: JSON.stringify(closure),
   })
   return data.closure
+}
+
+// Settings
+export async function getSettings() {
+  const data = await fetchJson('/settings')
+  return data.settings
+}
+
+export async function getSetting(key) {
+  const data = await fetchJson(`/settings/${key}`)
+  return data.setting
+}
+
+export async function setSetting(key, value) {
+  const data = await fetchJson(`/settings/${key}`, {
+    method: 'PUT',
+    body: JSON.stringify(value),
+  })
+  return data.setting
+}
+
+// Metrics
+export async function getWeeklyMetrics(startDate) {
+  const data = await fetchJson(`/metrics/weekly?start=${startDate}`)
+  return data.metrics
 }
 
 // Reflections

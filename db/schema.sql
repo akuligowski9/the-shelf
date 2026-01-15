@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS targets (
   end_date DATE,
   planned_duration TEXT,
   done_at DATE,
+  sort_order INT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date)

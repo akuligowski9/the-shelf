@@ -15,7 +15,7 @@ router.get('/', async (req, res, next) => {
       params.push(status);
     }
 
-    q += ' ORDER BY updated_at DESC, name ASC';
+    q += ' ORDER BY COALESCE(sort_order, 9999), updated_at DESC, name ASC';
 
     const r = await pool.query(q, params);
     res.json({ ok: true, targets: r.rows });
@@ -101,6 +101,10 @@ router.patch('/:id', async (req, res, next) => {
       updates.push(`habit_id = $${paramCount++}`);
       params.push(habit_id);
     }
+    if (req.body.sort_order !== undefined) {
+      updates.push(`sort_order = $${paramCount++}`);
+      params.push(req.body.sort_order);
+    }
 
     if (updates.length === 0) {
       return res.status(400).json({ ok: false, error: 'No fields to update' });
@@ -117,6 +121,39 @@ router.patch('/:id', async (req, res, next) => {
     if (!r.rows[0]) return res.status(404).json({ ok: false, error: 'target not found' });
 
     res.json({ ok: true, target: r.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /targets/reorder - Bulk update sort_order for multiple targets
+router.put('/reorder', async (req, res, next) => {
+  try {
+    const { target_ids } = req.body || {};
+
+    if (!Array.isArray(target_ids) || target_ids.length === 0) {
+      return res.status(400).json({ ok: false, error: 'target_ids array is required' });
+    }
+
+    // Update sort_order for each target based on array position
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (let i = 0; i < target_ids.length; i++) {
+        await client.query(
+          'UPDATE targets SET sort_order = $1, updated_at = NOW() WHERE id = $2',
+          [i, target_ids[i]]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    res.json({ ok: true, reordered: target_ids.length });
   } catch (err) {
     next(err);
   }

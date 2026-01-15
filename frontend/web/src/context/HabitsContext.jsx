@@ -21,6 +21,7 @@ import {
   createTarget as apiCreateTarget,
   updateTarget as apiUpdateTarget,
   deleteTarget as apiDeleteTarget,
+  reorderTargets as apiReorderTargets,
 } from '@/lib/api'
 
 const HabitsContext = createContext(null)
@@ -407,7 +408,8 @@ export function HabitsProvider({ children }) {
   }
 
   // Reorder targets (for drag-and-drop)
-  const reorderTargets = (orderedIds) => {
+  const reorderTargets = async (orderedIds) => {
+    // Optimistic update
     setTargets(prev =>
       prev.map(t => {
         const newOrder = orderedIds.indexOf(t.id)
@@ -417,7 +419,12 @@ export function HabitsProvider({ children }) {
         return t
       })
     )
-    // Note: sort_order is local-only for now, no API call
+    // Persist to API
+    try {
+      await apiReorderTargets(orderedIds)
+    } catch (err) {
+      console.error('Failed to persist target order:', err)
+    }
   }
 
   // Delete a target
