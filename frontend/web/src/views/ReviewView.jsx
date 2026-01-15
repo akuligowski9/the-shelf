@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { mockReflections, mockPreparations } from '@/data/mockData'
+import { mockPreparations } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
-import { Star, Target, ChevronDown, ChevronUp, Lightbulb, Clock, Activity, AlertCircle, Coffee, Zap } from 'lucide-react'
+import { getReflections, createReflection, deleteReflection } from '@/lib/api'
+import { Star, Target, Lightbulb, Clock, Activity, AlertCircle, Coffee, Zap, PenLine, X, Trash2 } from 'lucide-react'
+import RichTextEditor, { RichTextDisplay } from '@/components/ui/rich-text-editor'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import PeriodSelector, { getDateRange } from '@/components/shared/PeriodSelector'
 
@@ -236,11 +238,38 @@ export default function ReviewView() {
   const [periodOffset, setPeriodOffset] = useState(0)
   const [highlightFilter, setHighlightFilter] = useState('all')
   const [reflectionText, setReflectionText] = useState('')
-  const [reflections, setReflections] = useState(mockReflections)
-  const [expandedReflection, setExpandedReflection] = useState(null)
-  const [selectedTrigger, setSelectedTrigger] = useState(null) // { type: 'prompt'|'accomplishment'|'metric', label: string, value: string }
+  const [reflections, setReflections] = useState([])
+  const [isLoadingReflections, setIsLoadingReflections] = useState(true)
+  const [selectedTrigger, setSelectedTrigger] = useState(null) // { type: 'prompt'|'accomplishment'|'metric', id, label, value }
+  const reflectionFormRef = useRef(null)
+
+  // Start a reflection from a trigger (prompt, accomplishment, or metric)
+  const startReflection = (trigger) => {
+    setSelectedTrigger(trigger)
+    // Scroll to the form
+    setTimeout(() => {
+      reflectionFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 100)
+  }
 
   const dateRange = useMemo(() => getDateRange(timeRange, periodOffset), [timeRange, periodOffset])
+
+  // Fetch reflections from API
+  const fetchReflections = useCallback(async () => {
+    try {
+      setIsLoadingReflections(true)
+      const data = await getReflections()
+      setReflections(data)
+    } catch (err) {
+      console.error('Failed to fetch reflections:', err)
+    } finally {
+      setIsLoadingReflections(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchReflections()
+  }, [fetchReflections])
   const previousDateRange = useMemo(() => getPreviousPeriodRange(timeRange, periodOffset), [timeRange, periodOffset])
   const periodLabel = useMemo(() => getPeriodLabel(timeRange, periodOffset), [timeRange, periodOffset])
 
@@ -261,85 +290,6 @@ export default function ReviewView() {
   const reflectionPrompts = useMemo(() => {
     return generateReflectionPrompts(currentMetrics, previousMetrics, periodLabel)
   }, [currentMetrics, previousMetrics, periodLabel])
-
-  // Build available triggers for reflection
-  const availableTriggers = useMemo(() => {
-    const triggers = []
-
-    // Add prompts as triggers
-    reflectionPrompts.forEach(prompt => {
-      triggers.push({
-        type: 'prompt',
-        id: `prompt-${prompt.id}`,
-        label: 'Prompt',
-        value: prompt.text,
-      })
-    })
-
-    // Add highlights as triggers (unfiltered - all highlights in range)
-    allEntries
-      .filter(entry => {
-        if (!entry.is_highlight) return false
-        const entryDate = new Date(entry.occurred_at)
-        return entryDate >= dateRange.start && entryDate <= dateRange.end
-      })
-      .forEach(entry => {
-        const habitName = entry.habit || entry.type
-        triggers.push({
-          type: 'accomplishment',
-          id: `highlight-${entry.id}`,
-          label: 'Highlight',
-          value: entry.practice ? `${habitName} · ${entry.practice}` : habitName,
-          subtext: entry.note,
-        })
-      })
-
-    // Add completed targets as triggers
-    targets.filter(t => t.status === 'completed').forEach(target => {
-      triggers.push({
-        type: 'accomplishment',
-        id: `target-${target.id}`,
-        label: 'Target Completed',
-        value: target.name,
-      })
-    })
-
-    // Add key metrics as triggers
-    if (currentMetrics.totalHours > 0) {
-      triggers.push({
-        type: 'metric',
-        id: 'metric-total-time',
-        label: 'Metric',
-        value: `${currentMetrics.totalHours} hours total`,
-      })
-    }
-    if (currentMetrics.habitEntries > 0) {
-      triggers.push({
-        type: 'metric',
-        id: 'metric-habit-sessions',
-        label: 'Metric',
-        value: `${currentMetrics.habitEntries} habit sessions`,
-      })
-    }
-    if (currentMetrics.restDays > 0) {
-      triggers.push({
-        type: 'metric',
-        id: 'metric-rest-days',
-        label: 'Metric',
-        value: `${currentMetrics.restDays} rest days`,
-      })
-    }
-    if (currentMetrics.dominantHabit) {
-      triggers.push({
-        type: 'metric',
-        id: 'metric-dominant',
-        label: 'Metric',
-        value: `${currentMetrics.dominantHabit.name} was ${currentMetrics.dominantHabit.percent}% of time`,
-      })
-    }
-
-    return triggers
-  }, [reflectionPrompts, allEntries, targets, dateRange, currentMetrics])
 
   // Get highlighted entries within the date range, filtered by type
   const highlights = useMemo(() => {
@@ -388,27 +338,57 @@ export default function ReviewView() {
   }
 
   // Save a new reflection
-  const handleSaveReflection = () => {
+  const handleSaveReflection = async () => {
     if (!reflectionText.trim()) return
 
-    const newReflection = {
-      id: Math.max(...reflections.map(r => r.id), 0) + 1,
-      type: timeRange === 'week' ? 'weekly' : 'monthly',
-      period_start: formatDateKey(dateRange.start),
-      period_end: formatDateKey(dateRange.end),
-      period_label: periodLabel,
-      note: reflectionText.trim(),
-      trigger: selectedTrigger ? {
-        type: selectedTrigger.type,
-        label: selectedTrigger.label,
-        value: selectedTrigger.value,
-      } : null,
-      created_at: new Date().toISOString(),
+    // Extract entry_id or target_id from trigger
+    let entry_id = null
+    let target_id = null
+    let trigger_label = null
+    let trigger_value = null
+    let reflectionType = timeRange === 'week' ? 'weekly' : 'monthly'
+
+    if (selectedTrigger) {
+      // Always save the trigger label and value for display
+      trigger_label = selectedTrigger.label
+      trigger_value = selectedTrigger.value
+
+      if (selectedTrigger.id?.startsWith('highlight-')) {
+        entry_id = parseInt(selectedTrigger.id.replace('highlight-', ''), 10)
+        reflectionType = 'entry'
+      } else if (selectedTrigger.id?.startsWith('target-')) {
+        target_id = parseInt(selectedTrigger.id.replace('target-', ''), 10)
+        reflectionType = 'target'
+      }
     }
 
-    setReflections(prev => [newReflection, ...prev])
-    setReflectionText('')
-    setSelectedTrigger(null)
+    try {
+      const saved = await createReflection({
+        type: reflectionType,
+        period_start: formatDateKey(dateRange.start),
+        period_end: formatDateKey(dateRange.end),
+        note: reflectionText.trim(),
+        entry_id,
+        target_id,
+        trigger_label,
+        trigger_value,
+      })
+      setReflections(prev => [saved, ...prev])
+      setReflectionText('')
+      setSelectedTrigger(null)
+    } catch (err) {
+      console.error('Failed to save reflection:', err)
+    }
+  }
+
+  // Delete a reflection
+  const handleDeleteReflection = async (id) => {
+    try {
+      await deleteReflection(id)
+      setReflections(prev => prev.filter(r => r.id !== id))
+    } catch (err) {
+      console.error('Failed to delete reflection:', err)
+    }
   }
 
   return (
@@ -505,7 +485,7 @@ export default function ReviewView() {
                         : `${mins}m`
 
                       return (
-                        <div key={habitName} className="flex items-center gap-3">
+                        <div key={habitName} className="flex items-center gap-3 group">
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-sm">{habitName}</span>
@@ -523,6 +503,18 @@ export default function ReviewView() {
                           <span className="text-xs text-muted-foreground w-8 text-right">
                             {percent}%
                           </span>
+                          <button
+                            onClick={() => startReflection({
+                              type: 'metric',
+                              id: `habit-${habitName}`,
+                              label: 'Habit Time',
+                              value: `${habitName}: ${timeStr} (${percent}%)`,
+                            })}
+                            className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Reflect on this"
+                          >
+                            <PenLine className="h-4 w-4" />
+                          </button>
                         </div>
                       )
                     })}
@@ -535,19 +527,35 @@ export default function ReviewView() {
           {previousMetrics && previousMetrics.totalMinutes > 0 && (
             <>
               <Separator className="my-4" />
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-sm group">
                 <span className="text-muted-foreground">vs. previous period</span>
-                {(() => {
-                  const diff = currentMetrics.totalMinutes - previousMetrics.totalMinutes
-                  const percentChange = Math.round((diff / previousMetrics.totalMinutes) * 100)
-                  const isUp = diff > 0
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const diff = currentMetrics.totalMinutes - previousMetrics.totalMinutes
+                    const percentChange = Math.round((diff / previousMetrics.totalMinutes) * 100)
+                    const isUp = diff > 0
 
-                  return (
-                    <span className={isUp ? 'text-green-600' : 'text-amber-600'}>
-                      {isUp ? '+' : ''}{percentChange}% ({isUp ? '+' : ''}{Math.round(diff / 60)}h)
-                    </span>
-                  )
-                })()}
+                    return (
+                      <>
+                        <span className={isUp ? 'text-green-600' : 'text-amber-600'}>
+                          {isUp ? '+' : ''}{percentChange}% ({isUp ? '+' : ''}{Math.round(diff / 60)}h)
+                        </span>
+                        <button
+                          onClick={() => startReflection({
+                            type: 'metric',
+                            id: 'metric-comparison',
+                            label: 'Period Comparison',
+                            value: `${isUp ? '+' : ''}${percentChange}% vs. previous (${currentMetrics.totalHours}h vs ${previousMetrics.totalHours}h)`,
+                          })}
+                          className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Reflect on this"
+                        >
+                          <PenLine className="h-4 w-4" />
+                        </button>
+                      </>
+                    )
+                  })()}
+                </div>
               </div>
             </>
           )}
@@ -601,34 +609,49 @@ export default function ReviewView() {
             return (
             <>
               {/* Highlighted entries */}
-              {highlights.map(entry => (
-                <div key={entry.id} className="flex items-start gap-3 py-2">
-                  <div className="flex-shrink-0 mt-0.5">
-                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {getHabitName(entry)}
-                      </Badge>
-                      {entry.practice && (
-                        <span className="text-xs text-muted-foreground">
-                          {entry.practice}
-                        </span>
-                      )}
+              {highlights.map(entry => {
+                const habitName = getHabitName(entry)
+                return (
+                  <div key={entry.id} className="flex items-start gap-3 py-2 group">
+                    <div className="flex-shrink-0 mt-0.5">
+                      <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
                     </div>
-                    <p className="text-sm">{entry.note || 'No note'}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatDate(entry.occurred_at)}
-                      {entry.duration_minutes && ` · ${entry.duration_minutes}min`}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {habitName}
+                        </Badge>
+                        {entry.practice && (
+                          <span className="text-xs text-muted-foreground">
+                            {entry.practice}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm">{entry.note || 'No note'}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDate(entry.occurred_at)}
+                        {entry.duration_minutes && ` · ${entry.duration_minutes}min`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => startReflection({
+                        type: 'accomplishment',
+                        id: `highlight-${entry.id}`,
+                        label: 'Highlight',
+                        value: entry.practice ? `${habitName} · ${entry.practice}` : habitName,
+                      })}
+                      className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Reflect on this"
+                    >
+                      <PenLine className="h-4 w-4" />
+                    </button>
                   </div>
-                </div>
-              ))}
+                )
+              })}
 
               {/* Completed targets - only show for 'all' filter */}
               {highlightFilter === 'all' && completedTargets.map(target => (
-                <div key={target.id} className="flex items-start gap-3 py-2">
+                <div key={target.id} className="flex items-start gap-3 py-2 group">
                   <div className="flex-shrink-0 mt-0.5">
                     <Target className="h-4 w-4 text-green-600" />
                   </div>
@@ -640,6 +663,18 @@ export default function ReviewView() {
                     </div>
                     <p className="text-sm">{target.name}</p>
                   </div>
+                  <button
+                    onClick={() => startReflection({
+                      type: 'accomplishment',
+                      id: `target-${target.id}`,
+                      label: 'Target Completed',
+                      value: target.name,
+                    })}
+                    className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Reflect on this"
+                  >
+                    <PenLine className="h-4 w-4" />
+                  </button>
                 </div>
               ))}
             </>
@@ -664,9 +699,21 @@ export default function ReviewView() {
             {reflectionPrompts.map(prompt => (
               <div
                 key={prompt.id}
-                className="flex items-start gap-3 py-2 px-3 rounded-md bg-muted/50"
+                className="flex items-start justify-between gap-3 py-2 px-3 rounded-md bg-muted/50 group"
               >
                 <span className="text-sm text-foreground">{prompt.text}</span>
+                <button
+                  onClick={() => startReflection({
+                    type: 'prompt',
+                    id: `prompt-${prompt.id}`,
+                    label: 'Prompt',
+                    value: prompt.text,
+                  })}
+                  className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Reflect on this"
+                >
+                  <PenLine className="h-4 w-4" />
+                </button>
               </div>
             ))}
           </CardContent>
@@ -674,65 +721,44 @@ export default function ReviewView() {
       )}
 
       {/* New Reflection */}
-      <Card>
+      <Card ref={reflectionFormRef} className="border-2">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Write a Reflection</CardTitle>
           <p className="text-sm text-muted-foreground">
-            What patterns do you notice? What does this period mean to you?
+            {selectedTrigger
+              ? 'Reflecting on something specific'
+              : 'What patterns do you notice? What does this period mean to you?'}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Trigger Selector */}
-          {availableTriggers.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">
-                What prompted this reflection? (optional)
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {availableTriggers.slice(0, 6).map(trigger => (
-                  <button
-                    key={trigger.id}
-                    onClick={() => setSelectedTrigger(
-                      selectedTrigger?.id === trigger.id ? null : trigger
-                    )}
-                    className={`text-xs px-2 py-1.5 rounded-md border transition-colors text-left max-w-[200px] truncate ${
-                      selectedTrigger?.id === trigger.id
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                    }`}
-                    title={trigger.value}
-                  >
-                    <span className="text-muted-foreground">{trigger.label}:</span>{' '}
-                    <span className="truncate">{trigger.value}</span>
-                  </button>
-                ))}
-                {availableTriggers.length > 6 && (
-                  <span className="text-xs text-muted-foreground self-center">
-                    +{availableTriggers.length - 6} more
-                  </span>
-                )}
+          {/* Show selected trigger if any */}
+          {selectedTrigger && (
+            <div className="flex items-start gap-2 p-3 rounded-md bg-muted border border-border">
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-medium text-muted-foreground">{selectedTrigger.label}</span>
+                <p className="text-sm font-medium mt-0.5">{selectedTrigger.value}</p>
               </div>
-              {selectedTrigger && (
-                <div className="text-xs p-2 rounded-md bg-primary/5 border border-primary/20">
-                  <span className="text-muted-foreground">Selected:</span>{' '}
-                  <span className="font-medium">{selectedTrigger.value}</span>
-                </div>
-              )}
+              <button
+                onClick={() => setSelectedTrigger(null)}
+                className="text-muted-foreground hover:text-foreground p-1"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
           )}
 
-          <textarea
+          <RichTextEditor
             value={reflectionText}
-            onChange={(e) => setReflectionText(e.target.value)}
-            className="w-full h-32 p-3 text-sm bg-background border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-            placeholder="Take a moment to reflect on what happened during this period..."
+            onChange={setReflectionText}
+            placeholder={selectedTrigger
+              ? 'What do you think about this?'
+              : 'Take a moment to reflect on what happened during this period...'}
           />
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
               For: {periodLabel}
             </span>
             <Button
-              variant="secondary"
               size="sm"
               onClick={handleSaveReflection}
               disabled={!reflectionText.trim()}
@@ -746,7 +772,7 @@ export default function ReviewView() {
       <Separator />
 
       {/* Past Reflections */}
-      <Card>
+      <Card className="border-2">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Past Reflections</CardTitle>
         </CardHeader>
@@ -756,51 +782,66 @@ export default function ReviewView() {
               No reflections for this period yet.
             </p>
           ) : (
-            pastReflections.map(reflection => (
-              <div
-                key={reflection.id}
-                className="border border-border rounded-md p-3"
-              >
-                <button
-                  onClick={() => setExpandedReflection(
-                    expandedReflection === reflection.id ? null : reflection.id
-                  )}
-                  className="w-full flex items-center justify-between text-left"
+            pastReflections.map(reflection => {
+              // Use saved trigger fields first, fall back to derived values for legacy data
+              const triggerLabel = reflection.trigger_label || (
+                reflection.entry_id ? 'Highlight' :
+                reflection.habit_id ? 'Habit' :
+                reflection.target_id ? 'Target' : null
+              )
+              const triggerValue = reflection.trigger_value || (
+                reflection.entry_habit_name ?
+                  `${reflection.entry_habit_name}${reflection.entry_note ? ` · ${reflection.entry_note}` : ''}` :
+                  reflection.habit_name || reflection.target_name || null
+              )
+
+              // Generate period label - avoid redundant "Jan 2 - Jan 2"
+              let reflectionPeriod
+              if (reflection.period_start && reflection.period_end) {
+                const startStr = formatDate(reflection.period_start)
+                const endStr = formatDate(reflection.period_end)
+                reflectionPeriod = startStr === endStr ? startStr : `${startStr} – ${endStr}`
+              } else {
+                reflectionPeriod = formatDate(reflection.created_at)
+              }
+
+              return (
+                <div
+                  key={reflection.id}
+                  className="group p-4 rounded-lg border border-border bg-card hover:border-foreground/20 transition-colors"
                 >
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="text-xs">
-                      {reflection.type}
-                    </Badge>
-                    {reflection.trigger && (
-                      <Badge variant="secondary" className="text-xs">
-                        {reflection.trigger.label}
-                      </Badge>
-                    )}
-                    <span className="text-xs text-muted-foreground">
-                      {reflection.period_label}
-                    </span>
+                  {/* Date and delete */}
+                  <div className="flex items-center justify-between mb-3">
+                    <time className="text-xs font-medium text-muted-foreground">{reflectionPeriod}</time>
+                    <button
+                      onClick={() => handleDeleteReflection(reflection.id)}
+                      className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                      title="Delete reflection"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
-                  {expandedReflection === reflection.id ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+
+                  {/* Trigger box */}
+                  {(triggerLabel || triggerValue) && (
+                    <div className="mb-3 p-3 rounded-md bg-muted/50 border border-border/50">
+                      {triggerLabel && (
+                        <div className="text-xs font-medium text-muted-foreground mb-1">{triggerLabel}</div>
+                      )}
+                      {triggerValue && (
+                        <div className="text-sm">{triggerValue}</div>
+                      )}
+                    </div>
                   )}
-                </button>
-                {expandedReflection === reflection.id && (
-                  <div className="mt-3 pt-3 border-t border-border space-y-2">
-                    {reflection.trigger && (
-                      <div className="text-xs p-2 rounded-md bg-muted/50">
-                        <span className="text-muted-foreground">{reflection.trigger.label}:</span>{' '}
-                        <span className="font-medium">{reflection.trigger.value}</span>
-                      </div>
-                    )}
-                    <p className="text-sm">
-                      {reflection.note}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))
+
+                  {/* Reflection content */}
+                  <RichTextDisplay
+                    content={reflection.note}
+                    className="text-[15px] leading-relaxed"
+                  />
+                </div>
+              )
+            })
           )}
         </CardContent>
       </Card>

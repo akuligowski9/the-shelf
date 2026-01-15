@@ -7,7 +7,6 @@ const entriesRouter = require('./routes/entries');
 const habitsRouter = require('./routes/habits');
 const targetsRouter = require('./routes/targets');
 const settingsRouter = require('./routes/settings');
-const programsRouter = require('./routes/programs');
 const reflectionsRouter = require('./routes/reflections');
 const preparationsRouter = require('./routes/preparations');
 const closuresRouter = require('./routes/closures');
@@ -31,7 +30,6 @@ app.use('/targets', targetsRouter);
 
 // new routes
 app.use('/settings', settingsRouter);
-app.use('/programs', programsRouter);
 app.use('/reflections', reflectionsRouter);
 app.use('/preparations', preparationsRouter);
 app.use('/closures', closuresRouter);
