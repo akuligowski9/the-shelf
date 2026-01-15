@@ -76,28 +76,6 @@ FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
 -- =========================
--- habit_prompts (warm-up / cool-down templates)
--- =========================
-CREATE TABLE IF NOT EXISTS habit_prompts (
-  id SERIAL PRIMARY KEY,
-  habit_id INT NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
-  prompt_type TEXT NOT NULL CHECK (prompt_type IN ('warmup', 'cooldown')),
-  name TEXT NOT NULL,
-  content TEXT NOT NULL DEFAULT '',
-  has_dynamic_elements BOOLEAN NOT NULL DEFAULT FALSE,
-  active BOOLEAN NOT NULL DEFAULT TRUE,
-  sort_order INT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-DROP TRIGGER IF EXISTS trg_habit_prompts_updated_at ON habit_prompts;
-CREATE TRIGGER trg_habit_prompts_updated_at
-BEFORE UPDATE ON habit_prompts
-FOR EACH ROW
-EXECUTE FUNCTION set_updated_at();
-
--- =========================
 -- targets (projects / milestones / ideas)
 -- =========================
 CREATE TABLE IF NOT EXISTS targets (
@@ -136,7 +114,6 @@ CREATE TABLE IF NOT EXISTS entries (
   note TEXT,
   is_highlight BOOLEAN NOT NULL DEFAULT FALSE,
   source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('manual', 'import', 'auto')),
-  warm_up_template_id INT REFERENCES habit_prompts(id) ON DELETE SET NULL,
   warm_up_note TEXT,
   cool_down_note TEXT,
   archived_at TIMESTAMPTZ,
@@ -231,24 +208,6 @@ FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
 -- =========================
--- habit_transitions (structural changes to habit set)
--- =========================
-CREATE TABLE IF NOT EXISTS habit_transitions (
-  id SERIAL PRIMARY KEY,
-  started_at TIMESTAMPTZ NOT NULL,
-  ended_at TIMESTAMPTZ,
-  note TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-DROP TRIGGER IF EXISTS trg_habit_transitions_updated_at ON habit_transitions;
-CREATE TRIGGER trg_habit_transitions_updated_at
-BEFORE UPDATE ON habit_transitions
-FOR EACH ROW
-EXECUTE FUNCTION set_updated_at();
-
--- =========================
 -- settings (key/value JSON)
 -- =========================
 CREATE TABLE IF NOT EXISTS settings (
@@ -256,30 +215,3 @@ CREATE TABLE IF NOT EXISTS settings (
   value JSONB NOT NULL DEFAULT '{}'::jsonb,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
--- =========================
--- daily_metrics (stored aggregates for fast charting)
--- =========================
-CREATE TABLE IF NOT EXISTS daily_metrics (
-  date DATE PRIMARY KEY,
-  is_rest_day BOOLEAN NOT NULL DEFAULT FALSE,
-  total_minutes INT DEFAULT 0,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- =========================
--- daily_metric_items (breakdown per day per bucket)
--- =========================
-CREATE TABLE IF NOT EXISTS daily_metric_items (
-  id SERIAL PRIMARY KEY,
-  date DATE NOT NULL,
-  bucket_type TEXT NOT NULL CHECK (bucket_type IN ('habit', 'practice', 'life', 'caution', 'transition', 'prep', 'closure')),
-  bucket_id INT,
-  minutes INT DEFAULT 0,
-  count INT DEFAULT 0,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (date, bucket_type, bucket_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_daily_metric_items_date ON daily_metric_items (date);
