@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -18,12 +18,7 @@ import { ChevronDown } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import { useEntries } from '@/context/EntriesContext'
 import { useHabits } from '@/context/HabitsContext'
-import {
-  mockPreparations,
-  mockClosures,
-  mockWarmUpTemplates,
-  mockCoolDownTemplates,
-} from '@/data/mockData'
+import { getSettings, setSetting, getPreparationsInRange, getClosuresInRange } from '@/lib/api'
 
 // Common timezones grouped by region
 const TIMEZONES = [
@@ -40,9 +35,6 @@ const TIMEZONES = [
   { value: 'UTC', label: 'UTC', offset: 'UTC+0' },
 ]
 
-const TIMEZONE_STORAGE_KEY = 'shelf_timezone'
-const SHELF_SORT_KEY = 'shelf_target_sort'
-
 // Options for how targets are sorted on the shelf
 const SHELF_SORT_OPTIONS = [
   { value: 'priority', label: 'Priority (drag order)', description: 'Manual ordering via drag and drop' },
@@ -50,23 +42,7 @@ const SHELF_SORT_OPTIONS = [
   { value: 'recent', label: 'Recently added', description: 'Newest targets first' },
 ]
 
-function getStoredShelfSort() {
-  try {
-    const stored = localStorage.getItem(SHELF_SORT_KEY)
-    if (stored && SHELF_SORT_OPTIONS.find(opt => opt.value === stored)) {
-      return stored
-    }
-  } catch (e) {}
-  return 'priority' // default
-}
-
-function getStoredTimezone() {
-  try {
-    const stored = localStorage.getItem(TIMEZONE_STORAGE_KEY)
-    if (stored && TIMEZONES.find(tz => tz.value === stored)) {
-      return stored
-    }
-  } catch (e) {}
+function getDefaultTimezone() {
   // Default to browser's timezone or Eastern
   const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone
   const match = TIMEZONES.find(tz => tz.value === browserTz)
@@ -75,23 +51,52 @@ function getStoredTimezone() {
 
 export default function SettingsView() {
   const { theme, setTheme } = useTheme()
-  const { habits, practices, actions, targets } = useHabits()
+  const { habits, practices, actions, targets, warmUpTemplates, coolDownTemplates } = useHabits()
   const { entries } = useEntries()
-  const [timezone, setTimezoneState] = useState(getStoredTimezone)
-  const [shelfSort, setShelfSortState] = useState(getStoredShelfSort)
+  const [timezone, setTimezoneState] = useState(getDefaultTimezone)
+  const [shelfSort, setShelfSortState] = useState('priority')
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
+
+  // Preparations and closures data from API
+  const [preparations, setPreparations] = useState([])
+  const [closures, setClosures] = useState([])
+
+  // Load settings from API on mount
+  useEffect(() => {
+    getSettings()
+      .then(settings => {
+        const tzSetting = settings.find(s => s.key === 'timezone')
+        const sortSetting = settings.find(s => s.key === 'shelf_target_sort')
+        if (tzSetting?.value) setTimezoneState(tzSetting.value)
+        if (sortSetting?.value) setShelfSortState(sortSetting.value)
+      })
+      .catch(err => console.error('Failed to load settings:', err))
+      .finally(() => setSettingsLoaded(true))
+  }, [])
+
+  // Load preparations and closures for metrics
+  useEffect(() => {
+    // Fetch all preparations and closures (using a wide date range)
+    const from = '2020-01-01'
+    const to = new Date().toISOString().split('T')[0]
+
+    getPreparationsInRange('day', from, to)
+      .then(preps => setPreparations(preps))
+      .catch(() => setPreparations([]))
+
+    getClosuresInRange('day', from, to)
+      .then(cls => setClosures(cls))
+      .catch(() => setClosures([]))
+  }, [])
 
   const setTimezone = (tz) => {
     setTimezoneState(tz)
-    try {
-      localStorage.setItem(TIMEZONE_STORAGE_KEY, tz)
-    } catch (e) {}
+    setSetting('timezone', tz).catch(err => console.error('Failed to save timezone:', err))
   }
 
   const setShelfSort = (sort) => {
     setShelfSortState(sort)
-    try {
-      localStorage.setItem(SHELF_SORT_KEY, sort)
-    } catch (e) {}
+    setSetting('shelf_target_sort', sort).catch(err => console.error('Failed to save shelf sort:', err))
   }
 
   const selectedTimezone = TIMEZONES.find(tz => tz.value === timezone)
@@ -129,11 +134,11 @@ export default function SettingsView() {
     const avgMinutesPerDay = daysWithEntries > 0 ? Math.round(totalMinutes / daysWithEntries) : 0
 
     // Rest days from preparations
-    const restDays = Object.values(mockPreparations).filter(p => p.rest_day).length
+    const restDays = preparations.filter(p => p.rest_day).length
 
     // Prep/Closure rates and habits per day
-    const daysWithPreps = Object.keys(mockPreparations).length
-    const daysWithCloses = Object.keys(mockClosures).length
+    const daysWithPreps = new Set(preparations.map(p => p.period_start)).size
+    const daysWithCloses = new Set(closures.map(c => c.occurred_at?.split('T')[0])).size
     const prepRate = daysWithEntries > 0 ? Math.round((daysWithPreps / daysWithEntries) * 100) : 0
     const closureRate = daysWithEntries > 0 ? Math.round((daysWithCloses / daysWithEntries) * 100) : 0
 
@@ -233,12 +238,12 @@ export default function SettingsView() {
       warmUpsUsed,
       coolDownsUsed,
       uniqueHabitsLogged,
-      daysWithPreparations: Object.keys(mockPreparations).length,
-      daysWithClosures: Object.keys(mockClosures).length,
+      daysWithPreparations: daysWithPreps,
+      daysWithClosures: daysWithCloses,
 
       // Templates (Structure)
-      warmUpTemplates: mockWarmUpTemplates.length,
-      coolDownTemplates: mockCoolDownTemplates.length,
+      warmUpTemplatesCount: warmUpTemplates?.length || 0,
+      coolDownTemplatesCount: coolDownTemplates?.length || 0,
 
       // Averages
       avgEntriesPerDay,
@@ -251,7 +256,7 @@ export default function SettingsView() {
       // Habit coverage
       habitCoverage,
     }
-  }, [entries, habits, practices, actions, targets])
+  }, [entries, habits, practices, actions, targets, preparations, closures, warmUpTemplates, coolDownTemplates])
 
   const themeLabels = {
     light: 'Light',
@@ -509,11 +514,11 @@ export default function SettingsView() {
                 </div>
                 <div>
                   <span className="text-muted-foreground">Warm-up Templates:</span>{' '}
-                  <span className="font-medium">{metrics.warmUpTemplates}</span>
+                  <span className="font-medium">{metrics.warmUpTemplatesCount}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Cool-down Templates:</span>{' '}
-                  <span className="font-medium">{metrics.coolDownTemplates}</span>
+                  <span className="font-medium">{metrics.coolDownTemplatesCount}</span>
                 </div>
               </div>
             </CollapsibleContent>

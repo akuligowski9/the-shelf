@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,7 +23,7 @@ import {
 } from 'recharts'
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
-import { mockPreparations, mockClosures, mockTransitions, mockTargets, mockReflections } from '@/data/mockData'
+import { getPreparationsInRange, getClosuresInRange, getReflections } from '@/lib/api'
 import { colorPalette } from '@/lib/colors'
 
 // Info tooltip helper component
@@ -118,7 +118,7 @@ function getWeekKey(dateStr) {
 }
 
 export default function ProgressView() {
-  const { habits } = useHabits()
+  const { habits, targets } = useHabits()
   const { entries: allEntries } = useEntries()
   const [viewMode, setViewMode] = useState('balance') // 'balance' | 'patterns'
   const [timeRange, setTimeRange] = useState('week') // 'week' | 'month' | 'year'
@@ -127,6 +127,29 @@ export default function ProgressView() {
     () => new Set([...habits.map(h => h.name), 'Life'])
   )
   const [selectedHabit, setSelectedHabit] = useState(habits[0]?.name || null)
+
+  // API data for metrics
+  const [preparations, setPreparations] = useState([])
+  const [closures, setClosures] = useState([])
+  const [reflections, setReflections] = useState([])
+
+  // Fetch preparations, closures, and reflections from API
+  useEffect(() => {
+    const from = '2020-01-01'
+    const to = new Date().toISOString().split('T')[0]
+
+    getPreparationsInRange('day', from, to)
+      .then(preps => setPreparations(preps))
+      .catch(() => setPreparations([]))
+
+    getClosuresInRange('day', from, to)
+      .then(cls => setClosures(cls))
+      .catch(() => setClosures([]))
+
+    getReflections()
+      .then(refs => setReflections(refs))
+      .catch(() => setReflections([]))
+  }, [])
 
   // Reset offset when changing time range
   const handleTimeRangeChange = (newRange) => {
@@ -350,9 +373,8 @@ export default function ProgressView() {
     const daysWithEntries = new Set(entriesInRange.map(e => e.occurred_at.split('T')[0])).size
 
     // Rest days - only count days explicitly marked as rest_day in preparations
-    const restDays = dateRange.filter(date => {
-      const prep = mockPreparations[date]
-      return prep && prep.rest_day === true
+    const restDays = preparations.filter(p => {
+      return dateRange.includes(p.period_start) && p.rest_day === true
     }).length
 
     // Total hours based on enabled filters only
@@ -381,8 +403,8 @@ export default function ProgressView() {
     // Patterns metrics
     const datesInRange = new Set(dateRange)
     const totalDaysInRange = dateRange.length
-    const prepsInRange = Object.keys(mockPreparations).filter(d => datesInRange.has(d)).length
-    const closuresInRange = Object.keys(mockClosures).filter(d => datesInRange.has(d)).length
+    const prepsInRange = preparations.filter(p => datesInRange.has(p.period_start)).length
+    const closuresInRange = closures.filter(c => datesInRange.has(c.occurred_at?.split('T')[0])).length
     const prepRate = totalDaysInRange > 0 ? Math.round((prepsInRange / totalDaysInRange) * 100) : 0
     const closureRate = totalDaysInRange > 0 ? Math.round((closuresInRange / totalDaysInRange) * 100) : 0
 
@@ -396,18 +418,18 @@ export default function ProgressView() {
     const highlights = entriesInRange.filter(e => e.is_highlight).length
 
     // Completed targets in range
-    const completedTargetsInRange = mockTargets.filter(t => {
+    const completedTargetsInRange = targets.filter(t => {
       if (t.status !== 'completed' || !t.done_at) return false
       return dateRange.includes(t.done_at)
     }).length
 
     // Total completed targets (all time)
-    const totalCompletedTargets = mockTargets.filter(t => t.status === 'completed').length
+    const totalCompletedTargets = targets.filter(t => t.status === 'completed').length
 
     // Reflections in range
-    const reflectionsInRange = mockReflections.filter(r => {
-      const reflectionDate = r.created_at.split('T')[0]
-      return dateRange.includes(reflectionDate)
+    const reflectionsInRange = reflections.filter(r => {
+      const reflectionDate = r.created_at?.split('T')[0]
+      return reflectionDate && dateRange.includes(reflectionDate)
     }).length
 
     // Habit coverage for enabled habits only
@@ -538,19 +560,9 @@ export default function ProgressView() {
         : 0
     } : null
 
-    // Transition metrics
-    const transitionsInRange = mockTransitions.filter(t => {
-      const transitionDate = t.started_at.split('T')[0]
-      return dateRange.includes(transitionDate)
-    }).length
-
-    const sortedTransitions = [...mockTransitions].sort(
-      (a, b) => new Date(b.started_at) - new Date(a.started_at)
-    )
-    const lastTransition = sortedTransitions[0]
-    const daysSinceLastTransition = lastTransition
-      ? Math.floor((today - new Date(lastTransition.started_at)) / (1000 * 60 * 60 * 24))
-      : null
+    // Transition metrics (transitions table was removed, using local state from context if available)
+    const transitionsInRange = 0
+    const daysSinceLastTransition = null
 
     return {
       // Shared
@@ -590,7 +602,7 @@ export default function ProgressView() {
       totalCompletedTargets,
       reflectionsInRange,
     }
-  }, [chartData, dateRange, habits, timeRange, periodOffset, enabledFilters])
+  }, [chartData, dateRange, habits, timeRange, periodOffset, enabledFilters, preparations, closures, reflections, targets])
 
   // Habit-specific patterns
   const habitPatterns = useMemo(() => {
