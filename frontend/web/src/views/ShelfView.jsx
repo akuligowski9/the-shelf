@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -41,14 +41,8 @@ import {
 } from '@/lib/colors'
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
-import {
-  mockPreparations,
-  mockClosures,
-  formatDateKey,
-  getPracticesForHabit,
-  getActionsForPractice,
-  habitTracksActions,
-} from '@/data/mockData'
+import { getPreparation, getClosure } from '@/lib/api'
+import { formatDateKey } from '@/data/mockData'
 
 // Sortable target card component
 function SortableTargetCard({ target, habits, progress, formatProgress }) {
@@ -201,16 +195,27 @@ export default function ShelfView() {
   const navigate = useNavigate()
 
   // Use shared habits and targets from context
-  const { habits, activeHabits, targets: contextTargets, reorderTargets, updateTargetStatus } = useHabits()
+  const { habits, activeHabits, targets: contextTargets, reorderTargets, updateTargetStatus, getPracticesForHabit, getActionsForPractice } = useHabits()
   const { entries: allEntries } = useEntries()
 
   // Today's date key
   const today = new Date()
   const todayKey = formatDateKey(today)
 
-  // Get preparation and closure for today (read-only, managed in Today view)
-  const dayPreparation = mockPreparations[todayKey] || null
-  const dayClosure = mockClosures[todayKey] || null
+  // Preparation and closure state (fetched from API)
+  const [dayPreparation, setDayPreparation] = useState(null)
+  const [dayClosure, setDayClosure] = useState(null)
+
+  // Fetch preparation and closure for today
+  useEffect(() => {
+    getPreparation('day', todayKey)
+      .then(prep => setDayPreparation(prep))
+      .catch(() => setDayPreparation(null))
+
+    getClosure('day', todayKey)
+      .then(closure => setDayClosure(closure))
+      .catch(() => setDayClosure(null))
+  }, [todayKey])
 
   // Calculate today's stats
   const todayStats = useMemo(() => {
@@ -455,7 +460,7 @@ export default function ShelfView() {
           <Accordion type="single" collapsible className="w-full">
             {activeHabits.map(habit => {
               const practices = getPracticesForHabit(habit.id)
-              const tracksActions = habitTracksActions(habit.id)
+              const tracksActions = habit.track_actions
               const actionCount = tracksActions
                 ? practices.reduce((acc, p) => acc + getActionsForPractice(p.id).length, 0)
                 : 0
