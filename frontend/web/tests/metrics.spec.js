@@ -119,7 +119,8 @@ test.describe('Review View Metrics', () => {
   });
 
   test('should display accomplishments section', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Accomplishments/i })).toBeVisible();
+    // Accomplishments may be a text element, not a heading
+    await expect(page.getByText('Accomplishments', { exact: true }).or(page.getByRole('heading', { name: /Accomplishments/i }))).toBeVisible();
   });
 
   test('should display past reflections section', async ({ page }) => {

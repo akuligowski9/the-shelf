@@ -6,8 +6,8 @@ test.describe('Navigation', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Should be on Shelf view - check for heading
-    await expect(page.getByRole('heading', { name: 'On the Shelf' })).toBeVisible();
+    // Should be on Shelf view - check for content
+    await expect(page.getByText('On the Shelf', { exact: true }).or(page.getByRole('heading', { name: 'On the Shelf' }))).toBeVisible();
 
     // Navigate to Today
     await page.getByRole('link', { name: /Today/i }).click();
@@ -16,12 +16,13 @@ test.describe('Navigation', () => {
     // Navigate to Progress
     await page.getByRole('link', { name: /Progress/i }).click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('button', { name: /Balance/i }).or(page.getByRole('button', { name: /Patterns/i }))).toBeVisible();
+    // Progress page has Balance/Patterns buttons
+    await expect(page.getByRole('button', { name: 'Balance' })).toBeVisible();
 
     // Navigate to Review
     await page.getByRole('link', { name: /Review/i }).click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: /Accomplishments/i }).or(page.getByText(/Past Reflections/i))).toBeVisible();
+    await expect(page.getByText('Accomplishments', { exact: true })).toBeVisible();
 
     // Navigate to Settings
     await page.getByRole('link', { name: /Settings/i }).click();
@@ -68,23 +69,25 @@ test.describe('Settings View', () => {
   });
 
   test('should display preferences section', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Preferences/i })).toBeVisible();
+    // Preferences is a generic element, not a heading
+    await expect(page.getByText('Preferences', { exact: true })).toBeVisible();
   });
 
   test('should display theme option', async ({ page }) => {
-    await expect(page.getByText('Theme')).toBeVisible();
+    await expect(page.getByText('Theme', { exact: true })).toBeVisible();
   });
 
   test('should display timezone option', async ({ page }) => {
-    await expect(page.getByText('Timezone')).toBeVisible();
+    await expect(page.getByText('Timezone', { exact: true })).toBeVisible();
   });
 
   test('should display data management options', async ({ page }) => {
-    await expect(page.getByText('Import Data')).toBeVisible();
-    await expect(page.getByText('Export Data')).toBeVisible();
+    await expect(page.getByText('Import Data', { exact: true })).toBeVisible();
+    await expect(page.getByText('Export Data', { exact: true })).toBeVisible();
   });
 
   test('should display data health section', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Data Health/i })).toBeVisible();
+    // Data Health is a generic element, not a heading
+    await expect(page.getByText('Data Health', { exact: true })).toBeVisible();
   });
 });
