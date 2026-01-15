@@ -37,10 +37,48 @@ export async function createHabit(habit) {
   return data.habit
 }
 
+export async function updateHabit(id, updates) {
+  const data = await fetchJson(`/habits/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  })
+  return data.habit
+}
+
+export async function deleteHabit(id) {
+  const data = await fetchJson(`/habits/${id}`, {
+    method: 'DELETE',
+  })
+  return data.deleted
+}
+
 // Practices
 export async function getPractices() {
   const data = await fetchJson('/habits/practices')
   return data.practices
+}
+
+export async function createPractice(practice) {
+  const data = await fetchJson('/habits/practices', {
+    method: 'POST',
+    body: JSON.stringify(practice),
+  })
+  return data.practice
+}
+
+export async function updatePractice(id, updates) {
+  const data = await fetchJson(`/habits/practices/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  })
+  return data.practice
+}
+
+export async function deletePractice(id) {
+  const data = await fetchJson(`/habits/practices/${id}`, {
+    method: 'DELETE',
+  })
+  return data.deleted
 }
 
 // Actions
@@ -49,10 +87,56 @@ export async function getActions() {
   return data.actions
 }
 
+export async function createAction(action) {
+  const data = await fetchJson('/habits/actions', {
+    method: 'POST',
+    body: JSON.stringify(action),
+  })
+  return data.action
+}
+
+export async function updateAction(id, updates) {
+  const data = await fetchJson(`/habits/actions/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  })
+  return data.action
+}
+
+export async function deleteAction(id) {
+  const data = await fetchJson(`/habits/actions/${id}`, {
+    method: 'DELETE',
+  })
+  return data.deleted
+}
+
 // Targets
 export async function getTargets() {
   const data = await fetchJson('/targets')
   return data.targets
+}
+
+export async function createTarget(target) {
+  const data = await fetchJson('/targets', {
+    method: 'POST',
+    body: JSON.stringify(target),
+  })
+  return data.target
+}
+
+export async function updateTarget(id, updates) {
+  const data = await fetchJson(`/targets/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  })
+  return data.target
+}
+
+export async function deleteTarget(id) {
+  const data = await fetchJson(`/targets/${id}`, {
+    method: 'DELETE',
+  })
+  return data.deleted
 }
 
 // Entries

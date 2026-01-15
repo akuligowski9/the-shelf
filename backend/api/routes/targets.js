@@ -91,4 +91,21 @@ router.patch('/:id', async (req, res, next) => {
   }
 });
 
+// DELETE /targets/:id - Delete a target
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const r = await pool.query('DELETE FROM targets WHERE id = $1::uuid RETURNING id', [id]);
+
+    if (r.rows.length === 0) {
+      return res.status(404).json({ ok: false, error: 'Target not found' });
+    }
+
+    res.json({ ok: true, deleted: id });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
