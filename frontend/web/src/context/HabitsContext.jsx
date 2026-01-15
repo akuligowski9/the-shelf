@@ -8,7 +8,21 @@ import {
   mockWarmUpTemplates as initialWarmUpTemplates,
   mockCoolDownTemplates as initialCoolDownTemplates,
 } from '@/data/mockData'
-import { loadInitialData } from '@/lib/api'
+import {
+  loadInitialData,
+  createHabit as apiCreateHabit,
+  updateHabit as apiUpdateHabit,
+  deleteHabit as apiDeleteHabit,
+  createPractice as apiCreatePractice,
+  updatePractice as apiUpdatePractice,
+  deletePractice as apiDeletePractice,
+  createAction as apiCreateAction,
+  updateAction as apiUpdateAction,
+  deleteAction as apiDeleteAction,
+  createTarget as apiCreateTarget,
+  updateTarget as apiUpdateTarget,
+  deleteTarget as apiDeleteTarget,
+} from '@/lib/api'
 
 const HabitsContext = createContext(null)
 
@@ -49,20 +63,27 @@ export function HabitsProvider({ children }) {
   }, [])
 
   // Update a habit's color
-  const updateHabitColor = (habitId, colorKey) => {
+  const updateHabitColor = async (habitId, colorKey) => {
+    // Optimistic update
     setHabits(prev =>
       prev.map(h => h.id === habitId ? { ...h, color: colorKey } : h)
     )
+    try {
+      await apiUpdateHabit(habitId, { color: colorKey })
+    } catch (err) {
+      console.error('Failed to update habit color:', err)
+    }
   }
 
   // Toggle habit active status (tracks changes when in transition)
-  const toggleHabitActive = (habitId) => {
+  const toggleHabitActive = async (habitId) => {
     const habit = habits.find(h => h.id === habitId)
     if (!habit) return
 
     const fromState = habit.active ? 'active' : 'inactive'
     const toState = habit.active ? 'inactive' : 'active'
     const isDeactivating = habit.active
+    const newActiveState = !habit.active
 
     // Track the change if we're in a transition window
     if (inTransition) {
@@ -83,10 +104,17 @@ export function HabitsProvider({ children }) {
       })
     }
 
-    // Toggle the habit
+    // Optimistic update - toggle the habit
     setHabits(prev =>
-      prev.map(h => h.id === habitId ? { ...h, active: !h.active } : h)
+      prev.map(h => h.id === habitId ? { ...h, active: newActiveState } : h)
     )
+
+    // Call API
+    try {
+      await apiUpdateHabit(habitId, { active: newActiveState })
+    } catch (err) {
+      console.error('Failed to toggle habit active:', err)
+    }
 
     // Cascade effects when deactivating
     if (isDeactivating) {
@@ -107,6 +135,12 @@ export function HabitsProvider({ children }) {
             return t
           })
         )
+        // Update targets in API
+        for (const t of affectedTargets) {
+          apiUpdateTarget(t.id, { status: 'parked' }).catch(err =>
+            console.error('Failed to update target status:', err)
+          )
+        }
       }
 
       // Track and deactivate practices under this habit
@@ -124,6 +158,12 @@ export function HabitsProvider({ children }) {
             return p
           })
         )
+        // Update practices in API
+        for (const p of affectedPractices) {
+          apiUpdatePractice(p.id, { active: false }).catch(err =>
+            console.error('Failed to update practice active:', err)
+          )
+        }
       }
     }
   }
@@ -149,34 +189,69 @@ export function HabitsProvider({ children }) {
   }
 
   // Toggle practice active status
-  const togglePracticeActive = (practiceId) => {
+  const togglePracticeActive = async (practiceId) => {
+    const practice = practices.find(p => p.id === practiceId)
+    if (!practice) return
+
+    const newActiveState = !practice.active
     setPractices(prev =>
-      prev.map(p => p.id === practiceId ? { ...p, active: !p.active } : p)
+      prev.map(p => p.id === practiceId ? { ...p, active: newActiveState } : p)
     )
+    try {
+      await apiUpdatePractice(practiceId, { active: newActiveState })
+    } catch (err) {
+      console.error('Failed to toggle practice active:', err)
+    }
   }
 
   // Add a new practice to a habit
-  const addPractice = (habitId, name) => {
-    const newId = Math.max(...practices.map(p => p.id), 0) + 1
-    setPractices(prev => [
-      ...prev,
-      { id: newId, habit_id: habitId, name, active: true }
-    ])
-    return newId
+  const addPractice = async (habitId, name) => {
+    try {
+      const newPractice = await apiCreatePractice({
+        habit_id: habitId,
+        name,
+        active: true,
+      })
+      setPractices(prev => [...prev, newPractice])
+      return newPractice.id
+    } catch (err) {
+      console.error('Failed to create practice:', err)
+      return null
+    }
   }
 
   // Update practice name
-  const updatePracticeName = (practiceId, name) => {
+  const updatePracticeName = async (practiceId, name) => {
     setPractices(prev =>
       prev.map(p => p.id === practiceId ? { ...p, name } : p)
     )
+    try {
+      await apiUpdatePractice(practiceId, { name })
+    } catch (err) {
+      console.error('Failed to update practice name:', err)
+    }
   }
 
   // Update practice details (rich text content)
-  const updatePracticeDetails = (practiceId, details) => {
+  const updatePracticeDetails = async (practiceId, details) => {
     setPractices(prev =>
       prev.map(p => p.id === practiceId ? { ...p, details } : p)
     )
+    try {
+      await apiUpdatePractice(practiceId, { details })
+    } catch (err) {
+      console.error('Failed to update practice details:', err)
+    }
+  }
+
+  // Delete a practice
+  const deletePractice = async (practiceId) => {
+    setPractices(prev => prev.filter(p => p.id !== practiceId))
+    try {
+      await apiDeletePractice(practiceId)
+    } catch (err) {
+      console.error('Failed to delete practice:', err)
+    }
   }
 
   // Get practice by id
@@ -231,32 +306,57 @@ export function HabitsProvider({ children }) {
   }
 
   // Toggle action active status
-  const toggleActionActive = (actionId) => {
+  const toggleActionActive = async (actionId) => {
+    const action = actions.find(a => a.id === actionId)
+    if (!action) return
+
+    const newActiveState = !action.active
     setActions(prev =>
-      prev.map(a => a.id === actionId ? { ...a, active: !a.active } : a)
+      prev.map(a => a.id === actionId ? { ...a, active: newActiveState } : a)
     )
+    try {
+      await apiUpdateAction(actionId, { active: newActiveState })
+    } catch (err) {
+      console.error('Failed to toggle action active:', err)
+    }
   }
 
   // Add a new action to a practice
-  const addAction = (practiceId, name) => {
-    const newId = Math.max(...actions.map(a => a.id), 0) + 1
-    setActions(prev => [
-      ...prev,
-      { id: newId, practice_id: practiceId, name, active: true }
-    ])
-    return newId
+  const addAction = async (practiceId, name) => {
+    try {
+      const newAction = await apiCreateAction({
+        practice_id: practiceId,
+        name,
+        active: true,
+      })
+      setActions(prev => [...prev, newAction])
+      return newAction.id
+    } catch (err) {
+      console.error('Failed to create action:', err)
+      return null
+    }
   }
 
   // Update action name
-  const updateActionName = (actionId, name) => {
+  const updateActionName = async (actionId, name) => {
     setActions(prev =>
       prev.map(a => a.id === actionId ? { ...a, name } : a)
     )
+    try {
+      await apiUpdateAction(actionId, { name })
+    } catch (err) {
+      console.error('Failed to update action name:', err)
+    }
   }
 
   // Delete an action
-  const deleteAction = (actionId) => {
+  const deleteAction = async (actionId) => {
     setActions(prev => prev.filter(a => a.id !== actionId))
+    try {
+      await apiDeleteAction(actionId)
+    } catch (err) {
+      console.error('Failed to delete action:', err)
+    }
   }
 
   // ---- Target management ----
@@ -269,38 +369,60 @@ export function HabitsProvider({ children }) {
   }
 
   // Update target status
-  const updateTargetStatus = (targetId, newStatus) => {
+  const updateTargetStatus = async (targetId, newStatus) => {
     setTargets(prev =>
       prev.map(t => t.id === targetId ? { ...t, status: newStatus } : t)
     )
+    try {
+      await apiUpdateTarget(targetId, { status: newStatus })
+    } catch (err) {
+      console.error('Failed to update target status:', err)
+    }
   }
 
   // Add a new target
-  const addTarget = (name, habitId = null, status = 'planned') => {
-    const newId = Math.max(...targets.map(t => t.id), 0) + 1
-    setTargets(prev => [
-      ...prev,
-      { id: newId, name, habit_id: habitId, status }
-    ])
-    return newId
+  const addTarget = async (name, habitId = null, status = 'planned', type = 'project') => {
+    try {
+      const newTarget = await apiCreateTarget({
+        name,
+        habit_id: habitId,
+        status,
+        type,
+      })
+      setTargets(prev => [...prev, newTarget])
+      return newTarget.id
+    } catch (err) {
+      console.error('Failed to create target:', err)
+      return null
+    }
   }
 
   // Update target name
-  const updateTargetName = (targetId, name) => {
+  const updateTargetName = async (targetId, name) => {
     setTargets(prev =>
       prev.map(t => t.id === targetId ? { ...t, name } : t)
     )
+    try {
+      await apiUpdateTarget(targetId, { name })
+    } catch (err) {
+      console.error('Failed to update target name:', err)
+    }
   }
 
   // Update target habit association
-  const updateTargetHabit = (targetId, habitId) => {
+  const updateTargetHabit = async (targetId, habitId) => {
     setTargets(prev =>
       prev.map(t => t.id === targetId ? { ...t, habit_id: habitId } : t)
     )
+    try {
+      await apiUpdateTarget(targetId, { habit_id: habitId })
+    } catch (err) {
+      console.error('Failed to update target habit:', err)
+    }
   }
 
   // Update target dates and duration
-  const updateTargetDates = (targetId, startDate, endDate, plannedDuration) => {
+  const updateTargetDates = async (targetId, startDate, endDate, plannedDuration) => {
     setTargets(prev =>
       prev.map(t => t.id === targetId ? {
         ...t,
@@ -309,6 +431,15 @@ export function HabitsProvider({ children }) {
         planned_duration: plannedDuration
       } : t)
     )
+    try {
+      await apiUpdateTarget(targetId, {
+        start_date: startDate,
+        end_date: endDate,
+        planned_duration: plannedDuration,
+      })
+    } catch (err) {
+      console.error('Failed to update target dates:', err)
+    }
   }
 
   // Reorder targets (for drag-and-drop)
@@ -322,44 +453,82 @@ export function HabitsProvider({ children }) {
         return t
       })
     )
+    // Note: sort_order is local-only for now, no API call
   }
 
   // Delete a target
-  const deleteTarget = (targetId) => {
+  const deleteTarget = async (targetId) => {
     setTargets(prev => prev.filter(t => t.id !== targetId))
+    try {
+      await apiDeleteTarget(targetId)
+    } catch (err) {
+      console.error('Failed to delete target:', err)
+    }
   }
 
   // ---- Habit management ----
 
   // Add a new habit
-  const addHabit = (name, targetMinutes = 30, color = 'sage') => {
-    const newId = Math.max(...habits.map(h => h.id), 0) + 1
-    setHabits(prev => [
-      ...prev,
-      { id: newId, name, active: true, target_minutes: targetMinutes, color }
-    ])
-    return newId
+  const addHabit = async (name, targetMinutes = 30, color = 'sage') => {
+    try {
+      const newHabit = await apiCreateHabit({
+        name,
+        target_minutes: targetMinutes,
+        color,
+        active: true,
+      })
+      setHabits(prev => [...prev, newHabit])
+      return newHabit.id
+    } catch (err) {
+      console.error('Failed to create habit:', err)
+      return null
+    }
   }
 
   // Update habit name
-  const updateHabitName = (habitId, name) => {
+  const updateHabitName = async (habitId, name) => {
     setHabits(prev =>
       prev.map(h => h.id === habitId ? { ...h, name } : h)
     )
+    try {
+      await apiUpdateHabit(habitId, { name })
+    } catch (err) {
+      console.error('Failed to update habit name:', err)
+    }
   }
 
   // Update habit target minutes
-  const updateHabitTargetMinutes = (habitId, targetMinutes) => {
+  const updateHabitTargetMinutes = async (habitId, targetMinutes) => {
     setHabits(prev =>
       prev.map(h => h.id === habitId ? { ...h, target_minutes: targetMinutes } : h)
     )
+    try {
+      await apiUpdateHabit(habitId, { target_minutes: targetMinutes })
+    } catch (err) {
+      console.error('Failed to update habit target minutes:', err)
+    }
   }
 
   // Update habit track_actions flag
-  const updateHabitTrackActions = (habitId, trackActions) => {
+  const updateHabitTrackActions = async (habitId, trackActions) => {
     setHabits(prev =>
       prev.map(h => h.id === habitId ? { ...h, track_actions: trackActions } : h)
     )
+    try {
+      await apiUpdateHabit(habitId, { track_actions: trackActions })
+    } catch (err) {
+      console.error('Failed to update habit track_actions:', err)
+    }
+  }
+
+  // Delete a habit
+  const deleteHabit = async (habitId) => {
+    setHabits(prev => prev.filter(h => h.id !== habitId))
+    try {
+      await apiDeleteHabit(habitId)
+    } catch (err) {
+      console.error('Failed to delete habit:', err)
+    }
   }
 
   // ---- Template management ----
@@ -513,6 +682,7 @@ export function HabitsProvider({ children }) {
     updateHabitName,
     updateHabitTargetMinutes,
     updateHabitTrackActions,
+    deleteHabit,
     // Practices
     practices,
     getPracticesForHabit,
@@ -522,6 +692,7 @@ export function HabitsProvider({ children }) {
     updatePracticeName,
     updatePracticeDetails,
     getPracticeById,
+    deletePractice,
     // Scheduled Practices
     scheduledPractices,
     getScheduledPracticesForDate,
