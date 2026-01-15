@@ -7,7 +7,7 @@ import { mockPreparations } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
 import { getReflections, createReflection, deleteReflection } from '@/lib/api'
-import { Star, Target, Lightbulb, Clock, Activity, AlertCircle, Coffee, Zap, PenLine, X, Trash2 } from 'lucide-react'
+import { Star, Target, Lightbulb, Clock, Activity, AlertCircle, Coffee, Zap, PenLine, X, Trash2, Leaf } from 'lucide-react'
 import RichTextEditor, { RichTextDisplay } from '@/components/ui/rich-text-editor'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import PeriodSelector, { getDateRange } from '@/components/shared/PeriodSelector'
@@ -353,12 +353,23 @@ export default function ReviewView() {
       trigger_label = selectedTrigger.label
       trigger_value = selectedTrigger.value
 
+      // Only set foreign key IDs for highlights/targets if they exist in our data
       if (selectedTrigger.id?.startsWith('highlight-')) {
-        entry_id = parseInt(selectedTrigger.id.replace('highlight-', ''), 10)
-        reflectionType = 'entry'
+        const entryIdNum = parseInt(selectedTrigger.id.replace('highlight-', ''), 10)
+        // Verify the entry exists before setting foreign key
+        const entryExists = allEntries.some(e => e.id === entryIdNum)
+        if (entryExists) {
+          entry_id = entryIdNum
+          reflectionType = 'entry'
+        }
       } else if (selectedTrigger.id?.startsWith('target-')) {
-        target_id = parseInt(selectedTrigger.id.replace('target-', ''), 10)
-        reflectionType = 'target'
+        const targetIdNum = parseInt(selectedTrigger.id.replace('target-', ''), 10)
+        // Verify the target exists before setting foreign key
+        const targetExists = targets.some(t => t.id === targetIdNum)
+        if (targetExists) {
+          target_id = targetIdNum
+          reflectionType = 'target'
+        }
       }
     }
 
@@ -418,50 +429,110 @@ export default function ReviewView() {
         <CardContent>
           {/* Main Stats Row */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 group">
               <div className="p-2 rounded-md bg-primary/10">
                 <Clock className="h-4 w-4 text-primary" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-lg font-semibold">{currentMetrics.totalHours}h</p>
                 <p className="text-xs text-muted-foreground">Total time</p>
               </div>
+              <button
+                onClick={() => startReflection({
+                  type: 'metric',
+                  id: 'metric-total-time',
+                  label: 'Total Time',
+                  value: `${currentMetrics.totalHours} hours this period`,
+                })}
+                className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Reflect on this"
+              >
+                <PenLine className="h-4 w-4" />
+              </button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 group">
               <div className="p-2 rounded-md bg-blue-500/10">
                 <Activity className="h-4 w-4 text-blue-500" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-lg font-semibold">{currentMetrics.habitEntries}</p>
                 <p className="text-xs text-muted-foreground">Habit sessions</p>
               </div>
+              <button
+                onClick={() => startReflection({
+                  type: 'metric',
+                  id: 'metric-habit-sessions',
+                  label: 'Habit Sessions',
+                  value: `${currentMetrics.habitEntries} habit sessions this period`,
+                })}
+                className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Reflect on this"
+              >
+                <PenLine className="h-4 w-4" />
+              </button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 group">
               <div className="p-2 rounded-md bg-amber-500/10">
                 <AlertCircle className="h-4 w-4 text-amber-500" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-lg font-semibold">{currentMetrics.cautionEntries}</p>
                 <p className="text-xs text-muted-foreground">Cautions</p>
               </div>
+              <button
+                onClick={() => startReflection({
+                  type: 'metric',
+                  id: 'metric-cautions',
+                  label: 'Cautions',
+                  value: `${currentMetrics.cautionEntries} caution${currentMetrics.cautionEntries !== 1 ? 's' : ''} logged this period`,
+                })}
+                className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Reflect on this"
+              >
+                <PenLine className="h-4 w-4" />
+              </button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 group">
               <div className="p-2 rounded-md bg-violet-500/10">
                 <Zap className="h-4 w-4 text-violet-500" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-lg font-semibold">{currentMetrics.totalActions}</p>
                 <p className="text-xs text-muted-foreground">Actions</p>
               </div>
+              <button
+                onClick={() => startReflection({
+                  type: 'metric',
+                  id: 'metric-actions',
+                  label: 'Actions',
+                  value: `${currentMetrics.totalActions} action${currentMetrics.totalActions !== 1 ? 's' : ''} completed this period`,
+                })}
+                className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Reflect on this"
+              >
+                <PenLine className="h-4 w-4" />
+              </button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 group">
               <div className="p-2 rounded-md bg-muted">
                 <Coffee className="h-4 w-4 text-muted-foreground" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-lg font-semibold">{currentMetrics.restDays}</p>
                 <p className="text-xs text-muted-foreground">Rest days</p>
               </div>
+              <button
+                onClick={() => startReflection({
+                  type: 'metric',
+                  id: 'metric-rest-days',
+                  label: 'Rest Days',
+                  value: `${currentMetrics.restDays} rest day${currentMetrics.restDays !== 1 ? 's' : ''} this period`,
+                })}
+                className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Reflect on this"
+              >
+                <PenLine className="h-4 w-4" />
+              </button>
             </div>
           </div>
 
@@ -611,10 +682,23 @@ export default function ReviewView() {
               {/* Highlighted entries */}
               {highlights.map(entry => {
                 const habitName = getHabitName(entry)
+                // Get icon and color based on entry type
+                const getTypeIcon = () => {
+                  switch (entry.type) {
+                    case 'habit':
+                      return <Activity className="h-4 w-4 text-blue-500" />
+                    case 'life':
+                      return <Leaf className="h-4 w-4 text-emerald-500" />
+                    case 'caution':
+                      return <AlertCircle className="h-4 w-4 text-orange-500" />
+                    default:
+                      return <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                  }
+                }
                 return (
                   <div key={entry.id} className="flex items-start gap-3 py-2 group">
                     <div className="flex-shrink-0 mt-0.5">
-                      <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                      {getTypeIcon()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -772,11 +856,11 @@ export default function ReviewView() {
       <Separator />
 
       {/* Past Reflections */}
-      <Card className="border-2">
+      <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Past Reflections</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
           {pastReflections.length === 0 ? (
             <p className="text-sm text-muted-foreground py-2">
               No reflections for this period yet.
@@ -808,11 +892,11 @@ export default function ReviewView() {
               return (
                 <div
                   key={reflection.id}
-                  className="group p-4 rounded-lg border border-border bg-card hover:border-foreground/20 transition-colors"
+                  className="group p-4 rounded-xl bg-muted dark:bg-muted/40"
                 >
                   {/* Date and delete */}
                   <div className="flex items-center justify-between mb-3">
-                    <time className="text-xs font-medium text-muted-foreground">{reflectionPeriod}</time>
+                    <time className="text-xs font-semibold text-foreground/60">{reflectionPeriod}</time>
                     <button
                       onClick={() => handleDeleteReflection(reflection.id)}
                       className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity p-1"
@@ -822,14 +906,14 @@ export default function ReviewView() {
                     </button>
                   </div>
 
-                  {/* Trigger box */}
+                  {/* Trigger - accent left border style */}
                   {(triggerLabel || triggerValue) && (
-                    <div className="mb-3 p-3 rounded-md bg-muted/50 border border-border/50">
+                    <div className="mb-4 pl-3 border-l-2 border-primary/50">
                       {triggerLabel && (
-                        <div className="text-xs font-medium text-muted-foreground mb-1">{triggerLabel}</div>
+                        <div className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-0.5">{triggerLabel}</div>
                       )}
                       {triggerValue && (
-                        <div className="text-sm">{triggerValue}</div>
+                        <div className="text-sm text-foreground/80">{triggerValue}</div>
                       )}
                     </div>
                   )}

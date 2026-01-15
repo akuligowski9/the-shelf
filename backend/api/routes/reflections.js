@@ -101,7 +101,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /reflections - Create a reflection
 router.post('/', async (req, res, next) => {
   try {
-    const { type, period_start, period_end, habit_id, target_id, entry_id, note } = req.body || {};
+    const { type, period_start, period_end, habit_id, target_id, entry_id, note, trigger_label, trigger_value } = req.body || {};
 
     if (!note) {
       return res.status(400).json({ ok: false, error: 'note is required' });
@@ -122,8 +122,8 @@ router.post('/', async (req, res, next) => {
     }
 
     const q = `
-      INSERT INTO reflections (reflection_type, period_start, period_end, habit_id, target_id, entry_id, note)
-      VALUES ($1, $2::date, $3::date, $4, $5, $6, $7)
+      INSERT INTO reflections (reflection_type, period_start, period_end, habit_id, target_id, entry_id, note, trigger_label, trigger_value)
+      VALUES ($1, $2::date, $3::date, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
@@ -135,6 +135,8 @@ router.post('/', async (req, res, next) => {
       target_id || null,
       entry_id || null,
       note,
+      trigger_label || null,
+      trigger_value || null,
     ]);
 
     res.status(201).json({ ok: true, reflection: result.rows[0] });
