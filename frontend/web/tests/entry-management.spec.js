@@ -1,7 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('Entry Management', () => {
-  test.beforeEach(async ({ page }) => {
+  // Use entryCleanup fixture to auto-delete entries created during tests
+  test.beforeEach(async ({ page, entryCleanup }) => {
     await page.goto('/today');
     await page.waitForLoadState('networkidle');
   });
@@ -107,7 +108,7 @@ test.describe('Entry Management', () => {
 });
 
 test.describe('Entry with Practice and Target', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, entryCleanup }) => {
     await page.goto('/today');
     await page.waitForLoadState('networkidle');
   });

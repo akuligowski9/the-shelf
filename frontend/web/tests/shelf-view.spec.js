@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('Shelf View - Complete Display', () => {
   test.beforeEach(async ({ page }) => {
@@ -170,7 +170,8 @@ test.describe('Shelf View - Target Interaction', () => {
 });
 
 test.describe('Shelf View - Data Consistency', () => {
-  test.beforeEach(async ({ page }) => {
+  // Use entryCleanup fixture to auto-delete entries created during tests
+  test.beforeEach(async ({ page, entryCleanup }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
   });

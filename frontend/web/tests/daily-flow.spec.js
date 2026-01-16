@@ -1,7 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 
 test.describe('Daily Flow', () => {
-  test.beforeEach(async ({ page }) => {
+  // Use entryCleanup fixture to auto-delete entries created during tests
+  test.beforeEach(async ({ page, entryCleanup }) => {
     // Start at Today view
     await page.goto('/today');
     await page.waitForLoadState('networkidle');
@@ -89,7 +90,7 @@ test.describe('Daily Flow', () => {
 });
 
 test.describe('Edit Entry', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, entryCleanup }) => {
     await page.goto('/today');
     await page.waitForLoadState('networkidle');
   });
@@ -125,7 +126,7 @@ test.describe('Edit Entry', () => {
 });
 
 test.describe('Day Preparation and Closure', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, entryCleanup }) => {
     await page.goto('/today');
     await page.waitForLoadState('networkidle');
   });
