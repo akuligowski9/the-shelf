@@ -481,14 +481,14 @@ export default function ReviewView() {
               </div>
               <div className="flex-1">
                 <p className="text-lg font-semibold">{currentMetrics.habitEntries}</p>
-                <p className="text-xs text-muted-foreground">Habit sessions</p>
+                <p className="text-xs text-muted-foreground">Habits</p>
               </div>
               <button
                 onClick={() => startReflection({
                   type: 'metric',
-                  id: 'metric-habit-sessions',
-                  label: 'Habit Sessions',
-                  value: `${currentMetrics.habitEntries} habit sessions this period`,
+                  id: 'metric-habits',
+                  label: 'Habits',
+                  value: `${currentMetrics.habitEntries} habit entries this period`,
                 })}
                 className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 title="Reflect on this"
@@ -518,19 +518,19 @@ export default function ReviewView() {
               </button>
             </div>
             <div className="flex items-center gap-2 group">
-              <div className="p-2 rounded-md bg-violet-500/10">
-                <Zap className="h-4 w-4 text-violet-500" />
+              <div className="p-2 rounded-md bg-cyan-500/10">
+                <Leaf className="h-4 w-4 text-cyan-500" />
               </div>
               <div className="flex-1">
-                <p className="text-lg font-semibold">{currentMetrics.totalActions}</p>
-                <p className="text-xs text-muted-foreground">Actions</p>
+                <p className="text-lg font-semibold">{currentMetrics.lifeEntries}</p>
+                <p className="text-xs text-muted-foreground">Life</p>
               </div>
               <button
                 onClick={() => startReflection({
                   type: 'metric',
-                  id: 'metric-actions',
-                  label: 'Actions',
-                  value: `${currentMetrics.totalActions} action${currentMetrics.totalActions !== 1 ? 's' : ''} completed this period`,
+                  id: 'metric-life',
+                  label: 'Life',
+                  value: `${currentMetrics.lifeEntries} life entr${currentMetrics.lifeEntries !== 1 ? 'ies' : 'y'} this period`,
                 })}
                 className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                 title="Reflect on this"
