@@ -315,10 +315,10 @@ export default function ReviewView() {
       .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
   }, [dateRange, highlightFilter])
 
-  // Get completed targets (done status, not archived) within the date range
+  // Get completed targets (completed status, not archived) within the date range
   const completedTargets = useMemo(() => {
     return targets.filter(t => {
-      if (t.status !== 'done') return false
+      if (t.status !== 'completed') return false
       // If target has a done_at date, filter by period
       if (t.done_at) {
         const doneDate = new Date(t.done_at)

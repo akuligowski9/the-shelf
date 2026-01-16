@@ -34,8 +34,8 @@ router.post('/', async (req, res, next) => {
     if (!name || typeof name !== 'string') {
       return res.status(400).json({ ok: false, error: 'name is required' });
     }
-    if (!status || !['active', 'parked', 'planned', 'done', 'archived'].includes(status)) {
-      return res.status(400).json({ ok: false, error: "status must be one of: active, parked, planned, done, archived" });
+    if (!status || !['active', 'parked', 'planned', 'completed', 'archived'].includes(status)) {
+      return res.status(400).json({ ok: false, error: "status must be one of: active, parked, planned, completed, archived" });
     }
 
     const q = `
@@ -57,8 +57,8 @@ router.patch('/:id', async (req, res, next) => {
     const { status, name, description, type, start_date, end_date, planned_duration, habit_id } = req.body || {};
 
     // Allow partial updates, but validate if provided
-    if (status && !['active', 'parked', 'planned', 'done', 'archived'].includes(status)) {
-      return res.status(400).json({ ok: false, error: "status must be one of: active, parked, planned, done, archived" });
+    if (status && !['active', 'parked', 'planned', 'completed', 'archived'].includes(status)) {
+      return res.status(400).json({ ok: false, error: "status must be one of: active, parked, planned, completed, archived" });
     }
     if (type && !['project', 'milestone', 'idea'].includes(type)) {
       return res.status(400).json({ ok: false, error: "type must be 'project', 'milestone', or 'idea'" });
