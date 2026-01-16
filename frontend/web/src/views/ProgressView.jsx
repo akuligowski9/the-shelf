@@ -1045,7 +1045,7 @@ export default function ProgressView() {
                       </span>
                     )}
                     {habit.change === 0 && (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground">0%</span>
                     )}
                   </div>
                 ))}
@@ -1062,7 +1062,7 @@ export default function ProgressView() {
                       </span>
                     )}
                     {stats.lifeTrend.change === 0 && (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground">0%</span>
                     )}
                   </div>
                 )}
