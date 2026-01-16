@@ -120,13 +120,17 @@ function getWeekKey(dateStr) {
 export default function ProgressView() {
   const { habits, targets } = useHabits()
   const { entries } = useEntries()
+
+  // Filter to only active habits for Progress view (excludes pseudo-habits like "Caution Behaviors")
+  const activeHabits = useMemo(() => habits.filter(h => h.active), [habits])
+
   const [viewMode, setViewMode] = useState('balance') // 'balance' | 'patterns'
   const [timeRange, setTimeRange] = useState('week') // 'week' | 'month' | 'year'
   const [periodOffset, setPeriodOffset] = useState(0) // 0 = current, -1 = previous, etc.
   const [enabledFilters, setEnabledFilters] = useState(
-    () => new Set([...habits.map(h => h.name), 'Life'])
+    () => new Set([...activeHabits.map(h => h.name), 'Life'])
   )
-  const [selectedHabit, setSelectedHabit] = useState(habits[0]?.name || null)
+  const [selectedHabit, setSelectedHabit] = useState(activeHabits[0]?.name || null)
 
   // API data
   const [preparations, setPreparations] = useState([])
@@ -298,7 +302,7 @@ export default function ProgressView() {
         if (!dataByWeek[weekKey]) {
           dataByWeek[weekKey] = { date: weekKey, life: 0, caution: 0 }
           weekDates[weekKey] = []
-          habits.forEach(habit => {
+          activeHabits.forEach(habit => {
             dataByWeek[weekKey][habit.name] = 0
           })
         }
@@ -337,7 +341,7 @@ export default function ProgressView() {
       // Convert minutes to hours
       return Object.values(dataByWeek).map(week => {
         const converted = { date: week.date, dateLabel: week.dateLabel, dateRange: week.dateRange, caution: week.caution }
-        habits.forEach(habit => {
+        activeHabits.forEach(habit => {
           converted[habit.name] = Math.round((week[habit.name] || 0) / 60 * 10) / 10
         })
         converted.life = Math.round((week.life || 0) / 60 * 10) / 10
@@ -351,7 +355,7 @@ export default function ProgressView() {
     // Initialize all dates with zeros
     dateRange.forEach(date => {
       dataByDate[date] = { date, dateLabel: formatDateLabel(date, timeRange), life: 0, caution: 0 }
-      habits.forEach(habit => {
+      activeHabits.forEach(habit => {
         dataByDate[date][habit.name] = 0
       })
     })
@@ -377,13 +381,13 @@ export default function ProgressView() {
     // Convert minutes to hours
     return Object.values(dataByDate).map(day => {
       const converted = { date: day.date, dateLabel: day.dateLabel, caution: day.caution }
-      habits.forEach(habit => {
+      activeHabits.forEach(habit => {
         converted[habit.name] = Math.round((day[habit.name] || 0) / 60 * 10) / 10
       })
       converted.life = Math.round((day.life || 0) / 60 * 10) / 10
       return converted
     })
-  }, [dateRange, habits, timeRange, serverMetrics])
+  }, [dateRange, activeHabits, timeRange, serverMetrics])
 
   // Calculate summary stats (filtered by enabledFilters)
   const stats = useMemo(() => {
@@ -422,7 +426,7 @@ export default function ProgressView() {
 
     // Total hours based on enabled filters only (from chartData which is already processed)
     const totalHours = chartData.reduce((acc, day) => {
-      const dayHours = habits
+      const dayHours = activeHabits
         .filter(h => enabledHabitNames.has(h.name))
         .reduce((sum, h) => sum + (day[h.name] || 0), 0) + (includeLife ? day.life : 0)
       return acc + dayHours
@@ -513,7 +517,7 @@ export default function ProgressView() {
 
     // Balance: Life vs Habit time split (filtered)
     const habitHours = chartData.reduce((acc, day) => {
-      return acc + habits
+      return acc + activeHabits
         .filter(h => enabledHabitNames.has(h.name))
         .reduce((sum, h) => sum + (day[h.name] || 0), 0)
     }, 0)
@@ -522,7 +526,7 @@ export default function ProgressView() {
     const lifePercent = totalHours > 0 ? Math.round((lifeHours / totalHours) * 100) : 0
 
     // Balance: Most and least logged habits (filtered)
-    const habitTotals = habits
+    const habitTotals = activeHabits
       .filter(h => enabledHabitNames.has(h.name))
       .map(habit => {
         const hours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
@@ -563,7 +567,7 @@ export default function ProgressView() {
       })
     }
 
-    const balanceTrend = habits
+    const balanceTrend = activeHabits
       .filter(h => enabledHabitNames.has(h.name))
       .map(habit => {
         const currentHours = habitTotals.find(h => h.name === habit.name)?.hours || 0
@@ -622,7 +626,7 @@ export default function ProgressView() {
       totalCompletedTargets,
       reflectionsInRange,
     }
-  }, [chartData, dateRange, habits, timeRange, periodOffset, enabledFilters, preparations, closures, reflections, targets, serverMetrics, prevServerMetrics])
+  }, [chartData, dateRange, activeHabits, timeRange, periodOffset, enabledFilters, preparations, closures, reflections, targets, serverMetrics, prevServerMetrics])
 
   // Habit-specific patterns from server metrics
   const habitPatterns = useMemo(() => {
@@ -657,7 +661,7 @@ export default function ProgressView() {
 
     // Longest gap between entries (all-time from entries context)
     let longestGap = null
-    const habitObj = habits.find(h => h.name === selectedHabit)
+    const habitObj = activeHabits.find(h => h.name === selectedHabit)
     if (habitObj) {
       const allTimeEntries = entries
         .filter(e => e.habit_id === habitObj.id && !e.archived_at)
@@ -689,7 +693,7 @@ export default function ProgressView() {
       sessionsInRange,
       hoursInRange: Math.round(hoursInRange * 10) / 10,
     }
-  }, [selectedHabit, serverMetrics, entries, habits])
+  }, [selectedHabit, serverMetrics, entries, activeHabits])
 
   // Toggle a filter
   const toggleFilter = (filterName) => {
@@ -708,7 +712,7 @@ export default function ProgressView() {
   const patternsData = useMemo(() => {
     return chartData.map(day => {
       const result = { date: day.date, dateLabel: day.dateLabel }
-      habits.forEach(habit => {
+      activeHabits.forEach(habit => {
         if (enabledFilters.has(habit.name)) {
           result[habit.name] = day[habit.name] || 0
         }
@@ -719,7 +723,7 @@ export default function ProgressView() {
       }
       return result
     })
-  }, [chartData, habits, enabledFilters])
+  }, [chartData, activeHabits, enabledFilters])
 
   return (
     <TooltipProvider>
@@ -842,7 +846,7 @@ export default function ProgressView() {
                     content={<ChartTooltip />}
                     cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }}
                   />
-                  {habits
+                  {activeHabits
                     .filter(h => enabledFilters.has(h.name))
                     .map(habit => (
                       <Bar
@@ -877,7 +881,7 @@ export default function ProgressView() {
                     content={<ChartTooltip />}
                     cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1 }}
                   />
-                  {habits
+                  {activeHabits
                     .filter(h => enabledFilters.has(h.name))
                     .map(habit => (
                       <Line
@@ -917,7 +921,7 @@ export default function ProgressView() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {habits.map(habit => {
+            {activeHabits.map(habit => {
               const isEnabled = enabledFilters.has(habit.name)
               const colors = colorPalette[habit.color]
               return (
@@ -964,7 +968,7 @@ export default function ProgressView() {
             <CardContent>
               {/* Stacked bar showing all categories */}
               <div className="h-4 bg-muted rounded-full overflow-hidden flex">
-                {habits
+                {activeHabits
                   .filter(h => enabledFilters.has(h.name))
                   .map(habit => {
                     const habitHours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
@@ -987,7 +991,7 @@ export default function ProgressView() {
               </div>
               {/* Legend with percentages */}
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-sm">
-                {habits
+                {activeHabits
                   .filter(h => enabledFilters.has(h.name))
                   .map(habit => {
                     const habitHours = chartData.reduce((acc, day) => acc + (day[habit.name] || 0), 0)
@@ -1224,7 +1228,7 @@ export default function ProgressView() {
             <CardContent>
               {/* Habit Selector */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {habits.map(habit => {
+                {activeHabits.map(habit => {
                   const isSelected = selectedHabit === habit.name
                   const colors = colorPalette[habit.color]
                   return (
