@@ -4,8 +4,6 @@
 
 The Shelf is a system for planning attention, logging what actually happened, and reviewing balance over time. It’s a place to start and end the day—taking things off the shelf when ready, and putting them back when it’s time to stop.
 
-This project is built for a single user (me).
-
 The goal is not productivity, streaks, or self-optimization.  
 The goal is **visibility, pattern recognition, and intentional adjustment**.
 
@@ -104,8 +102,6 @@ These terms are used consistently throughout the project:
 
 ## 🎯 Targets: Active, Parked, Planned (Single Model)
 
-Targets replace the older “program/cycle” concept.
-
 A target is classified by its scheduling fields:
 
 - **Active**  
@@ -115,9 +111,6 @@ A target is classified by its scheduling fields:
 - **Planned**  
   Target is time-boxed in the future.
   - Example: start/end dates set for next month.
-
-- **On the Shelf (Unscheduled)**  
-  Target has no time box (no start/end). It is available, but not currently scheduled.
 
 - **Parked**  
   Target is intentionally inactive but preserved for later review.
@@ -157,7 +150,7 @@ Entries are first-class records of reality. They are intentionally typed because
   - used as markers/overlays
   - helps explain shifts over time
 
-### Transitions (Refined)
+### Transitions
 
 Transitions are **changes to structure**, not movement.
 
@@ -219,9 +212,6 @@ Habits, life events, caution behaviors, and transitions are treated as **peer si
   - totals per habit (e.g., “Spanish: 10–15 hours this week”)
   - trend lines for shifts over time
 
-- **Calendar view**
-  - each day can be color-coded by distribution
-  - optional pie chart per day to visualize time allocation
 
 ### Balance view
 
@@ -303,14 +293,12 @@ Imported logs:
 ## 🗂 Data Model (Conceptual Relationships)
 
 - **Habit** → has many **Practices**
-- **Target** → may be unscheduled (on shelf), planned (time-boxed), active (current window), or parked
+- **Target** → may be planned (time-boxed), active (current window), or parked, complete, or archived. 
 - **Entry** → typed event (habit/practice, life event, caution behavior, transition)
 - **Highlight** → flag on an Entry
 - **Reflection** → stored narrative over a date range
 - **Parking Lot Item** → stored inactive item (reviewable)
 - **Metrics** → stored daily aggregates (time and counts) + visualizations
-
-Single-user system. No auth required.
 
 ---
 
