@@ -57,7 +57,7 @@ const ENTRY_TYPES = [
 ]
 
 export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchive, editingEntry }) {
-  const { targets, activeHabits, getPracticesForHabit, getActionsForPractice, getWarmUpTemplatesForHabit } = useHabits()
+  const { targets, habits, activeHabits, getPracticesForHabit, getActionsForPractice, getWarmUpTemplatesForHabit } = useHabits()
 
   const [entryType, setEntryType] = useState('habit')
   const [habitId, setHabitId] = useState('')
@@ -66,6 +66,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
   const [selectedActions, setSelectedActions] = useState([])
   const [durationMinutes, setDurationMinutes] = useState('')
   const [note, setNote] = useState('')
+  const [cautionBehaviorId, setCautionBehaviorId] = useState('')
 
   // Timestamp state (for editing)
   const [occurredAt, setOccurredAt] = useState('')
@@ -111,6 +112,17 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
   const selectedPractice = useMemo(() => {
     return practices.find(p => p.id === Number(practiceId))
   }, [practiceId, practices])
+
+  // Caution behaviors (practices under the "Caution Behaviors" habit)
+  const cautionBehaviors = useMemo(() => {
+    const cautionHabit = habits.find(h => h.name === 'Caution Behaviors')
+    if (!cautionHabit) return []
+    return getPracticesForHabit(cautionHabit.id)
+  }, [habits, getPracticesForHabit])
+
+  const selectedCautionBehavior = useMemo(() => {
+    return cautionBehaviors.find(b => b.id === Number(cautionBehaviorId))
+  }, [cautionBehaviorId, cautionBehaviors])
 
   // Warm-up templates for selected habit
   const warmUpTemplates = useMemo(() => {
@@ -176,6 +188,8 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
             setWarmUpTemplateId(String(editingEntry.warm_up_template_id))
           }
         }
+      } else if (editingEntry.type === 'caution' && editingEntry.practice_id) {
+        setCautionBehaviorId(String(editingEntry.practice_id))
       }
     }
   }, [editingEntry, activeHabits])
@@ -193,6 +207,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     setWarmUpTemplateId('')
     setWarmUpCompleted(false)
     setWarmUpNote('')
+    setCautionBehaviorId('')
   }
 
   const handleSubmit = (e) => {
@@ -235,7 +250,15 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
       if (habitId && targetId) {
         setLastTargetForHabit(habitId, targetId)
       }
+    } else if (entryType === 'caution') {
+      // Caution entries can have a predefined behavior
+      const cautionHabit = habits.find(h => h.name === 'Caution Behaviors')
+      entry.habit_id = cautionHabit?.id || null
+      entry.practice_id = cautionBehaviorId ? Number(cautionBehaviorId) : null
+      entry.practice = selectedCautionBehavior?.name || null
+      entry.note = note || null
     } else {
+      // Life entries
       entry.note = note || null
     }
 
@@ -519,19 +542,38 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
             />
           </div>
 
+          {/* Caution Behavior selector (only for caution entries) */}
+          {entryType === 'caution' && cautionBehaviors.length > 0 && (
+            <div className="space-y-2">
+              <Label>Behavior</Label>
+              <Select value={cautionBehaviorId} onValueChange={setCautionBehaviorId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a behavior (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cautionBehaviors.map((behavior) => (
+                    <SelectItem key={behavior.id} value={String(behavior.id)}>
+                      {behavior.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Note (only for life/caution entries) */}
           {entryType !== 'habit' && (
             <div className="space-y-2">
-              <Label>Note</Label>
+              <Label>Note <span className="text-muted-foreground text-xs">(optional)</span></Label>
               <Textarea
                 placeholder={
                   entryType === 'life'
                     ? 'What happened? (e.g., Family time, errands, travel)'
-                    : 'What behavior to note? (e.g., Alcohol, poor sleep)'
+                    : 'Additional context or details...'
                 }
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                rows={3}
+                rows={2}
               />
             </div>
           )}
