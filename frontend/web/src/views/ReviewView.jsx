@@ -315,10 +315,19 @@ export default function ReviewView() {
       .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
   }, [dateRange, highlightFilter])
 
-  // Get completed targets (for now, we don't have completed status in mock, but structure is ready)
+  // Get completed targets (done status, not archived) within the date range
   const completedTargets = useMemo(() => {
-    return targets.filter(t => t.status === 'completed')
-  }, [targets])
+    return targets.filter(t => {
+      if (t.status !== 'done') return false
+      // If target has a done_at date, filter by period
+      if (t.done_at) {
+        const doneDate = new Date(t.done_at)
+        return doneDate >= dateRange.start && doneDate <= dateRange.end
+      }
+      // If no done_at, include it (legacy data)
+      return true
+    })
+  }, [targets, dateRange])
 
   // Filter reflections within the date range
   const pastReflections = useMemo(() => {
@@ -669,19 +678,25 @@ export default function ReviewView() {
               <ToggleGroupItem value="caution" size="sm" className="text-xs px-3">
                 Caution
               </ToggleGroupItem>
+              <ToggleGroupItem value="target" size="sm" className="text-xs px-3">
+                Targets
+              </ToggleGroupItem>
             </ToggleGroup>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {(() => {
-            const showTargets = highlightFilter === 'all'
-            const hasContent = highlights.length > 0 || (showTargets && completedTargets.length > 0)
+            const showTargets = highlightFilter === 'all' || highlightFilter === 'target'
+            const showHighlights = highlightFilter !== 'target'
+            const hasContent = (showHighlights && highlights.length > 0) || (showTargets && completedTargets.length > 0)
 
             if (!hasContent) {
               return (
                 <p className="text-sm text-muted-foreground py-2">
                   {highlightFilter === 'all'
                     ? 'No highlights or completed targets for this period.'
+                    : highlightFilter === 'target'
+                    ? 'No completed targets for this period.'
                     : `No ${highlightFilter} highlights for this period.`}
                 </p>
               )
@@ -690,7 +705,7 @@ export default function ReviewView() {
             return (
             <>
               {/* Highlighted entries */}
-              {highlights.map(entry => {
+              {showHighlights && highlights.map(entry => {
                 const habitName = getHabitName(entry)
                 // Get icon and color based on entry type
                 const getTypeIcon = () => {
@@ -743,8 +758,8 @@ export default function ReviewView() {
                 )
               })}
 
-              {/* Completed targets - only show for 'all' filter */}
-              {highlightFilter === 'all' && completedTargets.map(target => (
+              {/* Completed targets */}
+              {showTargets && completedTargets.map(target => (
                 <div key={target.id} className="flex items-start gap-3 py-2 group">
                   <div className="flex-shrink-0 mt-0.5">
                     <Target className="h-4 w-4 text-green-600" />
