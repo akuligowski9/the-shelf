@@ -499,7 +499,7 @@ export default function AttentionView() {
   }
 
   // Caution Behaviors handlers
-  const cautionHabit = habits.find(h => h.name === 'Caution Behaviors')
+  const cautionHabit = habits.find(h => h.type === 'caution')
   const cautionBehaviors = cautionHabit ? getPracticesForHabit(cautionHabit.id) : []
 
   const handleAddBehavior = () => {
@@ -1100,7 +1100,7 @@ export default function AttentionView() {
         </CardHeader>
         <CardContent>
           <div className="space-y-0.5">
-            {habits.filter(h => h.name !== 'Caution Behaviors').map(habit => {
+            {habits.filter(h => h.type !== 'caution').map(habit => {
               const habitColor = colorPalette[habit.color] || colorPalette.forest
               const practices = getPracticesForHabit(habit.id)
               const allActions = habit.track_actions ? practices.flatMap(p => getActionsForPractice(p.id)) : []
@@ -1423,7 +1423,7 @@ export default function AttentionView() {
           <CardContent className="space-y-4">
             {/* Habit toggles */}
             <div className="space-y-2">
-              {habits.filter(h => h.name !== 'Caution Behaviors').map(habit => {
+              {habits.filter(h => h.type !== 'caution').map(habit => {
                 const habitColor = colorPalette[habit.color] || colorPalette.forest
                 const change = transitionChanges.find(c => c.habitId === habit.id)
                 return (

@@ -7,6 +7,12 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
   try {
     const { limit = 15 } = req.query;
+    const parsedLimit = parseInt(limit, 10);
+
+    // Validate limit bounds
+    if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+      return res.status(400).json({ ok: false, error: 'limit must be between 1 and 100' });
+    }
 
     const q = `
       SELECT *
@@ -14,7 +20,7 @@ router.get('/', async (req, res, next) => {
       ORDER BY ended_at DESC
       LIMIT $1
     `;
-    const r = await pool.query(q, [parseInt(limit, 10)]);
+    const r = await pool.query(q, [parsedLimit]);
     res.json({ ok: true, transitions: r.rows });
   } catch (err) {
     next(err);

@@ -283,7 +283,7 @@ export default function ShelfView() {
       .filter(e => e.is_highlight && !e.archived_at)
       .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
       .slice(0, 3)
-  }, [])
+  }, [allEntries])
 
   // Calculate progress for each target based on entries linked to that target
   const targetProgress = useMemo(() => {
@@ -685,7 +685,7 @@ export default function ShelfView() {
         <CardContent>
           <div className="flex items-baseline gap-2 mb-4">
             <span className="text-3xl font-semibold">{activeHabits.length}</span>
-            <span className="text-muted-foreground">/ {habits.length} active</span>
+            <span className="text-muted-foreground">/ {habits.filter(h => h.type !== 'caution').length} active</span>
           </div>
           <Accordion type="single" collapsible className="w-full">
             {activeHabits.map(habit => {

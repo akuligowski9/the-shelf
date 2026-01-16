@@ -181,8 +181,8 @@ export function HabitsProvider({ children }) {
     return habits.find(h => h.name === name)
   }
 
-  // Get active habits
-  const activeHabits = habits.filter(h => h.active)
+  // Get active habits (type='habit' only, excludes caution behaviors)
+  const activeHabits = habits.filter(h => h.active && h.type !== 'caution')
 
   // ---- Practice management ----
 

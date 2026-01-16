@@ -20,6 +20,7 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE IF NOT EXISTS habits (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
+  type TEXT NOT NULL DEFAULT 'habit' CHECK (type IN ('habit', 'caution')),
   active BOOLEAN NOT NULL DEFAULT TRUE,
   target_minutes INT NOT NULL DEFAULT 60,
   color TEXT NOT NULL DEFAULT 'sage',

@@ -356,9 +356,13 @@ export default function ReviewView() {
     return `${year}-${month}-${day}`
   }
 
+  // Track saving state to prevent duplicate submissions
+  const [isSavingReflection, setIsSavingReflection] = useState(false)
+
   // Save a new reflection
   const handleSaveReflection = async () => {
-    if (!reflectionText.trim()) return
+    if (!reflectionText.trim() || isSavingReflection) return
+    setIsSavingReflection(true)
 
     // Extract entry_id or target_id from trigger
     let entry_id = null
@@ -408,6 +412,8 @@ export default function ReviewView() {
       setSelectedTrigger(null)
     } catch (err) {
       console.error('Failed to save reflection:', err)
+    } finally {
+      setIsSavingReflection(false)
     }
   }
 

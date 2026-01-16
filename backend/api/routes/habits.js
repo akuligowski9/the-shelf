@@ -312,6 +312,30 @@ router.delete('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 
+    // Check for dependent entries
+    const entriesCheck = await pool.query(
+      'SELECT COUNT(*) as count FROM entries WHERE habit_id = $1 AND archived_at IS NULL',
+      [id]
+    );
+    if (parseInt(entriesCheck.rows[0].count, 10) > 0) {
+      return res.status(400).json({
+        ok: false,
+        error: `Cannot delete habit: ${entriesCheck.rows[0].count} entries reference this habit. Archive entries first.`
+      });
+    }
+
+    // Check for dependent practices
+    const practicesCheck = await pool.query(
+      'SELECT COUNT(*) as count FROM practices WHERE habit_id = $1',
+      [id]
+    );
+    if (parseInt(practicesCheck.rows[0].count, 10) > 0) {
+      return res.status(400).json({
+        ok: false,
+        error: `Cannot delete habit: ${practicesCheck.rows[0].count} practices belong to this habit. Delete practices first.`
+      });
+    }
+
     const r = await pool.query('DELETE FROM habits WHERE id = $1 RETURNING id', [id]);
 
     if (r.rows.length === 0) {

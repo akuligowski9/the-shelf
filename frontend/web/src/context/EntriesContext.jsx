@@ -35,10 +35,10 @@ export function EntriesProvider({ children }) {
     }
   }, [])
 
-  // Load entries on mount
+  // Load entries on mount (intentionally only runs once with initial dateRange)
   useEffect(() => {
     fetchEntries(dateRange.from, dateRange.to)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchEntries]) // fetchEntries is stable via useCallback
 
   // Create a new entry
   const createEntry = async (entry) => {

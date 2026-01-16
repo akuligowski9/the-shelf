@@ -164,6 +164,18 @@ router.delete('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 
+    // Check for dependent entries
+    const entriesCheck = await pool.query(
+      'SELECT COUNT(*) as count FROM entries WHERE target_id = $1 AND archived_at IS NULL',
+      [id]
+    );
+    if (parseInt(entriesCheck.rows[0].count, 10) > 0) {
+      return res.status(400).json({
+        ok: false,
+        error: `Cannot delete target: ${entriesCheck.rows[0].count} entries reference this target. Archive entries first.`
+      });
+    }
+
     const r = await pool.query('DELETE FROM targets WHERE id = $1 RETURNING id', [id]);
 
     if (r.rows.length === 0) {

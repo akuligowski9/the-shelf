@@ -37,6 +37,11 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ ok: false, error: "habit_id must be null for non-habit entries" });
     }
 
+    // Validate duration_minutes is non-negative if provided
+    if (duration_minutes !== undefined && duration_minutes !== null && duration_minutes < 0) {
+      return res.status(400).json({ ok: false, error: "duration_minutes must be non-negative" });
+    }
+
     const q = `
       INSERT INTO entries (
         occurred_at, type, habit_id, practice_id, note, duration_minutes,

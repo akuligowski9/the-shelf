@@ -79,13 +79,10 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
 
   // activeHabits comes from context
 
-  // Active targets for the selected habit
+  // All targets for the selected habit (show all statuses when editing, active/planned for new entries)
   const availableTargets = useMemo(() => {
     if (!habitId) return []
-    return targets.filter(t =>
-      t.habit_id === Number(habitId) &&
-      (t.status === 'active' || t.status === 'planned')
-    )
+    return targets.filter(t => t.habit_id === Number(habitId))
   }, [habitId, targets])
 
   const selectedTarget = useMemo(() => {
@@ -113,9 +110,9 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     return practices.find(p => p.id === Number(practiceId))
   }, [practiceId, practices])
 
-  // Caution behaviors (active practices under the "Caution Behaviors" habit)
+  // Caution behaviors (active practices under the caution-type habit)
   const cautionBehaviors = useMemo(() => {
-    const cautionHabit = habits.find(h => h.name === 'Caution Behaviors')
+    const cautionHabit = habits.find(h => h.type === 'caution')
     if (!cautionHabit) return []
     return getPracticesForHabit(cautionHabit.id).filter(p => p.active)
   }, [habits, getPracticesForHabit])
@@ -244,7 +241,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
       entry.target_id = selectedTarget ? Number(targetId) : null
       entry.target = selectedTarget?.name || null
       entry.actions = selectedActions.length > 0 ? selectedActions : null
-      entry.note = null // Habits don't have notes, use actions instead
+      entry.note = note || null
 
       // Remember this target for next time
       if (habitId && targetId) {
@@ -415,8 +412,8 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
                   {availableTargets.map(target => (
                     <SelectItem key={target.id} value={String(target.id)}>
                       {target.name}
-                      {target.status === 'planned' && (
-                        <span className="text-muted-foreground ml-1">(planned)</span>
+                      {target.status !== 'active' && (
+                        <span className="text-muted-foreground ml-1">({target.status})</span>
                       )}
                     </SelectItem>
                   ))}
