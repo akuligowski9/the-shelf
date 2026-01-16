@@ -251,9 +251,8 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
         setLastTargetForHabit(habitId, targetId)
       }
     } else if (entryType === 'caution') {
-      // Caution entries can have a predefined behavior
-      const cautionHabit = habits.find(h => h.name === 'Caution Behaviors')
-      entry.habit_id = cautionHabit?.id || null
+      // Caution entries: only send practice_id (behavior), not habit_id
+      // Backend requires habit_id to be null for non-habit entries
       entry.practice_id = cautionBehaviorId ? Number(cautionBehaviorId) : null
       entry.practice = selectedCautionBehavior?.name || null
       entry.note = note || null
@@ -311,6 +310,11 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     if (entryType === 'habit') {
       return habitId !== ''
     }
+    if (entryType === 'caution') {
+      // Caution: need behavior OR note OR duration
+      return cautionBehaviorId !== '' || note.trim() !== '' || durationMinutes !== ''
+    }
+    // Life: need note or duration
     return note.trim() !== '' || durationMinutes !== ''
   }
 
