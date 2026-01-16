@@ -7,7 +7,7 @@ test.describe('Navigation', () => {
     await page.waitForLoadState('networkidle');
 
     // Should be on Shelf view - check for content
-    await expect(page.getByText('On the Shelf', { exact: true }).or(page.getByRole('heading', { name: 'On the Shelf' }))).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'The Shelf' })).toBeVisible();
 
     // Navigate to Today
     await page.getByRole('link', { name: /Today/i }).click();
@@ -53,7 +53,7 @@ test.describe('Shelf View', () => {
   });
 
   test('should display targets on the shelf', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'On the Shelf' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'The Shelf' })).toBeVisible();
   });
 
   test('should display activity stats', async ({ page }) => {

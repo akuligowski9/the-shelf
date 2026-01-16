@@ -29,8 +29,8 @@ test.describe('Shelf View - Complete Display', () => {
     }
   });
 
-  test('should display On the Shelf section', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'On the Shelf' })).toBeVisible();
+  test('should display The Shelf section', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'The Shelf' })).toBeVisible();
   });
 
   test('should show Active targets count', async ({ page }) => {
