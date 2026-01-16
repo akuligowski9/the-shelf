@@ -19,6 +19,8 @@ import { Sun, Moon, ChevronRight, ChevronDown, Calendar, Clock, GripVertical, Bo
 import {
   DndContext,
   closestCenter,
+  rectIntersection,
+  pointerWithin,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -133,7 +135,7 @@ function SortableTargetCard({ target, habits, progress, formatProgress }) {
 }
 
 // Compact sortable card for Planned/Parked targets
-function CompactSortableCard({ target, habits }) {
+function CompactSortableCard({ target, habits, progress, formatProgress }) {
   const {
     attributes,
     listeners,
@@ -164,14 +166,19 @@ function CompactSortableCard({ target, habits }) {
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <span className="text-sm truncate flex-1">{target.name}</span>
       {habit && (
         <Badge
           variant="outline"
-          className={`text-xs ${getHabitBadgeClassesByColor(habit.color || 'sage')}`}
+          className={`text-xs shrink-0 ${getHabitBadgeClassesByColor(habit.color || 'sage')}`}
         >
           {habit.name}
         </Badge>
+      )}
+      <span className="text-sm truncate flex-1">{target.name}</span>
+      {progress && formatProgress && (
+        <span className="text-xs text-muted-foreground shrink-0">
+          {formatProgress(progress.minutes)}
+        </span>
       )}
     </div>
   )
@@ -278,23 +285,14 @@ export default function ShelfView() {
       .slice(0, 3)
   }, [])
 
-  // Calculate progress for each target based on entries for that habit
+  // Calculate progress for each target based on entries linked to that target
   const targetProgress = useMemo(() => {
     const progress = {}
     contextTargets.forEach(target => {
-      if (!target.habit_id) return
-
-      // Count entries for this target's habit since the target started
-      const targetStart = target.start_date ? new Date(target.start_date) : null
+      // Count entries explicitly linked to this target via target_id
       const relevantEntries = allEntries.filter(entry => {
         if (entry.archived_at) return false
-        if (entry.habit_id !== target.habit_id) return false
-        // If target has a start date, only count entries after that date
-        if (targetStart) {
-          const entryDate = new Date(entry.occurred_at)
-          if (entryDate < targetStart) return false
-        }
-        return true
+        return entry.target_id === target.id
       })
 
       if (relevantEntries.length > 0) {
@@ -351,6 +349,9 @@ export default function ShelfView() {
       // Planned/Parked sorted by user's setting
       planned: contextTargets.filter(t => t.status === 'planned').sort(backlogSortFn),
       parked: contextTargets.filter(t => t.status === 'parked').sort(backlogSortFn),
+      // Completed/Archived sorted by recent first
+      completed: contextTargets.filter(t => t.status === 'completed').sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)),
+      archived: contextTargets.filter(t => t.status === 'archived').sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)),
     }
   }, [contextTargets, shelfSort])
 
@@ -376,6 +377,8 @@ export default function ShelfView() {
     if (targets.active.find(t => t.id === targetId)) return 'active'
     if (targets.planned.find(t => t.id === targetId)) return 'planned'
     if (targets.parked.find(t => t.id === targetId)) return 'parked'
+    if (targets.completed.find(t => t.id === targetId)) return 'completed'
+    if (targets.archived.find(t => t.id === targetId)) return 'archived'
     return null
   }
 
@@ -395,7 +398,7 @@ export default function ShelfView() {
     const overId = over.id
 
     // Check if dropped on a zone directly
-    const zoneIds = ['active', 'planned', 'parked']
+    const zoneIds = ['active', 'planned', 'parked', 'completed', 'archived']
     const droppedOnZone = zoneIds.includes(overId) ? overId : null
 
     // Find source zone
@@ -440,16 +443,228 @@ export default function ShelfView() {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">The Shelf</h1>
-        <p className="text-muted-foreground">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric'
-          })}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">The Shelf</h1>
+          <p className="text-muted-foreground">
+            {new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground"
+          onClick={() => navigate('/attention#targets')}
+        >
+          Manage Targets
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
       </div>
+
+      {/* Targets - Drag between zones */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={pointerWithin}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        {/* Active Targets - Cards on the Shelf */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className={`w-2 h-2 rounded-full ${statusColors.active.dot}`}></span>
+            <span className={`text-sm font-medium ${statusColors.active.text}`}>Active</span>
+            <span className="text-sm text-muted-foreground/60">({targets.active.length})</span>
+          </div>
+
+          <DroppableZone id="active" className="min-h-[80px] rounded-lg">
+            <SortableContext
+              items={targets.active.map(t => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {targets.active.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="py-8 text-center">
+                    <p className="text-muted-foreground">No active targets</p>
+                    <p className="text-sm text-muted-foreground/60 mt-1">
+                      Drag a target here to activate it
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-3">
+                  {(showAllActive ? targets.active : targets.active.slice(0, 5)).map(t => (
+                    <SortableTargetCard
+                      key={t.id}
+                      target={t}
+                      habits={habits}
+                      progress={targetProgress[t.id]}
+                      formatProgress={formatProgress}
+                    />
+                  ))}
+                  {targets.active.length > 5 && (
+                    <button
+                      onClick={() => setShowAllActive(!showAllActive)}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors text-left py-2"
+                    >
+                      {showAllActive
+                        ? 'Show less'
+                        : `+${targets.active.length - 5} more → View all`}
+                    </button>
+                  )}
+                </div>
+              )}
+            </SortableContext>
+          </DroppableZone>
+        </div>
+
+        {/* Target Shelf - 2x2 grid for Planned, Parked, Completed, Archived */}
+        <Card>
+          <CardContent className="py-4">
+            <div className="grid grid-cols-2 gap-8">
+              {/* Planned */}
+              <DroppableZone id="planned" className="min-h-[60px] rounded-md">
+                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${statusColors.planned.dot}`}></span>
+                  <span className={statusColors.planned.text}>Planned</span>
+                  <span className="text-muted-foreground/60">({targets.planned.length})</span>
+                </h4>
+                <SortableContext
+                  items={targets.planned.map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {targets.planned.length === 0 ? (
+                    <p className="text-sm text-muted-foreground/60 py-2">Drop here to plan</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {targets.planned.slice(0, 5).map(t => (
+                        <CompactSortableCard key={t.id} target={t} habits={habits} progress={targetProgress[t.id]} formatProgress={formatProgress} />
+                      ))}
+                      {targets.planned.length > 5 && (
+                        <button
+                          onClick={() => navigate('/attention#targets')}
+                          className="text-xs text-muted-foreground hover:text-primary transition-colors w-full text-left py-1"
+                        >
+                          +{targets.planned.length - 5} more → View all
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </SortableContext>
+              </DroppableZone>
+
+              {/* Parked */}
+              <DroppableZone id="parked" className="min-h-[60px] rounded-md">
+                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${statusColors.parked.dot}`}></span>
+                  <span className={statusColors.parked.text}>Parked</span>
+                  <span className="text-muted-foreground/60">({targets.parked.length})</span>
+                </h4>
+                <SortableContext
+                  items={targets.parked.map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {targets.parked.length === 0 ? (
+                    <p className="text-sm text-muted-foreground/60 py-2">Drop here to park</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {targets.parked.slice(0, 5).map(t => (
+                        <CompactSortableCard key={t.id} target={t} habits={habits} progress={targetProgress[t.id]} formatProgress={formatProgress} />
+                      ))}
+                      {targets.parked.length > 5 && (
+                        <button
+                          onClick={() => navigate('/attention#targets')}
+                          className="text-xs text-muted-foreground hover:text-primary transition-colors w-full text-left py-1"
+                        >
+                          +{targets.parked.length - 5} more → View all
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </SortableContext>
+              </DroppableZone>
+
+              {/* Completed */}
+              <DroppableZone id="completed" className="min-h-[60px] rounded-md">
+                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${statusColors.completed.dot}`}></span>
+                  <span className={statusColors.completed.text}>Completed</span>
+                  <span className="text-muted-foreground/60">({targets.completed.length})</span>
+                </h4>
+                <SortableContext
+                  items={targets.completed.map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {targets.completed.length === 0 ? (
+                    <p className="text-sm text-muted-foreground/60 py-2">Drop here to complete</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {targets.completed.slice(0, 5).map(t => (
+                        <CompactSortableCard key={t.id} target={t} habits={habits} progress={targetProgress[t.id]} formatProgress={formatProgress} />
+                      ))}
+                      {targets.completed.length > 5 && (
+                        <button
+                          onClick={() => navigate('/attention#targets')}
+                          className="text-xs text-muted-foreground hover:text-primary transition-colors w-full text-left py-1"
+                        >
+                          +{targets.completed.length - 5} more → View all
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </SortableContext>
+              </DroppableZone>
+
+              {/* Archived */}
+              <DroppableZone id="archived" className="min-h-[60px] rounded-md">
+                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${statusColors.archived.dot}`}></span>
+                  <span className={statusColors.archived.text}>Archived</span>
+                  <span className="text-muted-foreground/60">({targets.archived.length})</span>
+                </h4>
+                <SortableContext
+                  items={targets.archived.map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {targets.archived.length === 0 ? (
+                    <p className="text-sm text-muted-foreground/60 py-2">Drop here to archive</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {targets.archived.slice(0, 5).map(t => (
+                        <CompactSortableCard key={t.id} target={t} habits={habits} progress={targetProgress[t.id]} formatProgress={formatProgress} />
+                      ))}
+                      {targets.archived.length > 5 && (
+                        <button
+                          onClick={() => navigate('/attention#targets')}
+                          className="text-xs text-muted-foreground hover:text-primary transition-colors w-full text-left py-1"
+                        >
+                          +{targets.archived.length - 5} more → View all
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </SortableContext>
+              </DroppableZone>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Drag overlay for smooth animation */}
+        <DragOverlay>
+          {activeDragTarget && (
+            <div className="opacity-80">
+              <Card className="border-l-4 border-l-primary/60 shadow-lg">
+                <CardContent className="py-3 px-4">
+                  <span className="font-medium">{activeDragTarget.name}</span>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
 
       {/* Habits Summary */}
       <Card>
@@ -538,159 +753,6 @@ export default function ShelfView() {
           </Accordion>
         </CardContent>
       </Card>
-
-      {/* Targets - Drag between zones */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        {/* Active Targets - Cards on the Shelf */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-lg font-semibold">On the Shelf</h2>
-              <div className="flex items-center gap-2 mt-1">
-                <span className={`w-2 h-2 rounded-full ${statusColors.active.dot}`}></span>
-                <span className={`text-sm ${statusColors.active.text}`}>Active</span>
-                <span className="text-sm text-muted-foreground/60">({targets.active.length})</span>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground"
-              onClick={() => navigate('/attention#targets')}
-            >
-              Manage Targets
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-
-          <DroppableZone id="active" className="min-h-[80px] rounded-lg">
-            <SortableContext
-              items={targets.active.map(t => t.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {targets.active.length === 0 ? (
-                <Card className="border-dashed">
-                  <CardContent className="py-8 text-center">
-                    <p className="text-muted-foreground">No active targets</p>
-                    <p className="text-sm text-muted-foreground/60 mt-1">
-                      Drag a target here to activate it
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-3">
-                  {(showAllActive ? targets.active : targets.active.slice(0, 5)).map(t => (
-                    <SortableTargetCard
-                      key={t.id}
-                      target={t}
-                      habits={habits}
-                      progress={targetProgress[t.id]}
-                      formatProgress={formatProgress}
-                    />
-                  ))}
-                  {targets.active.length > 5 && (
-                    <button
-                      onClick={() => setShowAllActive(!showAllActive)}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors text-left py-2"
-                    >
-                      {showAllActive
-                        ? 'Show less'
-                        : `+${targets.active.length - 5} more → View all`}
-                    </button>
-                  )}
-                </div>
-              )}
-            </SortableContext>
-          </DroppableZone>
-        </div>
-
-        {/* Planned & Parked - Compact draggable cards (top 5 each) */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="grid grid-cols-2 gap-6">
-              {/* Planned */}
-              <DroppableZone id="planned" className="min-h-[60px] rounded-md">
-                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${statusColors.planned.dot}`}></span>
-                  <span className={statusColors.planned.text}>Planned</span>
-                  <span className="text-muted-foreground/60">({targets.planned.length})</span>
-                </h4>
-                <SortableContext
-                  items={targets.planned.map(t => t.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {targets.planned.length === 0 ? (
-                    <p className="text-sm text-muted-foreground/60 py-2">Drop here to plan</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {targets.planned.slice(0, 5).map(t => (
-                        <CompactSortableCard key={t.id} target={t} habits={habits} />
-                      ))}
-                      {targets.planned.length > 5 && (
-                        <button
-                          onClick={() => navigate('/attention#targets')}
-                          className="text-xs text-muted-foreground hover:text-primary transition-colors w-full text-left py-1"
-                        >
-                          +{targets.planned.length - 5} more → View all
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </SortableContext>
-              </DroppableZone>
-
-              {/* Parked */}
-              <DroppableZone id="parked" className="min-h-[60px] rounded-md">
-                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${statusColors.parked.dot}`}></span>
-                  <span className={statusColors.parked.text}>Parked</span>
-                  <span className="text-muted-foreground/60">({targets.parked.length})</span>
-                </h4>
-                <SortableContext
-                  items={targets.parked.map(t => t.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {targets.parked.length === 0 ? (
-                    <p className="text-sm text-muted-foreground/60 py-2">Drop here to park</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {targets.parked.slice(0, 5).map(t => (
-                        <CompactSortableCard key={t.id} target={t} habits={habits} />
-                      ))}
-                      {targets.parked.length > 5 && (
-                        <button
-                          onClick={() => navigate('/attention#targets')}
-                          className="text-xs text-muted-foreground hover:text-primary transition-colors w-full text-left py-1"
-                        >
-                          +{targets.parked.length - 5} more → View all
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </SortableContext>
-              </DroppableZone>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Drag overlay for smooth animation */}
-        <DragOverlay>
-          {activeDragTarget && (
-            <div className="opacity-80">
-              <Card className="border-l-4 border-l-primary/60 shadow-lg">
-                <CardContent className="py-3 px-4">
-                  <span className="font-medium">{activeDragTarget.name}</span>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
 
       {/* Activity Summary */}
       <Card>

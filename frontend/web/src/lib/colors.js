@@ -237,6 +237,14 @@ export const statusColors = {
     dot: 'bg-[hsl(var(--color-sand))]',
     text: 'text-[hsl(var(--color-sand))]',
   },
+  completed: {
+    dot: 'bg-[hsl(var(--color-forest))]',
+    text: 'text-[hsl(var(--color-forest))]',
+  },
+  archived: {
+    dot: 'bg-[hsl(var(--color-copper))]',
+    text: 'text-[hsl(var(--color-copper))]',
+  },
 }
 
 // Highlight color (for highlighted entries)
