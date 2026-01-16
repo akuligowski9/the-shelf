@@ -811,7 +811,7 @@ export default function SettingsView() {
                             <div className="text-muted-foreground/70 pl-0.5">
                               {changes.map((c, i) => (
                                 <span key={i}>
-                                  {c.habitName || `Habit ${c.habit_id}`}: {c.from ? 'active' : 'inactive'} → {c.to ? 'active' : 'inactive'}
+                                  {c.habitName || `Habit ${c.habit_id}`}: {c.from} → {c.to}
                                   {i < changes.length - 1 && ', '}
                                 </span>
                               ))}

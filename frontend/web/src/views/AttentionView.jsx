@@ -324,6 +324,7 @@ export default function AttentionView() {
 
   // Track adding new caution behavior
   const [addingBehavior, setAddingBehavior] = useState(false)
+  const [showAllBehaviors, setShowAllBehaviors] = useState(false)
   const [newBehaviorName, setNewBehaviorName] = useState('')
   const [editingBehavior, setEditingBehavior] = useState(null)
 
@@ -1285,7 +1286,7 @@ export default function AttentionView() {
             <div className="flex items-center gap-2">
               <CardTitle className="text-lg">Caution Behaviors</CardTitle>
               <span className="text-sm text-muted-foreground">
-                {cautionBehaviors.filter(b => b.active).length} active
+                {cautionBehaviors.filter(b => !b.active).length} inactive
               </span>
             </div>
             {addingBehavior ? (
@@ -1319,7 +1320,9 @@ export default function AttentionView() {
               <p className="text-sm text-muted-foreground">No caution behaviors defined</p>
             ) : (
               <div className="space-y-0.5">
-                {cautionBehaviors.map(behavior => (
+                {cautionBehaviors
+                  .slice(0, showAllBehaviors ? undefined : 10)
+                  .map(behavior => (
                   <div key={behavior.id} className="flex items-center group py-1.5 pl-2">
                     <div className="w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400 mr-3" />
                     <span className={behavior.active ? 'text-sm flex-1' : 'text-sm flex-1 text-muted-foreground'}>
@@ -1333,6 +1336,14 @@ export default function AttentionView() {
                     </button>
                   </div>
                 ))}
+                {cautionBehaviors.length > 10 && (
+                  <button
+                    onClick={() => setShowAllBehaviors(!showAllBehaviors)}
+                    className="text-xs text-muted-foreground hover:text-foreground pt-2 pl-2"
+                  >
+                    {showAllBehaviors ? 'Show less' : `+${cautionBehaviors.length - 10} more → View all`}
+                  </button>
+                )}
               </div>
             )}
           </CardContent>

@@ -118,7 +118,7 @@ function getWeekKey(dateStr) {
 }
 
 export default function ProgressView() {
-  const { habits, targets } = useHabits()
+  const { habits, targets, habitTransitions } = useHabits()
   const { entries } = useEntries()
 
   // Filter to only active habits for Progress view (excludes pseudo-habits like "Caution Behaviors")
@@ -584,9 +584,19 @@ export default function ProgressView() {
       change: Math.round(lifePercent - prevLifePercent)
     } : null
 
-    // Transition metrics (transitions table was removed, using local state from context if available)
-    const transitionsInRange = 0
-    const daysSinceLastTransition = null
+    // Transition metrics
+    const rangeStart = dateRange.length > 0 ? new Date(dateRange[0] + 'T00:00:00') : null
+    const rangeEnd = dateRange.length > 0 ? new Date(dateRange[dateRange.length - 1] + 'T23:59:59') : null
+
+    const transitionsInRange = habitTransitions.filter(t => {
+      if (!rangeStart || !rangeEnd) return false
+      const transitionDate = new Date(t.ended_at)
+      return transitionDate >= rangeStart && transitionDate <= rangeEnd
+    }).length
+
+    const daysSinceLastTransition = habitTransitions.length > 0
+      ? Math.floor((new Date() - new Date(habitTransitions[0].ended_at)) / (1000 * 60 * 60 * 24))
+      : null
 
     return {
       // Shared
@@ -626,7 +636,7 @@ export default function ProgressView() {
       totalCompletedTargets,
       reflectionsInRange,
     }
-  }, [chartData, dateRange, activeHabits, timeRange, periodOffset, enabledFilters, preparations, closures, reflections, targets, serverMetrics, prevServerMetrics])
+  }, [chartData, dateRange, activeHabits, timeRange, periodOffset, enabledFilters, preparations, closures, reflections, targets, serverMetrics, prevServerMetrics, habitTransitions])
 
   // Habit-specific patterns from server metrics
   const habitPatterns = useMemo(() => {
