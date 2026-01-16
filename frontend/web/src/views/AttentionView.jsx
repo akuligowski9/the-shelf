@@ -322,6 +322,11 @@ export default function AttentionView() {
   const [addingHabit, setAddingHabit] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
 
+  // Track adding new caution behavior
+  const [addingBehavior, setAddingBehavior] = useState(false)
+  const [newBehaviorName, setNewBehaviorName] = useState('')
+  const [editingBehavior, setEditingBehavior] = useState(null)
+
   // Edit dialogs state
   const [editingHabit, setEditingHabit] = useState(null)
   const [editingPractice, setEditingPractice] = useState(null)
@@ -491,6 +496,29 @@ export default function AttentionView() {
   const handleCancelAddHabit = () => {
     setNewHabitName('')
     setAddingHabit(false)
+  }
+
+  // Caution Behaviors handlers
+  const cautionHabit = habits.find(h => h.name === 'Caution Behaviors')
+  const cautionBehaviors = cautionHabit ? getPracticesForHabit(cautionHabit.id) : []
+
+  const handleAddBehavior = () => {
+    if (newBehaviorName.trim() && cautionHabit) {
+      addPractice(cautionHabit.id, newBehaviorName.trim())
+      setNewBehaviorName('')
+      setAddingBehavior(false)
+    }
+  }
+
+  const handleCancelAddBehavior = () => {
+    setNewBehaviorName('')
+    setAddingBehavior(false)
+  }
+
+  const handleSaveBehavior = (updates) => {
+    if (editingBehavior) {
+      updatePracticeName(editingBehavior.id, updates.name)
+    }
   }
 
   // Helper to get habit name from habit_id
@@ -1072,7 +1100,7 @@ export default function AttentionView() {
         </CardHeader>
         <CardContent>
           <div className="space-y-0.5">
-            {habits.map(habit => {
+            {habits.filter(h => h.name !== 'Caution Behaviors').map(habit => {
               const habitColor = colorPalette[habit.color] || colorPalette.forest
               const practices = getPracticesForHabit(habit.id)
               const allActions = habit.track_actions ? practices.flatMap(p => getActionsForPractice(p.id)) : []
@@ -1250,6 +1278,121 @@ export default function AttentionView() {
         </CardContent>
       </Card>
 
+      {/* Caution Behaviors */}
+      {cautionHabit && (
+        <Card>
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-lg">Caution Behaviors</CardTitle>
+              <span className="text-sm text-muted-foreground">
+                {cautionBehaviors.filter(b => b.active).length} active
+              </span>
+            </div>
+            {addingBehavior ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newBehaviorName}
+                  onChange={(e) => setNewBehaviorName(e.target.value)}
+                  placeholder="Behavior name"
+                  className="h-8 text-sm w-48"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddBehavior()
+                    if (e.key === 'Escape') handleCancelAddBehavior()
+                  }}
+                />
+                <Button size="sm" variant="ghost" className="h-8" onClick={handleAddBehavior}>
+                  Add
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8" onClick={handleCancelAddBehavior}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => setAddingBehavior(true)}>
+                Add Behavior
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent>
+            {cautionBehaviors.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No caution behaviors defined</p>
+            ) : (
+              <div className="space-y-0.5">
+                {cautionBehaviors.map(behavior => (
+                  <div key={behavior.id} className="flex items-center group py-1.5 pl-2">
+                    <div className="w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400 mr-3" />
+                    <span className={behavior.active ? 'text-sm flex-1' : 'text-sm flex-1 text-muted-foreground'}>
+                      {behavior.name}
+                    </span>
+                    <button
+                      onClick={() => setEditingBehavior(behavior)}
+                      className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Caution Behavior Edit Dialog */}
+      <Dialog open={!!editingBehavior} onOpenChange={(open) => !open && setEditingBehavior(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Edit Behavior</DialogTitle>
+          </DialogHeader>
+          {editingBehavior && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="behavior-name">Name</Label>
+                <Input
+                  id="behavior-name"
+                  defaultValue={editingBehavior.name}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const newName = e.target.value.trim()
+                      if (newName && newName !== editingBehavior.name) {
+                        updatePracticeName(editingBehavior.id, newName)
+                      }
+                      setEditingBehavior(null)
+                    }
+                  }}
+                />
+              </div>
+              <DialogFooter className="flex-col sm:flex-col gap-2">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    togglePracticeActive(editingBehavior.id)
+                    setEditingBehavior(null)
+                  }}
+                >
+                  {editingBehavior.active ? 'Deactivate' : 'Activate'}
+                </Button>
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    const input = document.getElementById('behavior-name')
+                    const newName = input?.value?.trim()
+                    if (newName && newName !== editingBehavior.name) {
+                      updatePracticeName(editingBehavior.id, newName)
+                    }
+                    setEditingBehavior(null)
+                  }}
+                >
+                  Done
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Transition Window */}
       {!inTransition ? (
         <div className="flex justify-center">
@@ -1280,7 +1423,7 @@ export default function AttentionView() {
           <CardContent className="space-y-4">
             {/* Habit toggles */}
             <div className="space-y-2">
-              {habits.map(habit => {
+              {habits.filter(h => h.name !== 'Caution Behaviors').map(habit => {
                 const habitColor = colorPalette[habit.color] || colorPalette.forest
                 const change = transitionChanges.find(c => c.habitId === habit.id)
                 return (
