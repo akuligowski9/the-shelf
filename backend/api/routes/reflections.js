@@ -14,6 +14,10 @@ router.get('/', async (req, res, next) => {
     let paramCount = 1;
 
     if (from && to) {
+      // Validate date range
+      if (new Date(from) > new Date(to)) {
+        return res.status(400).json({ ok: false, error: 'from date must be before or equal to to date' });
+      }
       conditions.push(`(period_start >= $${paramCount}::date AND period_end <= $${paramCount + 1}::date)`);
       params.push(from, to);
       paramCount += 2;
@@ -118,6 +122,10 @@ router.post('/', async (req, res, next) => {
     if (reflectionType !== 'adhoc' && reflectionType !== 'entry') {
       if (!period_start || !period_end) {
         return res.status(400).json({ ok: false, error: 'period_start and period_end required for this type' });
+      }
+      // Validate period_start <= period_end
+      if (new Date(period_start) > new Date(period_end)) {
+        return res.status(400).json({ ok: false, error: 'period_start must be before or equal to period_end' });
       }
     }
 

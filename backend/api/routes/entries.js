@@ -18,6 +18,7 @@ router.post('/', async (req, res, next) => {
       habit_id,
       practice_id,
       note,
+      actions,
       duration_minutes,
       target_id,
       source,
@@ -44,15 +45,15 @@ router.post('/', async (req, res, next) => {
 
     const q = `
       INSERT INTO entries (
-        occurred_at, type, habit_id, practice_id, note, duration_minutes,
+        occurred_at, type, habit_id, practice_id, note, actions, duration_minutes,
         target_id, source, is_highlight
       )
       VALUES (
         COALESCE($1::timestamptz, NOW()),
-        $2, $3, $4, $5, $6::int,
-        $7,
-        COALESCE($8, 'manual'),
-        COALESCE($9, false)
+        $2, $3, $4, $5, $6::jsonb, $7::int,
+        $8,
+        COALESCE($9, 'manual'),
+        COALESCE($10, false)
       )
       RETURNING *;
     `;
@@ -63,6 +64,7 @@ router.post('/', async (req, res, next) => {
       habit_id || null,
       practice_id || null,
       note || null,
+      actions ? JSON.stringify(actions) : null,
       duration_minutes ?? null,
       target_id || null,
       source || null,
@@ -115,6 +117,11 @@ router.get('/', async (req, res, next) => {
       return res.status(400).json({ ok: false, error: "Provide query params: from=YYYY-MM-DD&to=YYYY-MM-DD" });
     }
 
+    // Validate date range
+    if (new Date(from) > new Date(to)) {
+      return res.status(400).json({ ok: false, error: 'from date must be before or equal to to date' });
+    }
+
     const q = `
       SELECT e.*, h.name as habit, h.color as habit_color, p.name as practice, t.name as target
       FROM entries e
@@ -143,6 +150,7 @@ router.put('/:id', async (req, res, next) => {
       habit_id,
       practice_id,
       note,
+      actions,
       duration_minutes,
       target_id,
       is_highlight,
@@ -184,6 +192,11 @@ router.put('/:id', async (req, res, next) => {
     if (note !== undefined) {
       updates.push(`note = $${paramCount}`);
       params.push(note || null);
+      paramCount++;
+    }
+    if (actions !== undefined) {
+      updates.push(`actions = $${paramCount}::jsonb`);
+      params.push(actions ? JSON.stringify(actions) : null);
       paramCount++;
     }
     if (duration_minutes !== undefined) {

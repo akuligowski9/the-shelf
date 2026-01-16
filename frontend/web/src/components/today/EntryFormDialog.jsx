@@ -178,9 +178,8 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
           if (practice) {
             setPracticeId(String(practice.id))
           }
-          if (editingEntry.target_id) {
-            setTargetId(String(editingEntry.target_id))
-          }
+          // Default to 'none' when editing (don't load from localStorage)
+          setTargetId(editingEntry.target_id ? String(editingEntry.target_id) : 'none')
           if (editingEntry.warm_up_template_id) {
             setWarmUpTemplateId(String(editingEntry.warm_up_template_id))
           }
@@ -243,8 +242,8 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
       entry.actions = selectedActions.length > 0 ? selectedActions : null
       entry.note = note || null
 
-      // Remember this target for next time
-      if (habitId && targetId) {
+      // Remember this target for next time (but not "none")
+      if (habitId && targetId && targetId !== 'none') {
         setLastTargetForHabit(habitId, targetId)
       }
     } else if (entryType === 'caution') {
@@ -409,6 +408,9 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
                   <SelectValue placeholder="Select a target" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none" className="text-muted-foreground">
+                    None
+                  </SelectItem>
                   {availableTargets.map(target => (
                     <SelectItem key={target.id} value={String(target.id)}>
                       {target.name}
@@ -562,22 +564,22 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
             </div>
           )}
 
-          {/* Note (only for life/caution entries) */}
-          {entryType !== 'habit' && (
-            <div className="space-y-2">
-              <Label>Note <span className="text-muted-foreground text-xs">(optional)</span></Label>
-              <Textarea
-                placeholder={
-                  entryType === 'life'
-                    ? 'What happened? (e.g., Family time, errands, travel)'
-                    : 'Additional context or details...'
-                }
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                rows={2}
-              />
-            </div>
-          )}
+          {/* Note */}
+          <div className="space-y-2">
+            <Label>Note <span className="text-muted-foreground text-xs">(optional)</span></Label>
+            <Textarea
+              placeholder={
+                entryType === 'life'
+                  ? 'What happened? (e.g., Family time, errands, travel)'
+                  : entryType === 'habit'
+                  ? 'Session notes or observations...'
+                  : 'Additional context or details...'
+              }
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+            />
+          </div>
 
           {/* Archive button (only when editing) */}
           {editingEntry && onArchive && (

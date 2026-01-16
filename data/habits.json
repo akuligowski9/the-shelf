@@ -13,7 +13,8 @@
         { "id": 26, "name": "Documentation", "active": true },
         { "id": 23, "name": "Maintenance", "active": true },
         { "id": 20, "name": "Project Planning", "active": true },
-        { "id": 25, "name": "R&D", "active": true }
+        { "id": 25, "name": "R&D", "active": true },
+        { "id": 56, "name": "Testing", "active": true }
       ]
     },
     {
@@ -120,14 +121,14 @@
           "id": 12,
           "name": "Drills",
           "active": true,
-          "actions": ["Calming", "Crate", "Greeting Practice", "Name Recall", "Patience"]
+          "actions": ["Calm Exits", "Calming", "Cool-down", "Crate", "Greeting Practice", "Leash Tension Awareness", "Loose-Leash", "Name Recall", "Patience", "Warm-up"]
         },
         { "id": 30, "name": "Socialization", "active": true },
         {
           "id": 11,
           "name": "Walk Training",
-          "active": true,
-          "actions": ["Calm Exits", "Leash Tension Awareness", "Loose-Leash"]
+          "active": false,
+          "actions": []
         }
       ]
     },
@@ -191,7 +192,7 @@
     "Hip Stability": "Physical Therapy",
     "Core Stability": "Core",
     "Abs and Legs": "Legs",
-    "Loose-Leash Drills": "Walk Training",
+    "Loose-Leash Drills": "Drills",
     "Training": "Drills",
     "Code Book": "Books"
   }

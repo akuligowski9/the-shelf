@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS entries (
   target_id INT REFERENCES targets(id) ON DELETE SET NULL,
   duration_minutes INT,
   note TEXT,
+  actions JSONB,
   is_highlight BOOLEAN NOT NULL DEFAULT FALSE,
   source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('manual', 'import', 'auto')),
   warm_up_note TEXT,
