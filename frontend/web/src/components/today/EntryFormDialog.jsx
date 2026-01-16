@@ -113,11 +113,11 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     return practices.find(p => p.id === Number(practiceId))
   }, [practiceId, practices])
 
-  // Caution behaviors (practices under the "Caution Behaviors" habit)
+  // Caution behaviors (active practices under the "Caution Behaviors" habit)
   const cautionBehaviors = useMemo(() => {
     const cautionHabit = habits.find(h => h.name === 'Caution Behaviors')
     if (!cautionHabit) return []
-    return getPracticesForHabit(cautionHabit.id)
+    return getPracticesForHabit(cautionHabit.id).filter(p => p.active)
   }, [habits, getPracticesForHabit])
 
   const selectedCautionBehavior = useMemo(() => {
