@@ -59,7 +59,8 @@ function calculatePeriodMetrics(entries, preparations, dateRange, activeHabits) 
 
   // Rest days (days with rest_day preparation)
   const restDays = Object.entries(preparations).filter(([dateKey, prep]) => {
-    const prepDate = new Date(dateKey)
+    // Add T12:00:00 to treat as local noon and avoid timezone issues
+    const prepDate = new Date(dateKey + 'T12:00:00')
     return prepDate >= dateRange.start && prepDate <= dateRange.end && prep.rest_day
   }).length
 
