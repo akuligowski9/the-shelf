@@ -640,64 +640,6 @@ export const mockEntries = [
   },
 ]
 
-// Mock day preparations by date (day-level framing only)
-export const mockPreparations = {
-  '2026-01-02': {
-    id: 1,
-    occurred_at: '2026-01-02T08:00:00',
-    note: 'Focus on balance today - some habit work, some social time.',
-    rest_day: false,
-  },
-  '2026-01-04': {
-    id: 2,
-    occurred_at: '2026-01-04T09:00:00',
-    note: 'Moving day - no habit work expected.',
-    rest_day: true,
-  },
-  '2026-01-05': {
-    id: 9,
-    occurred_at: '2026-01-05T08:30:00',
-    note: 'Sunday reset. Light day - walk, some software planning, groceries.',
-    rest_day: false,
-  },
-  '2026-01-06': {
-    id: 3,
-    occurred_at: '2026-01-06T07:30:00',
-    note: 'Back to routine. Gym, reading, software work.',
-    rest_day: false,
-  },
-  '2026-01-07': {
-    id: 4,
-    occurred_at: '2026-01-07T08:00:00',
-    note: 'Deep work day. Focus on The Shelf frontend.',
-    rest_day: false,
-  },
-  '2026-01-08': {
-    id: 5,
-    occurred_at: '2026-01-08T07:30:00',
-    note: 'Full coding day planned. Maybe squeeze in dog training.',
-    rest_day: false,
-  },
-  '2026-01-09': {
-    id: 6,
-    occurred_at: '2026-01-09T08:00:00',
-    note: 'Architecture planning session. Keep it focused.',
-    rest_day: false,
-  },
-  '2026-01-10': {
-    id: 7,
-    occurred_at: '2026-01-10T07:45:00',
-    note: 'Balance day - Spanish, software, gym, dog training.',
-    rest_day: false,
-  },
-  '2026-01-11': {
-    id: 8,
-    occurred_at: '2026-01-11T08:00:00',
-    note: 'Continue calendar work. Spanish conversation today.',
-    rest_day: false,
-  },
-}
-
 // Mock reflections for Review page
 export const mockReflections = [
   {
