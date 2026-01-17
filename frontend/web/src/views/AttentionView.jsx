@@ -295,6 +295,7 @@ export default function AttentionView() {
     updateTargetName,
     updateTargetHabit,
     updateTargetDates,
+    updateTargetNotes,
     reorderTargets,
     deleteTarget,
     getWarmUpTemplatesForHabit,
@@ -557,6 +558,7 @@ export default function AttentionView() {
       updateTargetHabit(editingTarget.id, updates.habit_id)
       updateTargetStatus(editingTarget.id, updates.status)
       updateTargetDates(editingTarget.id, updates.start_date, updates.end_date, updates.planned_duration)
+      updateTargetNotes(editingTarget.id, updates.notes)
     }
   }
 

@@ -416,6 +416,18 @@ export function HabitsProvider({ children }) {
     }
   }
 
+  // Update target notes
+  const updateTargetNotes = async (targetId, notes) => {
+    setTargets(prev =>
+      prev.map(t => t.id === targetId ? { ...t, notes } : t)
+    )
+    try {
+      await apiUpdateTarget(targetId, { notes })
+    } catch (err) {
+      console.error('Failed to update target notes:', err)
+    }
+  }
+
   // Reorder targets (for drag-and-drop)
   const reorderTargets = async (orderedIds) => {
     // Optimistic update
@@ -762,6 +774,7 @@ export function HabitsProvider({ children }) {
     updateTargetName,
     updateTargetHabit,
     updateTargetDates,
+    updateTargetNotes,
     reorderTargets,
     deleteTarget,
     // Templates (prompts)

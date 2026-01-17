@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import RichTextEditor from '@/components/ui/rich-text-editor'
 
 export default function TargetEditDialog({
   open,
@@ -31,6 +32,7 @@ export default function TargetEditDialog({
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [plannedDuration, setPlannedDuration] = useState('')
+  const [notes, setNotes] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
@@ -41,6 +43,7 @@ export default function TargetEditDialog({
       setStartDate(target.start_date || '')
       setEndDate(target.end_date || '')
       setPlannedDuration(target.planned_duration || '')
+      setNotes(target.notes || '')
       setConfirmDelete(false)
     }
   }, [target])
@@ -54,6 +57,7 @@ export default function TargetEditDialog({
         start_date: startDate || null,
         end_date: endDate || null,
         planned_duration: plannedDuration.trim() || null,
+        notes: notes || null,
       })
       onOpenChange(false)
     }
@@ -63,7 +67,7 @@ export default function TargetEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit Target</DialogTitle>
         </DialogHeader>
@@ -148,6 +152,16 @@ export default function TargetEditDialog({
             <p className="text-xs text-muted-foreground">
               For targets without specific dates. Shows as "~1 month" on shelf.
             </p>
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label>Notes</Label>
+            <RichTextEditor
+              value={notes}
+              onChange={setNotes}
+              placeholder="Add notes about this target..."
+            />
           </div>
         </div>
 

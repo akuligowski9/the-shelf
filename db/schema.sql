@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS targets (
   type TEXT NOT NULL DEFAULT 'project' CHECK (type IN ('project', 'milestone', 'idea')),
   name TEXT NOT NULL,
   description TEXT,
+  notes TEXT,
   status TEXT NOT NULL DEFAULT 'planned' CHECK (status IN ('active', 'parked', 'planned', 'completed', 'archived')),
   habit_id INT REFERENCES habits(id) ON DELETE SET NULL,
   start_date DATE,
