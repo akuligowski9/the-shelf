@@ -9,10 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { mockPreparations } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
-import { getReflections, createReflection, deleteReflection } from '@/lib/api'
+import { getReflections, createReflection, deleteReflection, getPreparationsInRange } from '@/lib/api'
 import { Star, Target, Lightbulb, Clock, Activity, AlertCircle, Coffee, Zap, PenLine, X, Trash2, Leaf } from 'lucide-react'
 import RichTextEditor, { RichTextDisplay } from '@/components/ui/rich-text-editor'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -249,6 +248,7 @@ export default function ReviewView() {
   const [isLoadingReflections, setIsLoadingReflections] = useState(true)
   const [selectedTrigger, setSelectedTrigger] = useState(null)
   const [showAllReflections, setShowAllReflections] = useState(false)
+  const [preparations, setPreparations] = useState({})
   const reflectionFormRef = useRef(null)
   // selectedTrigger shape: { type: 'prompt'|'accomplishment'|'metric', id, label, value }
 
@@ -279,6 +279,43 @@ export default function ReviewView() {
   useEffect(() => {
     fetchReflections()
   }, [fetchReflections])
+
+  // Fetch preparations for the current and previous periods
+  const fetchPreparations = useCallback(async () => {
+    try {
+      // Format dates for API
+      const formatApiDate = (date) => {
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+      }
+
+      // Get the earlier start date (could be from previous period)
+      const prevRange = getPreviousPeriodRange(timeRange, periodOffset)
+      const earliestStart = prevRange ? prevRange.start : dateRange.start
+      const from = formatApiDate(earliestStart)
+      const to = formatApiDate(dateRange.end)
+
+      const prepsArray = await getPreparationsInRange('day', from, to)
+
+      // Convert array to object keyed by period_start date
+      const prepsMap = {}
+      prepsArray.forEach(prep => {
+        // period_start comes back as ISO string or date, normalize to YYYY-MM-DD
+        const dateKey = prep.period_start.split('T')[0]
+        prepsMap[dateKey] = prep
+      })
+      setPreparations(prepsMap)
+    } catch (err) {
+      console.error('Failed to fetch preparations:', err)
+    }
+  }, [dateRange, timeRange, periodOffset])
+
+  useEffect(() => {
+    fetchPreparations()
+  }, [fetchPreparations])
+
   const previousDateRange = useMemo(() => getPreviousPeriodRange(timeRange, periodOffset), [timeRange, periodOffset])
   const periodLabel = useMemo(() => getPeriodLabel(timeRange, periodOffset), [timeRange, periodOffset])
 
@@ -287,13 +324,13 @@ export default function ReviewView() {
 
   // Calculate metrics for current and previous periods
   const currentMetrics = useMemo(() => {
-    return calculatePeriodMetrics(allEntries, mockPreparations, dateRange, activeHabits)
-  }, [dateRange, activeHabits])
+    return calculatePeriodMetrics(allEntries, preparations, dateRange, activeHabits)
+  }, [allEntries, preparations, dateRange, activeHabits])
 
   const previousMetrics = useMemo(() => {
     if (!previousDateRange) return null
-    return calculatePeriodMetrics(allEntries, mockPreparations, previousDateRange, activeHabits)
-  }, [previousDateRange, activeHabits])
+    return calculatePeriodMetrics(allEntries, preparations, previousDateRange, activeHabits)
+  }, [allEntries, preparations, previousDateRange, activeHabits])
 
   // Generate reflection prompts
   const reflectionPrompts = useMemo(() => {
