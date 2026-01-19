@@ -645,25 +645,27 @@ export function getESTHour() {
 }
 
 // Helper to get last session for a habit (for dynamic warm-up elements)
-export function getLastSessionForHabit(habitName, beforeDate = null) {
-  const entries = mockEntries
+// Now accepts entries as a parameter instead of using mock data
+export function getLastSessionForHabit(habitName, beforeDate = null, entriesData = []) {
+  const filteredEntries = entriesData
     .filter(e => e.type === 'habit' && e.habit === habitName && !e.archived_at)
     .sort((a, b) => new Date(b.occurred_at) - new Date(a.occurred_at))
 
   if (beforeDate) {
-    return entries.find(e => new Date(e.occurred_at) < new Date(beforeDate))
+    return filteredEntries.find(e => new Date(e.occurred_at) < new Date(beforeDate))
   }
-  return entries[0] || null
+  return filteredEntries[0] || null
 }
 
 // Helper to render warm-up template with dynamic elements
-export function renderWarmUpTemplate(template, habitName, currentDate) {
+// Now accepts entries as a parameter for looking up last session
+export function renderWarmUpTemplate(template, habitName, currentDate, entriesData = []) {
   if (!template.has_dynamic_elements) {
     return template.content
   }
 
   let content = template.content
-  const lastSession = getLastSessionForHabit(habitName, currentDate)
+  const lastSession = getLastSessionForHabit(habitName, currentDate, entriesData)
 
   if (lastSession) {
     const lastSessionInfo = `**Last session:** ${lastSession.note || 'No notes'}${lastSession.cool_down_note ? `\n\n**Next steps from last time:** ${lastSession.cool_down_note}` : ''}`

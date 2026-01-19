@@ -19,10 +19,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Sunset } from 'lucide-react'
-import {
-  mockHabits,
-  getCoolDownTemplatesForHabit,
-} from '@/data/mockData'
+import { useHabits } from '@/context/HabitsContext'
 
 export default function CoolDownDialog({
   open,
@@ -30,19 +27,20 @@ export default function CoolDownDialog({
   onSubmit,
   entry,
 }) {
+  const { habits, getCoolDownTemplatesForHabit } = useHabits()
   const [templateId, setTemplateId] = useState('')
   const [coolDownNote, setCoolDownNote] = useState('')
   const [showTemplate, setShowTemplate] = useState(false)
 
   const habit = useMemo(() => {
     if (!entry) return null
-    return mockHabits.find(h => h.name === entry.habit)
-  }, [entry])
+    return habits.find(h => h.name === entry.habit)
+  }, [entry, habits])
 
   const templates = useMemo(() => {
     if (!habit) return []
     return getCoolDownTemplatesForHabit(habit.id)
-  }, [habit])
+  }, [habit, getCoolDownTemplatesForHabit])
 
   const selectedTemplate = useMemo(() => {
     return templates.find(t => t.id === Number(templateId))

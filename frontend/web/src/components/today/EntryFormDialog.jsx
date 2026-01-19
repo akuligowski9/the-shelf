@@ -22,6 +22,7 @@ import { Separator } from '@/components/ui/separator'
 import { Sunrise, ChevronDown, ChevronUp } from 'lucide-react'
 import { renderWarmUpTemplate } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
+import { useEntries } from '@/context/EntriesContext'
 
 // Helper to get/set last used target per habit from localStorage
 const LAST_TARGET_KEY = 'shelf_last_target_by_habit'
@@ -58,6 +59,7 @@ const ENTRY_TYPES = [
 
 export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchive, editingEntry }) {
   const { targets, habits, activeHabits, getPracticesForHabit, getActionsForPractice, getWarmUpTemplatesForHabit } = useHabits()
+  const { entries } = useEntries()
 
   const [entryType, setEntryType] = useState('habit')
   const [habitId, setHabitId] = useState('')
@@ -136,8 +138,8 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
 
   const renderedWarmUp = useMemo(() => {
     if (!selectedWarmUpTemplate || !selectedHabit) return ''
-    return renderWarmUpTemplate(selectedWarmUpTemplate, selectedHabit.name, new Date().toISOString())
-  }, [selectedWarmUpTemplate, selectedHabit])
+    return renderWarmUpTemplate(selectedWarmUpTemplate, selectedHabit.name, new Date().toISOString(), entries)
+  }, [selectedWarmUpTemplate, selectedHabit, entries])
 
   // Auto-select first warm-up template when habit changes
   useEffect(() => {

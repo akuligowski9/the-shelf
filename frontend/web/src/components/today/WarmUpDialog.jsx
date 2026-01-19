@@ -19,11 +19,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { Sunrise } from 'lucide-react'
-import {
-  mockHabits,
-  getWarmUpTemplatesForHabit,
-  renderWarmUpTemplate,
-} from '@/data/mockData'
+import { useHabits } from '@/context/HabitsContext'
+import { useEntries } from '@/context/EntriesContext'
+import { renderWarmUpTemplate } from '@/data/mockData'
 
 export default function WarmUpDialog({
   open,
@@ -31,18 +29,20 @@ export default function WarmUpDialog({
   onSubmit,
   entry,
 }) {
+  const { habits, getWarmUpTemplatesForHabit } = useHabits()
+  const { entries } = useEntries()
   const [templateId, setTemplateId] = useState('')
   const [warmUpNote, setWarmUpNote] = useState('')
 
   const habit = useMemo(() => {
     if (!entry) return null
-    return mockHabits.find(h => h.name === entry.habit)
-  }, [entry])
+    return habits.find(h => h.name === entry.habit)
+  }, [entry, habits])
 
   const templates = useMemo(() => {
     if (!habit) return []
     return getWarmUpTemplatesForHabit(habit.id)
-  }, [habit])
+  }, [habit, getWarmUpTemplatesForHabit])
 
   const selectedTemplate = useMemo(() => {
     return templates.find(t => t.id === Number(templateId))
@@ -50,8 +50,8 @@ export default function WarmUpDialog({
 
   const renderedTemplate = useMemo(() => {
     if (!selectedTemplate || !habit) return ''
-    return renderWarmUpTemplate(selectedTemplate, habit.name, new Date().toISOString())
-  }, [selectedTemplate, habit])
+    return renderWarmUpTemplate(selectedTemplate, habit.name, new Date().toISOString(), entries)
+  }, [selectedTemplate, habit, entries])
 
   // Initialize when dialog opens
   useEffect(() => {

@@ -1,11 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import {
-  mockHabits as initialHabits,
-  mockPractices as initialPractices,
-  mockActions as initialActions,
-  mockTargets as initialTargets,
-} from '@/data/mockData'
-import {
   loadInitialData,
   createHabit as apiCreateHabit,
   updateHabit as apiUpdateHabit,
@@ -30,10 +24,10 @@ import {
 const HabitsContext = createContext(null)
 
 export function HabitsProvider({ children }) {
-  const [habits, setHabits] = useState(initialHabits)
-  const [practices, setPractices] = useState(initialPractices)
-  const [actions, setActions] = useState(initialActions)
-  const [targets, setTargets] = useState(initialTargets)
+  const [habits, setHabits] = useState([])
+  const [practices, setPractices] = useState([])
+  const [actions, setActions] = useState([])
+  const [targets, setTargets] = useState([])
   const [prompts, setPrompts] = useState([]) // Unified prompts (warmup + cooldown)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -51,15 +45,11 @@ export function HabitsProvider({ children }) {
       apiGetHabitTransitions(50).catch(() => []),
     ])
       .then(([data, transitions]) => {
-        setHabits(data.habits)
-        setPractices(data.practices)
-        setActions(data.actions)
-        if (data.targets.length > 0) {
-          setTargets(data.targets)
-        }
-        if (data.prompts) {
-          setPrompts(data.prompts)
-        }
+        setHabits(data.habits || [])
+        setPractices(data.practices || [])
+        setActions(data.actions || [])
+        setTargets(data.targets || [])
+        setPrompts(data.prompts || [])
         setHabitTransitions(transitions)
       })
       .catch(err => {

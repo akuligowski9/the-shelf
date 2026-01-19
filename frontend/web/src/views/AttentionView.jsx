@@ -137,7 +137,7 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-card border rounded-lg p-3 mb-2 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? 'shadow-lg' : ''}`}
+      className={`bg-card border-2 border-border/60 rounded-lg p-3 mb-2 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? 'shadow-lg' : ''}`}
       {...attributes}
       {...listeners}
     >
@@ -185,40 +185,40 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
 // Column color schemes for visual distinction
 const columnColors = {
   active: {
-    header: 'bg-emerald-100 dark:bg-emerald-950/50',
+    header: 'bg-emerald-200 dark:bg-emerald-900/70',
     text: 'text-emerald-800 dark:text-emerald-300',
-    badge: 'bg-emerald-200/80 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300',
-    dropzone: 'bg-emerald-50/50 dark:bg-emerald-950/20',
-    dropzoneHover: 'bg-emerald-100/60 dark:bg-emerald-900/30',
-    highlight: 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800',
-    number: 'text-emerald-600 dark:text-emerald-400',
+    badge: 'bg-emerald-300 dark:bg-emerald-800/80 text-emerald-800 dark:text-emerald-200',
+    dropzone: 'bg-emerald-100 dark:bg-emerald-900/40',
+    dropzoneHover: 'bg-emerald-200 dark:bg-emerald-800/50',
+    highlight: 'bg-emerald-50/50 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-700',
+    number: 'text-emerald-700 dark:text-emerald-400',
   },
   planned: {
-    header: 'bg-sky-100 dark:bg-sky-950/50',
+    header: 'bg-sky-200 dark:bg-sky-900/70',
     text: 'text-sky-800 dark:text-sky-300',
-    badge: 'bg-sky-200/80 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300',
-    dropzone: 'bg-sky-50/50 dark:bg-sky-950/20',
-    dropzoneHover: 'bg-sky-100/60 dark:bg-sky-900/30',
-    highlight: 'bg-sky-50/50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-800',
-    number: 'text-sky-600 dark:text-sky-400',
+    badge: 'bg-sky-300 dark:bg-sky-800/80 text-sky-800 dark:text-sky-200',
+    dropzone: 'bg-sky-100 dark:bg-sky-900/40',
+    dropzoneHover: 'bg-sky-200 dark:bg-sky-800/50',
+    highlight: 'bg-sky-50/50 dark:bg-sky-900/40 border-sky-200 dark:border-sky-700',
+    number: 'text-sky-700 dark:text-sky-400',
   },
   parked: {
-    header: 'bg-slate-100 dark:bg-slate-800/50',
+    header: 'bg-slate-200 dark:bg-slate-700/70',
     text: 'text-slate-700 dark:text-slate-300',
-    badge: 'bg-slate-200/80 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300',
-    dropzone: 'bg-slate-50/50 dark:bg-slate-900/20',
-    dropzoneHover: 'bg-slate-100/60 dark:bg-slate-800/30',
-    highlight: 'bg-slate-100/50 dark:bg-slate-800/30 border-slate-300 dark:border-slate-700',
-    number: 'text-slate-500 dark:text-slate-400',
+    badge: 'bg-slate-300 dark:bg-slate-600/80 text-slate-700 dark:text-slate-200',
+    dropzone: 'bg-slate-100 dark:bg-slate-800/40',
+    dropzoneHover: 'bg-slate-200 dark:bg-slate-700/50',
+    highlight: 'bg-slate-100/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600',
+    number: 'text-slate-600 dark:text-slate-400',
   },
   done: {
-    header: 'bg-violet-100 dark:bg-violet-950/50',
+    header: 'bg-violet-200 dark:bg-violet-900/70',
     text: 'text-violet-800 dark:text-violet-300',
-    badge: 'bg-violet-200/80 dark:bg-violet-900/60 text-violet-700 dark:text-violet-300',
-    dropzone: 'bg-violet-50/50 dark:bg-violet-950/20',
-    dropzoneHover: 'bg-violet-100/60 dark:bg-violet-900/30',
-    highlight: 'bg-violet-50/50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-800',
-    number: 'text-violet-600 dark:text-violet-400',
+    badge: 'bg-violet-300 dark:bg-violet-800/80 text-violet-800 dark:text-violet-200',
+    dropzone: 'bg-violet-100 dark:bg-violet-900/40',
+    dropzoneHover: 'bg-violet-200 dark:bg-violet-800/50',
+    highlight: 'bg-violet-50/50 dark:bg-violet-900/40 border-violet-200 dark:border-violet-700',
+    number: 'text-violet-700 dark:text-violet-400',
   },
 }
 

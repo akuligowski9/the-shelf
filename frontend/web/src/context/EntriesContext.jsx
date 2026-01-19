@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { mockEntries as initialEntries } from '@/data/mockData'
 import { getEntries, createEntry as apiCreateEntry, updateEntry as apiUpdateEntry, deleteEntry as apiDeleteEntry } from '@/lib/api'
 
 const EntriesContext = createContext(null)
@@ -11,13 +10,13 @@ function formatDate(date) {
 }
 
 export function EntriesProvider({ children }) {
-  const [entries, setEntries] = useState(initialEntries)
+  const [entries, setEntries] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [dateRange, setDateRange] = useState(() => {
-    // Default to last 30 days
+    // Default to last 365 days to capture full history for Data Health metrics
     const to = new Date()
     const from = new Date()
-    from.setDate(from.getDate() - 30)
+    from.setDate(from.getDate() - 365)
     return { from: formatDate(from), to: formatDate(to) }
   })
 

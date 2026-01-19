@@ -131,6 +131,16 @@ export default function ProgressView() {
     () => new Set([...activeHabits.map(h => h.name), 'Life'])
   )
   const [selectedHabit, setSelectedHabit] = useState(activeHabits[0]?.name || null)
+  const [filtersInitialized, setFiltersInitialized] = useState(false)
+
+  // Initialize filters when habits first load from API
+  useEffect(() => {
+    if (!filtersInitialized && activeHabits.length > 0) {
+      setEnabledFilters(new Set([...activeHabits.map(h => h.name), 'Life']))
+      setSelectedHabit(activeHabits[0]?.name || null)
+      setFiltersInitialized(true)
+    }
+  }, [activeHabits, filtersInitialized])
 
   // API data
   const [preparations, setPreparations] = useState([])

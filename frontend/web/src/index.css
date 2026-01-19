@@ -5,10 +5,10 @@
 @layer base {
   :root {
     /* Soft warm cream palette - gentle and inviting */
-    --background: 38 25% 94%;
+    --background: 35 25% 82%;
     --foreground: 20 45% 20%;
 
-    --card: 40 28% 97%;
+    --card: 40 35% 95%;
     --card-foreground: 20 45% 20%;
 
     --popover: 38 35% 96%;
@@ -41,8 +41,8 @@
     --destructive: 12 50% 55%;
     --destructive-foreground: 40 35% 98%;
 
-    --border: 35 25% 72%;
-    --input: 35 25% 72%;
+    --border: 30 35% 58%;
+    --input: 35 28% 68%;
     --ring: 160 38% 32%;
 
     --radius: 0.5rem;

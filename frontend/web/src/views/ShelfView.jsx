@@ -157,7 +157,7 @@ function CompactSortableCard({ target, habits, progress, formatProgress }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 p-2 rounded-md border bg-card hover:bg-accent/50 transition-colors"
+      className="flex items-center gap-2 p-2 rounded-md border bg-secondary hover:bg-accent/50 transition-colors"
     >
       <button
         {...attributes}
