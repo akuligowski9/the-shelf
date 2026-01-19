@@ -678,7 +678,7 @@ export default function SettingsView() {
               <span className="font-medium">{metrics.lastEntry}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Total entries</span>
+              <span className="text-muted-foreground">Active entries</span>
               <span className="font-medium">{metrics.totalEntries}</span>
             </div>
             <div className="flex justify-between">
