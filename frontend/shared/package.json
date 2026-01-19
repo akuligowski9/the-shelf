@@ -1,0 +1,12 @@
+{
+  "name": "@the-shelf/shared",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./api": "./api/index.ts",
+    "./colors": "./colors/index.ts",
+    "./types": "./types/index.ts"
+  }
+}

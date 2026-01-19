@@ -18,6 +18,9 @@ services:
     container_name: shelf_api
     env_file:
       - ./backend/api/.env
+    environment:
+      # Override localhost with Docker service name
+      - DATABASE_URL=postgres://shelf:shelf@db:5432/shelf
     depends_on:
       - db
     ports:

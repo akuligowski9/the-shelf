@@ -79,10 +79,13 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
 
   // activeHabits comes from context
 
-  // All targets for the selected habit (show all statuses when editing, active/planned for new entries)
+  // All targets for the selected habit, sorted by status priority
   const availableTargets = useMemo(() => {
     if (!habitId) return []
-    return targets.filter(t => t.habit_id === Number(habitId))
+    const statusOrder = { active: 0, planned: 1, parked: 2, completed: 3, archived: 4 }
+    return targets
+      .filter(t => t.habit_id === Number(habitId))
+      .sort((a, b) => (statusOrder[a.status] ?? 5) - (statusOrder[b.status] ?? 5))
   }, [habitId, targets])
 
   const selectedTarget = useMemo(() => {
