@@ -1,8 +1,15 @@
-# Deploy The Shelf (Free Hosting)
+# The Shelf — Operations
+
+> Operational procedures for deploying, maintaining, and recovering the system.
+> See `OPS_PRIVATE.md` for credentials or internal access details.
+
+---
+
+## Deployment (Render + Neon)
 
 Deploy to **Render** (free web hosting) + **Neon** (free PostgreSQL).
 
-## Step 1: Create Neon Database (5 min)
+### Step 1: Create Neon Database (5 min)
 
 1. Go to [neon.tech](https://neon.tech) and sign up (use GitHub for easy login)
 2. Click **"Create Project"**
@@ -10,7 +17,7 @@ Deploy to **Render** (free web hosting) + **Neon** (free PostgreSQL).
 4. Copy the **connection string** (looks like `postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require`)
 5. In the Neon SQL Editor, paste and run the contents of `db/schema.sql` to create tables
 
-## Step 2: Push to GitHub
+### Step 2: Push to GitHub
 
 Make sure your code is on GitHub:
 
@@ -20,7 +27,7 @@ git commit -m "Add Render deployment config"
 git push
 ```
 
-## Step 3: Deploy to Render (10 min)
+### Step 3: Deploy to Render (10 min)
 
 1. Go to [render.com](https://render.com) and sign up (use GitHub)
 2. Click **"New +"** → **"Blueprint"**
@@ -43,30 +50,38 @@ After services are created:
 
 3. Trigger a redeploy on `shelf-web` (Settings → Manual Deploy)
 
-## Step 4: Access Your App
+### Step 4: Access Your App
 
 After deployment completes (~5 min):
 
 - **Web App**: `https://shelf-web.onrender.com`
 - **API**: `https://shelf-api.onrender.com/health`
 
-## Notes
+---
+
+## Operational Notes
 
 ### Cold Starts
+
 On the free tier, services sleep after 15 min of inactivity. First request after sleep takes ~30 seconds. This is normal.
 
 ### Custom Domain (Optional)
+
 In Render dashboard, you can add a custom domain to either service for free.
 
 ### Mobile App
+
 To use the mobile app with your deployed API, update the API URL in:
 `frontend/shared/api/index.ts` → change the default URL, or set it at runtime.
 
 ### Local Development
+
 Local dev still works the same:
 ```bash
 docker-compose -f docker-compose.dev.yml up
 ```
+
+---
 
 ## Troubleshooting
 
@@ -81,3 +96,15 @@ docker-compose -f docker-compose.dev.yml up
 **Database connection error:**
 - Neon connection string must include `?sslmode=require`
 - Check if your IP is allowed in Neon (should be open by default)
+
+---
+
+## Backup & Recovery
+
+*To be documented when backup strategy is established.*
+
+---
+
+## Security Model
+
+*To be documented when security review is completed.*

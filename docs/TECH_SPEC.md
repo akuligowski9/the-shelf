@@ -1,5 +1,26 @@
 # The Shelf — Technical Specification
 
+> Comprehensive technical documentation including system specification, data model, and import format.
+
+---
+
+## Table of Contents
+
+1. [Overview](#1-overview)
+2. [Design Philosophy](#2-design-philosophy)
+3. [Core Concepts & Language](#3-core-concepts--language)
+4. [Metrics & Balance](#4-metrics--balance)
+5. [Primary UI Views](#5-primary-ui-views-contract--all-complete)
+6. [Data Integrity & Persistence](#6-data-integrity--persistence)
+7. [Testing Strategy](#7-testing-strategy)
+8. [Visual Design Guidelines](#8-visual-design-guidelines)
+9. [Non-Goals](#9-non-goals)
+10. [Implementation Status](#10-implementation-status)
+11. [Data Model](#11-data-model)
+12. [Import Specification](#12-import-specification)
+
+---
+
 ## 1. Overview
 
 **The Shelf** is a personal, single-user system for managing attention, balance, and long-term memory of effort.
@@ -19,7 +40,7 @@ Instead, it provides:
 - optional reflection
 - explicit closure
 
-The system assumes one user (you).  
+The system assumes one user (you).
 There is no social layer, no comparison, and no performance scoring.
 
 ---
@@ -59,8 +80,8 @@ informative, factual, and non-moral.
 
 ### 2.3 Closure is as important as effort
 
-Many systems track “doing.”
-Very few systems track “stopping.”
+Many systems track "doing."
+Very few systems track "stopping."
 
 The Shelf treats:
 - preparation (framing)
@@ -81,7 +102,7 @@ Nothing meaningful is ever deleted.
 Archiving removes items from current views but never from history or metrics.
 
 The intent is that in 2028 you can still answer:
-> “What did 2026 actually look like?”
+> "What did 2026 actually look like?"
 
 ---
 
@@ -182,7 +203,7 @@ Properties:
 - optional habit or practice association
 
 Interpretation rules:
-- “Current work” is computed from dates AND status
+- "Current work" is computed from dates AND status
 - Parked/done/archived targets never appear as current work
 - Overlapping targets are allowed
 
@@ -345,15 +366,30 @@ Highlights allow:
 
 Transitions track **changes to the habit set**, not daily behavior.
 
+**Important:** "Transitions" specifically refer to habit activation/deactivation changes. Target status changes (planned → active → done) are NOT called transitions.
+
 A transition window represents:
 - reducing active habits
 - increasing active habits
 - swapping habits intentionally
 
+**Transition Window Behavior:**
+- Entered explicitly via "Enter Transition Window" in Attention view
+- Allows toggling multiple habits at once
+- Captures a **note** explaining why habits are being activated/deactivated
+- Exited by completing (with note) or canceling
+- A transition is only counted when the window is **completed**
+
+**Cascading Effects:**
+When a habit is deactivated:
+- All practices under that habit are also deactivated
+- All targets linked to that habit are parked
+
 Rules:
-- Editing habit metadata does not count
-- Multiple habit changes inside one window = one transition
+- Editing habit metadata does not count as a transition
+- Multiple habit changes inside one window = one transition event
 - Transition windows are explicitly entered and exited
+- Transition history is recorded with timestamp and note
 
 Transitions explain balance shifts without blame.
 
@@ -390,7 +426,7 @@ Metrics never imply success, failure, or obligation.
 
 ### 4.1 The Central Question
 
-> “Am I balanced — and what influenced that balance?”
+> "Am I balanced — and what influenced that balance?"
 
 This question is intentionally broad.
 
@@ -897,7 +933,7 @@ For testing and demonstration purposes, a set of sample data is available in the
 
 ### 5.6.2 Live Data Logging
 
-In addition to the database, the system will maintain a real-time log of all entries in JSON format. For each day that data is recorded, a corresponding JSON file will be created in the `data/logs/` directory. The structure of the objects within the JSON file will adhere to the format defined for `Entries` in the `docs/data-model.md` document.
+In addition to the database, the system will maintain a real-time log of all entries in JSON format. For each day that data is recorded, a corresponding JSON file will be created in the `data/logs/` directory. The structure of the objects within the JSON file will adhere to the format defined for `Entries` in the Data Model section.
 
 - **File Naming:** Files will be named based on the date, e.g., `YYYY-MM-DD.json`.
 - **Purpose:** This provides a simple, durable, and human-readable record of daily activity. It serves as a secondary backup and allows for easy inspection or external processing of the raw data.
@@ -1089,20 +1125,7 @@ Focus rings use the primary color (evergreen in light, eucalyptus in dark).
 
 ---
 
-## 10. Summary
-
-The Shelf is a system for:
-- seeing attention
-- preserving memory
-- enabling closure
-- honoring rest
-- understanding balance
-
-It is designed to grow with you, not pressure you.
-
----
-
-## 11. Implementation Status
+## 10. Implementation Status
 
 **v1 Web Frontend: Complete (January 2026)**
 
@@ -1120,4 +1143,652 @@ All six views are fully implemented and functional:
 - Import/export with preview and duplicate detection
 - Metrics calculation and aggregation
 
-**Next Phase: SwiftUI iOS Client**
+**Next Phase: React Native Mobile App**
+
+---
+
+## 11. Data Model
+
+> The system is **single-tenant** (no users table).
+> **Entries are the canonical source of truth**, and the system also supports **stored daily metrics** to enable fast, stable, Screen Time–style visualizations.
+
+### 11.1 Core Principles
+
+- **Entries are the canonical ledger** of what happened.
+- **Targets unify** projects, milestones, and ideas.
+- **Programs are removed** as a noun/entity; time-boxing lives directly on **Targets**.
+- **Parking Lot is a status**, not a separate entity: `targets.status = 'parked'`.
+- **Habits and Practices are distinct**:
+  - habits define *domains of attention*
+  - practices define *ways attention is expressed*
+- **Metrics are descriptive**, not evaluative.
+- **History is never destroyed**:
+  - archival removes items from active views
+  - archival never removes data from metrics
+- **Rest days are valid data**, not gaps.
+- **Transitions are structural events**, not effort events.
+- **The system must support demo / sample data** for portfolio presentation.
+
+---
+
+### 11.2 Source of Truth
+
+1. **`data/habits.json`** — Canonical baseline for habits, practices, and actions
+2. **`data/logs/*.json`** — Daily log files with entries and optional transitions
+3. **`db/schema.sql`** — Database schema (the import process populates this)
+
+---
+
+### 11.3 Canonical Definitions (Domain Language)
+
+- **Habit**: A recurring domain of attention (e.g., Software, Spanish, Exercise).
+- **Practice**: A concrete way to fulfill a habit (e.g., Walking, Conversations, Personal Project Development).
+- **Target**: The thing you are working toward (project, milestone, idea). Targets give *direction*, not obligation.
+- **Preparation**: A soft framing note used to start a day or week intentionally.
+- **Closure**: An intentional stopping marker used to end a day or session.
+- **Entry**: A logged event representing what actually happened.
+- **Highlight**: A celebratory flag on an entry.
+- **Reflection**: A stored narrative artifact interpreting patterns over a time range.
+- **Transition Window**: An intentional period where the set of active habits is adjusted.
+- **Parking Lot**: Inactive targets held intentionally for later attention.
+
+---
+
+### 11.4 Entity Details
+
+#### Habits
+
+Habits represent long-running pillars of attention.
+
+Fields:
+- `id`
+- `name`
+- `active` (boolean)
+- `target_minutes` (default framing value; not a requirement)
+- `sort_order`
+- timestamps
+
+Notes:
+- Activating or deactivating a habit **may trigger a transition window**
+- Editing habit metadata does **not** trigger a transition
+- Habits persist historically even when inactive
+
+---
+
+#### Practices
+
+Practices are concrete expressions of a habit.
+
+Fields:
+- `id`
+- `habit_id` (FK)
+- `name`
+- `active` (boolean)
+- `sort_order`
+- timestamps
+
+Notes:
+- Practices are normalized to avoid duplication
+- Practices can be inactive (hidden from selection) without deleting history
+- Practices enable sub-habit pattern analysis in metrics
+
+---
+
+#### Targets
+
+Targets unify projects, milestones, and ideas.
+
+Status values:
+- `active`
+- `parked` (parking lot)
+- `planned`
+- `done`
+- `archived`
+
+Optional scheduling:
+- `start_date` (nullable)
+- `end_date` (nullable)
+- `done_at` (nullable)
+
+Time-boxing semantics:
+- **Planned**: date window exists and is in the future
+- **Active (scheduled)**: today is inside `[start_date, end_date]`
+- **On the shelf (unscheduled)**: no dates set
+- **Done / Archived**: removed from current attention regardless of dates
+
+Targets may optionally relate to:
+- a habit
+- a default practice
+- or neither (life/admin targets)
+
+Targets may overlap freely.
+
+---
+
+#### Entries (Canonical Ledger)
+
+Entries are the primary record of what happened.
+
+Entry types:
+- `habit`
+- `life`
+- `caution`
+
+Key fields:
+- `id`
+- `type`: `habit` | `life` | `caution`
+- `occurred_on`: date (day-level grouping)
+- `occurred_at`: timestamp (stored in EST)
+- `habit_id`: nullable; required for `type=habit`
+- `practice_id`: nullable; encouraged for `type=habit`
+- `target_id`: nullable
+- `duration_minutes`: nullable (valid for habit and life)
+- `note`: nullable text
+- `is_highlight`: boolean
+- `source`: `manual` | `import` | `auto`
+- `archived_at`: nullable
+- timestamps
+
+Semantics:
+- Habit entries are primarily time-based
+- Life entries may be time-based or note-only
+- Caution entries are usually occurrence-based
+- Entries power all metrics and review surfaces
+
+---
+
+#### Preparations
+
+Preparations are soft framing notes.
+
+Fields:
+- `id`
+- `period_type`: `day` | `week`
+- `period_start`: date
+- `note`
+- optional `habit_id`
+- optional `target_id`
+- optional `rest_day` boolean
+- timestamp
+
+Notes:
+- Preparations do not invalidate rest days
+- Counts of preparations are meaningful metrics
+
+---
+
+#### Closures
+
+Closures represent intentional stopping.
+
+Fields:
+- `id`
+- `scope`: `day` | `session`
+- `occurred_at`
+- optional `habit_id`
+- optional `practice_id`
+- `note`
+- timestamp
+
+Notes:
+- Closures support end-of-day hygiene
+- Closure counts are tracked as metrics
+- Closures help retrieve "last session context" per habit/practice
+
+---
+
+#### Reflections
+
+Reflections are macro sense-making artifacts.
+
+Fields:
+- `id`
+- `reflection_type`: `day` | `week` | `month` | `adhoc`
+- `period_start` / `period_end` (required for week/month)
+- optional `habit_id`
+- optional `target_id`
+- `note`
+- timestamp
+
+Notes:
+- Reflections are never required
+- Reflections are never auto-generated
+- Reflections may reference metrics, transitions, or decisions
+
+---
+
+#### Habit Prompts (Templates)
+
+Habit-level prompts used to assist framing or closure.
+
+Fields:
+- `habit_id`
+- `prompt_type`: `warmup` | `cooldown`
+- `prompt_text`
+- optional active flag
+- sort order
+
+Notes:
+- Prompt responses are **not** stored separately
+- Responses may be captured via preparations, closures, or reflections
+
+---
+
+#### Habit Transitions (Transition Windows)
+
+Transitions track **changes to the active habit set**.
+
+**Note:** "Transitions" refer specifically to habit changes. Target status changes are NOT transitions.
+
+Fields:
+- `id`
+- `started_at`
+- `ended_at`
+- `note` (captures why habits were activated/deactivated)
+- timestamp
+
+Rules:
+- A transition window may contain multiple habit activations/deactivations
+- One window = one transition event for metrics
+- Transition windows explain balance shifts over time
+
+Cascading effects on deactivation:
+- Practices under deactivated habit → deactivated
+- Targets linked to deactivated habit → parked
+
+---
+
+#### Settings
+
+Flexible key/value configuration.
+
+Fields:
+- `key`
+- `value` (JSON)
+- timestamp
+
+Examples:
+- timezone
+- default habit durations
+- chart preferences
+- import behavior flags
+- UI display toggles
+
+---
+
+### 11.5 Daily Metrics (Stored)
+
+To support Screen Time–style charts, the system persists daily aggregates.
+
+#### Why store daily metrics?
+
+- Fast chart rendering
+- Stable historical views
+- Simplified weekly/monthly/yearly queries
+- Insulation from entry edits
+
+#### Metric layers
+
+**1) `daily_metrics`**
+One row per calendar day.
+- `date`
+- `is_rest_day` (boolean)
+- optional totals (e.g. total minutes)
+
+**2) `daily_metric_items`**
+Breakdown rows per day per bucket.
+
+Buckets represent peer signals:
+- Habit buckets (time-based)
+- Practice buckets (time-based)
+- Life buckets (time-based)
+- Caution buckets (occurrence-based)
+- Transition buckets (occurrence-based)
+- Preparation / closure counts
+
+Suggested fields:
+- `date`
+- `bucket_type`: `habit` | `practice` | `life` | `caution` | `transition` | `prep` | `closure`
+- `bucket_id`: nullable (FK or text key)
+- `minutes`: nullable
+- `count`: nullable
+
+This supports stacked bars with overlay markers.
+
+---
+
+### 11.6 Table List
+
+**Core:**
+- `habits`
+- `practices`
+- `actions`
+- `habit_prompts`
+- `targets`
+- `entries`
+- `preparations`
+- `closures`
+- `reflections`
+- `habit_transitions`
+- `settings`
+
+**Metrics:**
+- `daily_metrics`
+- `daily_metric_items`
+
+> Note: "Parking Lot" is not a table; it is `targets.status = 'parked'`
+
+---
+
+## 12. Import Specification
+
+> The import system is designed to be forgiving, forward-compatible, history-preserving, safe for repeated use, and suitable for both manual and programmatic generation.
+
+### 12.1 Core Import Principles
+
+- History is preserved at all costs
+- Unknown fields are ignored
+- Missing optional fields are allowed
+- Imports never delete or overwrite existing data
+- Minimal required structure only
+- Imports should not fail due to extra data
+
+Imports are intentionally tolerant to support:
+- handwritten JSON
+- scripted exports
+- AI-generated logs
+- future format evolution
+
+### 12.2 Import Unit & File Scope
+
+Each import file represents one calendar day. The system processes imports day by day, not as bulk timelines.
+
+#### Required Top-Level Shape
+
+A valid import file must include:
+- `date` (YYYY-MM-DD)
+
+_Example:_
+
+```json
+{
+  "date": "2026-01-07"
+}
+```
+
+All other fields are optional.
+
+### 12.3 Supported Top-Level Fields
+
+A full import file may include:
+
+```json
+{
+  "date": "2026-01-07",
+  "preparations": [],
+  "closures": [],
+  "entries": [],
+  "reflections": [],
+  "transitions": []
+}
+```
+
+**Rules:**
+- All arrays are optional
+- Empty arrays are valid
+- Unknown arrays are ignored
+- Order does not matter
+
+### 12.4 Date & Time Handling
+
+- `date` represents the local calendar day
+- Timestamps may be provided without timezone
+- The system converts timestamps to EST
+- Timezone is resolved using system settings
+
+**Accepted timestamp formats:**
+- `YYYY-MM-DDTHH:mm`
+- `YYYY-MM-DDTHH:mm:ss`
+
+### 12.5 Preparations (Start-of-Day / Session Framing)
+
+Preparations represent intentional framing.
+
+_Shape example:_
+
+```json
+{
+  "occurred_at": "2026-01-07T08:15",
+  "period_type": "day",
+  "note": "Light day. Focus on presence."
+}
+```
+
+**Supported fields:**
+- `occurred_at` (optional but recommended)
+- `period_type`: `day` | `week`
+- `note`
+- `habit` (string, optional)
+- `practice` (string, optional)
+- `target` (string, optional)
+- `rest_day` (boolean, optional)
+
+**Notes:**
+- Preparations do not invalidate rest days
+- Preparation count is tracked as a metric
+
+### 12.6 Closures (End-of-Day / Session Stopping)
+
+Closures represent intentional stopping.
+
+_Shape example:_
+
+```json
+{
+  "occurred_at": "2026-01-07T22:10",
+  "scope": "day",
+  "note": "Enough for today."
+}
+```
+
+**Supported fields:**
+- `occurred_at`
+- `scope`: `day` | `session`
+- `note`
+- `habit` (optional)
+- `practice` (optional)
+
+**Notes:**
+- Closures are not summaries
+- Closure count is tracked as a metric
+- Closures enable last-session retrieval
+
+### 12.7 Entries (Canonical Ledger)
+
+Entries record what actually happened.
+
+**Required fields:**
+- `type`: `habit` | `life` | `caution`
+- `occurred_at`
+
+**Supported fields:**
+- `habit` (string, required for `habit` entries)
+- `practice` (string, optional)
+- `target` (string, optional)
+- `duration_minutes` (number, optional)
+- `note` (string, optional)
+- `is_highlight` (boolean, optional)
+- `actions` (array of strings, optional)
+
+_Example — Habit Entry:_
+
+```json
+{
+  "type": "habit",
+  "habit": "Spanish",
+  "practice": "Conversation",
+  "occurred_at": "2026-01-07T14:30",
+  "duration_minutes": 45,
+  "note": "Call with family",
+  "is_highlight": true
+}
+```
+
+_Example — Life Entry:_
+
+```json
+{
+  "type": "life",
+  "occurred_at": "2026-01-07T18:00",
+  "duration_minutes": 120,
+  "note": "Dinner with family"
+}
+```
+
+_Example — Caution Entry:_
+
+```json
+{
+  "type": "caution",
+  "occurred_at": "2026-01-07T16:10",
+  "note": "Distracted scrolling"
+}
+```
+
+**Notes:**
+- Duration is optional for all types
+- Caution entries are usually occurrence-based
+- Entries may be edited later in the UI
+- Entries are never hard-deleted
+
+#### Actions (for habits with track_actions)
+
+Habit entries may include an `actions` array for granular tracking within a session.
+
+_Example — Entry with Actions:_
+
+```json
+{
+  "type": "habit",
+  "habit": "Dog Training",
+  "practice": "Drills",
+  "occurred_at": "2026-01-12T12:00:00",
+  "duration_minutes": 60,
+  "actions": ["Crate", "Name Recall", "Greeting Practice"]
+}
+```
+
+**Rules:**
+- `actions` is optional
+- Only meaningful for habits with `track_actions: true`
+- Action names are strings (matched to practice's action list)
+- Unknown actions are preserved but may not display in UI
+
+### 12.8 Reflections
+
+Reflections are optional narrative artifacts.
+
+_Shape example:_
+
+```json
+{
+  "note": "Reducing habits helped this week."
+}
+```
+
+**Supported fields:**
+- `note`
+- `reflection_type`: `day` | `week` | `month` | `adhoc` (optional)
+- `period_start` (optional)
+- `period_end` (optional)
+- `habit` (optional)
+- `target` (optional)
+
+**Notes:**
+- Reflections are never inferred
+- Reflections are never required
+- Multiple reflections per day are allowed
+
+### 12.9 Rest Days
+
+A rest day is inferred when:
+- no `habit` entries exist
+- no `life` entries exist
+
+Rest days:
+- are counted as metrics
+- appear in visualizations
+- do not require explicit import
+
+**Optional:**
+- mark intent via `rest_day: true` in a preparation or closure
+
+### 12.10 Validation Rules (Minimal)
+
+An import file is valid if:
+- `date` exists
+- arrays (if present) are arrays
+- entries include `type` and `occurred_at`
+
+Invalid objects are skipped. The import continues.
+
+### 12.11 Forward Compatibility
+
+- Unknown fields are ignored
+- Unknown arrays are ignored
+- No schema version is required
+- Versioning will be introduced only for breaking changes
+
+### 12.12 Import Outcomes
+
+On successful import:
+- entries are appended
+- history is preserved
+- daily metrics are recalculated
+- rest days are inferred
+
+Imports never:
+- delete data
+- overwrite history
+- remove archived items
+
+### 12.13 Transitions (Structural Changes)
+
+Log files may include a `transitions` array to record structural changes to habits, practices, or actions.
+
+_Example:_
+
+```json
+{
+  "date": "2026-01-15",
+  "transitions": [
+    {
+      "type": "add_practice",
+      "habit": "Exercise",
+      "practice": "Yoga",
+      "note": "Starting yoga practice"
+    },
+    {
+      "type": "add_action",
+      "habit": "Dog Training",
+      "practice": "Drills",
+      "action": "Place Command",
+      "note": "Added new drill"
+    }
+  ],
+  "entries": []
+}
+```
+
+**Supported transition types:**
+- `add_habit` — Add a new habit
+- `add_practice` — Add practice to existing habit
+- `add_action` — Add action to existing practice
+- `deactivate_habit` — Set habit.active = false
+- `deactivate_practice` — Set practice.active = false
+
+**Rules:**
+- Transitions are processed before entries for that day
+- `data/habits.json` is the baseline; transitions extend it over time
+- Transitions create a timeline of structural evolution
+- Unknown transition types are ignored
