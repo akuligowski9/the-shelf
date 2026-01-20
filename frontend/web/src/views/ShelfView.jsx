@@ -15,7 +15,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { Sun, Moon, ChevronRight, ChevronDown, Calendar, Clock, GripVertical, Bookmark } from 'lucide-react'
+import { Sun, Moon, ChevronRight, ChevronDown, Calendar, Clock, GripVertical, Bookmark, ExternalLink } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -87,7 +87,21 @@ function SortableTargetCard({ target, habits, progress, formatProgress }) {
           <div className="flex items-start justify-between gap-3 flex-1 min-w-0">
             <div className="space-y-2 flex-1 min-w-0">
               {/* Target name */}
-              <h3 className="font-medium">{target.name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium">{target.name}</h3>
+                {target.github_issue_url && (
+                  <a
+                    href={target.github_issue_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    title="View GitHub Issue"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
 
               {/* Habit badge + dates/duration */}
               <div className="flex items-center gap-2 flex-wrap">

@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { ChevronDown, ChevronRight, Plus, ArrowRightLeft, GripVertical, MoreHorizontal, Calendar, Clock } from 'lucide-react'
+import { ChevronDown, ChevronRight, Plus, ArrowRightLeft, GripVertical, MoreHorizontal, Calendar, Clock, ExternalLink } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -176,6 +176,19 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
             <Clock className="h-3 w-3" />
             ~{target.planned_duration}
           </span>
+        )}
+        {target.github_issue_url && (
+          <a
+            href={target.github_issue_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className={`text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}
+            title="View GitHub Issue"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Issue
+          </a>
         )}
       </div>
     </div>

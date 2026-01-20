@@ -32,6 +32,7 @@ export default function TargetEditDialog({
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [plannedDuration, setPlannedDuration] = useState('')
+  const [githubIssueUrl, setGithubIssueUrl] = useState('')
   const [notes, setNotes] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -43,6 +44,7 @@ export default function TargetEditDialog({
       setStartDate(target.start_date || '')
       setEndDate(target.end_date || '')
       setPlannedDuration(target.planned_duration || '')
+      setGithubIssueUrl(target.github_issue_url || '')
       setNotes(target.notes || '')
       setConfirmDelete(false)
     }
@@ -57,6 +59,7 @@ export default function TargetEditDialog({
         start_date: startDate || null,
         end_date: endDate || null,
         planned_duration: plannedDuration.trim() || null,
+        github_issue_url: githubIssueUrl.trim() || null,
         notes: notes || null,
       })
       onOpenChange(false)
@@ -151,6 +154,19 @@ export default function TargetEditDialog({
             />
             <p className="text-xs text-muted-foreground">
               For targets without specific dates. Shows as "~1 month" on shelf.
+            </p>
+          </div>
+
+          {/* GitHub Issue URL */}
+          <div className="space-y-2">
+            <Label>GitHub Issue</Label>
+            <Input
+              value={githubIssueUrl}
+              onChange={(e) => setGithubIssueUrl(e.target.value)}
+              placeholder="https://github.com/owner/repo/issues/123"
+            />
+            <p className="text-xs text-muted-foreground">
+              Link to a GitHub issue for tracking progress externally.
             </p>
           </div>
 
