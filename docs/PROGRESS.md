@@ -54,6 +54,7 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 **Summary:**
 - Implemented SHELF-038 (Loading Skeletons) — comprehensive skeleton components for all views
 - Implemented SHELF-041 (PWA Support) — full Progressive Web App configuration
+- Implemented SHELF-036 (Unit Tests) — 59 tests across frontend and backend
 - Created custom Shelf icon (bookshelf design) with all required PNG sizes
 - Added SHELF-045 (Full Offline Support) to backlog for future work
 - Closed GitHub issue #8 (PWA Support)
@@ -71,6 +72,12 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - Workbox service worker with NetworkFirst API caching strategy
 - Updated index.html with proper meta tags
 
+**SHELF-036 Details:**
+- Frontend: Vitest configured, 37 tests for color utilities and date/template helpers
+- Backend: Jest configured, 22 tests for health, metrics, and entries routes
+- Refactored backend to export app.js for testable server
+- Test commands: `npm run test` (frontend), `npm test` (backend)
+
 **SHELF-045 (New Backlog Item):**
 - Full offline support with IndexedDB, mutation queue, sync, and conflict resolution
 - Builds on PWA foundation to enable true offline usage
@@ -80,10 +87,12 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - NetworkFirst caching for API calls (24hr expiration)
 - Standalone display mode for native app feel
 - Offline indicator deferred to SHELF-045 (full offline support)
+- Vitest for frontend (Vite-native), Jest for backend (Node standard)
+- Custom hooks tests deferred (tightly coupled to React context)
 
 **What's next:**
 - SHELF-045 (Full Offline Support) when offline usage becomes priority
-- More quick wins: SHELF-002, SHELF-036, SHELF-037
+- More quick wins: SHELF-002, SHELF-037
 
 ---
 
