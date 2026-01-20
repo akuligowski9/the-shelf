@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-01-19
+Last updated: 2026-01-20
 
 ---
 
@@ -48,6 +48,38 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 ---
 
 ## Sessions
+
+### 2026-01-20 (Afternoon)
+
+**Summary:**
+- Implemented SHELF-038 (Loading Skeletons) — comprehensive skeleton components for all views
+- Implemented SHELF-041 (PWA Support) — full Progressive Web App configuration
+- Created custom Shelf icon (bookshelf design) with all required PNG sizes
+- Both features tested and pushed to main
+
+**SHELF-038 Details:**
+- Created 7 skeleton variants in `skeleton.jsx`: EntryCard, Card, Stats, List, Chart, HabitAccordion, Reflection
+- Integrated skeletons into TodayView, ProgressView, ReviewView using isLoading states
+- Mobile already had skeletons integrated
+
+**SHELF-041 Details:**
+- Installed and configured vite-plugin-pwa
+- Created SVG icon source with gradient bookshelf design
+- Generated icons: pwa-192x192.png, pwa-512x512.png, apple-touch-icon.png, favicon.png
+- PWA manifest with app metadata, theme colors, orientation settings
+- Workbox service worker with NetworkFirst API caching strategy
+- Updated index.html with proper meta tags
+
+**Decisions:**
+- Used sharp (dev dependency) for SVG→PNG conversion
+- NetworkFirst caching for API calls (24hr expiration)
+- Standalone display mode for native app feel
+
+**What's next:**
+- More quick wins from backlog (SHELF-002, SHELF-036, SHELF-037)
+- Mobile app continuation (SHELF-012)
+
+---
 
 ### 2026-01-20 (Early Morning)
 
