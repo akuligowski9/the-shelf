@@ -58,18 +58,18 @@ Targets in The Shelf represent goals or milestones within habits. For software d
 
 ### Acceptance Criteria
 
-- [ ] Targets schema includes `github_issue_url` field
-- [ ] Target edit form includes GitHub Issue URL input
-- [ ] UI displays clickable link to GitHub issue when set
-- [ ] Issue status fetched and displayed (optional enhancement)
+- [x] Targets schema includes `github_issue_url` field
+- [x] Target edit form includes GitHub Issue URL input
+- [x] UI displays clickable link to GitHub issue when set
+- [ ] Issue status fetched and displayed (optional enhancement - deferred)
 
 ### Metadata
 
-- **Status:** Planned
+- **Status:** Done
 - **Priority:** Medium
 - **Type:** Feature
-- **Version:** Unassigned
-- **Assignee:** Unassigned
+- **Version:** v1
+- **Assignee:** Alex
 - **GitHub Issue:** No
 
 ---
