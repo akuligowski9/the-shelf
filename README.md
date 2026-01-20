@@ -10,7 +10,7 @@ The Shelf helps you plan attention, log what actually happened, and review balan
 
 ## Demo
 
-*Live demo link coming soon.*
+**Live app:** [the-shelf-amk.vercel.app](https://the-shelf-amk.vercel.app)
 
 To run a demo locally with sample data:
 
@@ -54,13 +54,14 @@ See [BACKLOG.md](./docs/BACKLOG.md) for details.
 | Layer | Technology |
 |-------|------------|
 | Backend | Node.js + Express.js |
-| Database | PostgreSQL |
+| Database | PostgreSQL (Neon) |
 | Frontend | React 19 + Vite |
 | UI Components | shadcn/ui + Tailwind CSS |
 | Charts | Recharts |
 | Rich Text | Tiptap |
 | Drag & Drop | @hello-pangea/dnd |
 | Containerization | Docker Compose |
+| Hosting | Google Cloud Run + Vercel |
 
 ---
 
