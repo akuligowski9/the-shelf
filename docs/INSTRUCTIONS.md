@@ -207,7 +207,7 @@ This format is used consistently in BACKLOG.md and when creating GitHub Issues.
 
 ### Description
 
-<1-4 sentences: problem, solution, relevant details. Notes/links go here.>
+<Minimum 3 sentences: problem context, proposed solution, implementation notes. Include relevant links.>
 
 ### Acceptance Criteria
 

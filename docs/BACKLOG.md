@@ -28,7 +28,7 @@ Planned → In Progress → Done
 
 ### Description
 
-Final polish for React Native mobile app. Offline queue and sync, error handling improvements. Haptics and swipe actions already done.
+The React Native mobile app is feature-complete but needs final polish before release. The primary gap is offline support - when users lose connectivity, mutations should queue locally and sync when the connection is restored. Error handling also needs improvement to show user-friendly messages instead of generic failures. Haptic feedback and swipe actions on entry cards have already been implemented.
 
 ### Acceptance Criteria
 
@@ -54,7 +54,7 @@ Final polish for React Native mobile app. Offline queue and sync, error handling
 
 ### Description
 
-Add optional `github_issue_url` field to targets. Display issue status/link in UI. Enable tracking software targets alongside GitHub issues.
+Targets in The Shelf represent goals or milestones within habits. For software development habits, it would be useful to link targets directly to GitHub issues so progress can be tracked in both places. This feature adds an optional `github_issue_url` field to targets, displays a clickable link in the UI, and optionally fetches/shows the issue status (open/closed). This bridges personal habit tracking with external project management.
 
 ### Acceptance Criteria
 
@@ -78,7 +78,7 @@ Add optional `github_issue_url` field to targets. Display issue status/link in U
 
 ### Description
 
-Extend import preview to show practice and action resolution. Auto-create missing practices/actions during import.
+The import system currently shows a preview of what will be imported but doesn't detail how practices and actions will be resolved. When importing data that references practices or actions not yet in the database, users can't see what will happen. This feature extends the import preview to show practice/action resolution status, flag missing items, and auto-create them during import with user confirmation. This prevents import failures and gives users control over what gets created.
 
 ### Acceptance Criteria
 
@@ -102,7 +102,7 @@ Extend import preview to show practice and action resolution. Auto-create missin
 
 ### Description
 
-Preview templates with variables like `{{last_session_note}}` substituted. Parse and fetch relevant data in HabitEditDialog.
+Warm-up and cool-down templates support dynamic variables like `{{last_session_note}}` that get substituted with real data when displayed. Currently, users edit templates as raw text without seeing the final output. This feature adds a live preview panel in HabitEditDialog that parses variables and fetches the relevant data (e.g., the note from the user's last session). The preview should update as the template is edited and handle missing data gracefully.
 
 ### Acceptance Criteria
 
@@ -126,7 +126,7 @@ Preview templates with variables like `{{last_session_note}}` substituted. Parse
 
 ### Description
 
-Drill into practice-level data within habits in Progress view. Visual representation in charts with filter by practice.
+The Progress view currently shows habit-level aggregations, but habits contain multiple practices (e.g., "Exercise" habit might have "Running", "Weights", "Stretching" practices). Users want to drill into practice-level data to understand how their time is distributed within a habit. This feature adds practice breakdowns when a habit is selected, with charts showing time per practice and filters to focus on specific practices. This enables deeper insight into where time is actually going.
 
 ### Acceptance Criteria
 
@@ -152,7 +152,7 @@ Drill into practice-level data within habits in Progress view. Visual representa
 
 ### Description
 
-Compact grid visualization for year-at-a-glance. Calendar heatmap with click to drill into day.
+The Progress view currently shows bar charts and time-based visualizations, but lacks a year-at-a-glance view. A calendar heatmap (similar to GitHub's contribution graph) would let users quickly see patterns - which days they're most active, gaps in tracking, and seasonal trends. Clicking a day should drill into that day's entries. The heatmap should use the existing earth-tone color palette and support dark mode.
 
 ### Acceptance Criteria
 
@@ -176,7 +176,7 @@ Compact grid visualization for year-at-a-glance. Calendar heatmap with click to 
 
 ### Description
 
-Overlay markers on charts for transitions and caution spikes. Visual markers with tooltips on timeline charts.
+The Shelf tracks "transitions" (when users switch between habits during a session) and "caution" entries (behaviors users want to monitor or reduce). These events are significant for understanding patterns but aren't visible on Progress view charts. This feature overlays visual markers on timeline charts to highlight transition events and caution spikes, helping users correlate these events with their overall activity. Markers should have tooltips with details and be toggleable to avoid clutter.
 
 ### Acceptance Criteria
 
@@ -200,7 +200,7 @@ Overlay markers on charts for transitions and caution spikes. Visual markers wit
 
 ### Description
 
-Implement formal migration system vs direct SQL for schema versioning. Up/down migration support.
+Database schema changes are currently applied via direct SQL edits to schema.sql, which doesn't track migration history or support rollbacks. As the project grows and potentially has multiple contributors, a formal migration system is needed. This feature implements versioned migration files with up/down support, a migrations table to track applied changes, and a CLI command to run pending migrations. This enables safe, reproducible schema evolution.
 
 ### Acceptance Criteria
 
@@ -225,7 +225,7 @@ Implement formal migration system vs direct SQL for schema versioning. Up/down m
 
 ### Description
 
-Support time-bound programs (e.g., "4 weeks of PT", "30-day challenge"). Programs have start/end dates and link to a habit. Entries within the timeframe auto-associate. Progress view can filter by program. Schema (`programs` table), API (CRUD + query), UI (Attention create/edit, Shelf progress indicator, Progress filter, Today badge).
+Users often engage in time-bound programs like "4 weeks of physical therapy", "30-day meditation challenge", or "12-week training block". Currently, The Shelf tracks habits continuously without framing activity within specific time periods. This feature introduces "Programs" - named time blocks with start/end dates linked to habits. Entries within program dates auto-associate, Progress view can filter by program, and UI elements show progress (e.g., "Day 12 of 30"). This is a larger feature touching schema, API, and multiple views.
 
 ### Acceptance Criteria
 
@@ -251,7 +251,7 @@ Support time-bound programs (e.g., "4 weeks of PT", "30-day challenge"). Program
 
 ### Description
 
-Add unit tests for utility functions, hooks, and API handlers. Currently only E2E tests exist. Unit tests run faster, catch bugs earlier, and make contributions safer.
+The test suite currently consists only of Playwright E2E tests, which are comprehensive but slow to run and don't catch unit-level bugs early. Unit tests for utility functions, custom hooks, and API route handlers would provide faster feedback during development. This feature sets up Jest for the web frontend and backend, adds tests for critical utilities (date formatting, metrics calculations), and configures coverage reporting. This improves code quality and makes contributions safer.
 
 ### Acceptance Criteria
 
@@ -276,7 +276,7 @@ Add unit tests for utility functions, hooks, and API handlers. Currently only E2
 
 ### Description
 
-Create a demo mode with sample data so visitors can explore the app from the README without setting up a backend. Includes deployment planning and OPS updates.
+Visitors to the GitHub repo or README currently have no way to try the app without cloning and setting up the full stack. A demo mode with realistic sample data would let potential users explore the interface and understand the app's value. This feature includes creating seed data fixtures, deploying a public demo instance (read-only or periodically reset), and linking to it from the README. OPS.md needs updated deployment documentation.
 
 ### Acceptance Criteria
 
@@ -301,7 +301,7 @@ Create a demo mode with sample data so visitors can explore the app from the REA
 
 ### Description
 
-Add consistent skeleton loading states across all views. Some exist but coverage is not comprehensive.
+Loading states across the app are inconsistent - some views show skeletons, others show spinners, and some show nothing during initial load. Skeleton loaders provide better perceived performance by showing the shape of content before data arrives. This feature adds skeleton components for common patterns (cards, lists, charts) and ensures all views display appropriate skeletons during loading. Skeletons should match actual content layout and work in both light and dark mode.
 
 ### Acceptance Criteria
 
@@ -325,7 +325,7 @@ Add consistent skeleton loading states across all views. Some exist but coverage
 
 ### Description
 
-Add search functionality to find entries by note content and filter by date range. Essential as user data grows.
+As users accumulate entries over weeks and months, they need a way to find specific entries - "that note I wrote about my breakthrough" or "all entries from my vacation week". Currently there's no search functionality. This feature adds search by note content with optional date range filtering, showing results with the search term highlighted. The backend should use PostgreSQL full-text search for performance, and search must work on both web and mobile apps.
 
 ### Acceptance Criteria
 
@@ -350,7 +350,7 @@ Add search functionality to find entries by note content and filter by date rang
 
 ### Description
 
-Improve accessibility across the application with proper ARIA labels, keyboard navigation, focus management, and screen reader support.
+The Shelf should be usable by everyone, including users who rely on screen readers, keyboard navigation, or have visual impairments. Current accessibility coverage is minimal - missing ARIA labels, inconsistent focus states, and no screen reader testing. This feature systematically improves accessibility: adding ARIA labels to interactive elements, ensuring visible focus states, supporting keyboard navigation for all core flows, and meeting WCAG AA color contrast standards. Can be done incrementally, starting with TodayView.
 
 ### Acceptance Criteria
 
@@ -376,7 +376,7 @@ Improve accessibility across the application with proper ARIA labels, keyboard n
 
 ### Description
 
-Make the web app installable as a Progressive Web App with offline capability and app-like experience.
+Users who prefer the web app over the native mobile app should be able to install it on their device for quick access. Progressive Web App support enables installation on desktop and mobile browsers, provides an app-like experience without browser chrome, and enables basic offline functionality. This feature configures the web manifest, sets up a service worker to cache static assets, and shows an offline indicator when network is unavailable. The `vite-plugin-pwa` package simplifies implementation.
 
 ### Acceptance Criteria
 
@@ -401,7 +401,7 @@ Make the web app installable as a Progressive Web App with offline capability an
 
 ### Description
 
-Generate PDF reports summarizing activity over a time period. Useful for personal review, sharing with coaches/therapists, or archival.
+Users may want to generate PDF reports of their activity for personal review, sharing with coaches or therapists, or archival purposes. Currently, the only way to see a summary is in the app itself. This feature adds PDF export from Progress or Review view with period selection (week, month, custom range). The PDF should include time breakdown by habit, entry counts, highlighted entries, and reflection content. Libraries like `@react-pdf/renderer` or `jspdf` can generate PDFs client-side.
 
 ### Acceptance Criteria
 
@@ -426,7 +426,7 @@ Generate PDF reports summarizing activity over a time period. Useful for persona
 
 ### Description
 
-Set up Storybook for documenting and visually testing UI components. Helps contributors understand the component library and catch visual regressions.
+Contributors to The Shelf need to understand the existing UI component library before making changes. Storybook provides an interactive catalog where components can be viewed in isolation with all their variants and states. This feature sets up Storybook for the web frontend, creates stories for core UI components (Button, Card, Badge, Input, Dialog), and includes a dark mode toggle. This helps contributors understand components, enables visual regression testing, and documents the design system.
 
 ### Acceptance Criteria
 
@@ -451,7 +451,7 @@ Set up Storybook for documenting and visually testing UI components. Helps contr
 
 ### Description
 
-Add optional notifications to remind users to log entries, complete reflections, or maintain habits. Must be fully configurable via settings and off by default.
+Habit tracking apps are most effective when they help users remember to log consistently. Optional notifications can remind users to log daily entries or complete weekly reflections. This feature adds push notifications on mobile (via Expo) and browser notifications on web, with all settings configurable and **off by default**. Users can set specific times for daily reminders and choose which day/time for weekly reflection prompts. All notification logic must be tested, and settings must persist to the database.
 
 ### Acceptance Criteria
 
