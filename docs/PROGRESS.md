@@ -55,7 +55,8 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - Implemented SHELF-038 (Loading Skeletons) — comprehensive skeleton components for all views
 - Implemented SHELF-041 (PWA Support) — full Progressive Web App configuration
 - Created custom Shelf icon (bookshelf design) with all required PNG sizes
-- Both features tested and pushed to main
+- Added SHELF-045 (Full Offline Support) to backlog for future work
+- Closed GitHub issue #8 (PWA Support)
 
 **SHELF-038 Details:**
 - Created 7 skeleton variants in `skeleton.jsx`: EntryCard, Card, Stats, List, Chart, HabitAccordion, Reflection
@@ -70,14 +71,19 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - Workbox service worker with NetworkFirst API caching strategy
 - Updated index.html with proper meta tags
 
+**SHELF-045 (New Backlog Item):**
+- Full offline support with IndexedDB, mutation queue, sync, and conflict resolution
+- Builds on PWA foundation to enable true offline usage
+
 **Decisions:**
 - Used sharp (dev dependency) for SVG→PNG conversion
 - NetworkFirst caching for API calls (24hr expiration)
 - Standalone display mode for native app feel
+- Offline indicator deferred to SHELF-045 (full offline support)
 
 **What's next:**
-- More quick wins from backlog (SHELF-002, SHELF-036, SHELF-037)
-- Mobile app continuation (SHELF-012)
+- SHELF-045 (Full Offline Support) when offline usage becomes priority
+- More quick wins: SHELF-002, SHELF-036, SHELF-037
 
 ---
 
