@@ -29,18 +29,15 @@ You may respond with:
 
 ## Purpose of This Document
 
-This file defines the authoritative documentation structure, workflow rules, and collaboration expectations for this project.
+This file defines the authoritative documentation structure, workflow rules, and collaboration expectations.
 
 **Goals:**
 
-- Consistency across all Alex Kuligowski software projects
-- Seamless resumption across sessions and AI models
-- Zero documentation drift
-- Explicit, intentional promotion of work to GitHub Issues
-- Safe handling of partial or legacy documentation structures
-- Prevention of silent assumptions or hallucinated intent
+- Consistency across projects and sessions
+- Safe handling of partial or legacy documentation
+- No silent assumptions or hallucinated intent
 
-> If any rule in this document is violated, you must pause and ask how to proceed.
+> If any rule in this document is violated, pause and ask how to proceed.
 
 ---
 
@@ -52,8 +49,9 @@ When conflicts arise, resolve them in this order:
 2. **PROGRESS.md** – most recent recorded intent, decisions, and state
 3. **BACKLOG.md** – committed work and priorities
 4. **TECH_SPEC.md** – design and technical reasoning
-5. **ROADMAP.md** – narrative planning intent
-6. **README.md** – public-facing summary
+5. **README.md** – public-facing summary
+
+> Roadmap information (Now/Next/Later) should be gleaned from BACKLOG.md priorities and PROGRESS.md session logs.
 
 > If a lower-priority document contradicts a higher-priority one, pause and ask how to reconcile.
 
@@ -71,7 +69,6 @@ When conflicts arise, resolve them in this order:
 - `PROGRESS.md` — Chronological log of progress and decisions
 - `BACKLOG.md` — Source of truth for committed work
 - `TECH_SPEC.md` — Deep technical + feature/view breakdown
-- `ROADMAP.md` — High-level narrative plan
 - `OPS.md` — Operational documentation (committed, redacted)
 - `OPS_PRIVATE.md` — Sensitive operational details (gitignored)
 
@@ -228,7 +225,7 @@ It must include:
 - Quickstart (run locally)
 - Environment variables
 - Contribution guidance
-- Links to BACKLOG, ROADMAP, TECH_SPEC
+- Links to BACKLOG, TECH_SPEC
 
 > If README content becomes inaccurate, it must be updated during the next documentation sync.
 
@@ -252,7 +249,7 @@ Preferences:
 - Ask clarifying questions instead of assuming.
 - Surface inconsistencies explicitly.
 - Prefer structured markdown.
-- Pause every ~60 minutes to ask about a documentation sync.
+- Pause every ~90 minutes to ask about a documentation sync.
 - If the user says "muffins", immediately stop and summarize state.
 
 Tone:
@@ -300,26 +297,8 @@ For each Feature or View:
 - Key Flows
 - External Integrations
 - Security & Privacy Notes
-- Testing Strategy
+- Testing Strategy (where tests live, how to run them, coverage goals)
 - Open Questions / Risks
-
----
-
-## ROADMAP.md Responsibilities
-
-High-level narrative plan.
-
-### Structure
-
-- **Now** — Current focus
-- **Next** — Up next
-- **Later** — Future plans
-
-### Rules
-
-- Readable, non-technical
-- Reference backlog items where possible (`<PREFIX>-###`)
-- Must not contradict BACKLOG or README
 
 ---
 
@@ -392,7 +371,7 @@ Documentation should:
 If the user says **"muffins"** at any time, immediately do the following:
 
 1. **Stop** advancing work.
-2. **Read** `PROGRESS.md`, `BACKLOG.md`, and `ROADMAP.md`.
+2. **Read** `PROGRESS.md` and `BACKLOG.md`.
 3. **Provide a concise summary:**
    - Where we left off
    - Current priorities
@@ -406,9 +385,9 @@ If the user says **"muffins"** at any time, immediately do the following:
 
 ---
 
-## 60-Minute Documentation Sync (Mandatory Check-In)
+## 90-Minute Documentation Sync (Mandatory Check-In)
 
-Approximately every 60 minutes of work time — or after a major scope change — ask:
+Approximately every 90 minutes of work time — or after a major scope change — ask:
 
 > "Do you want to run a documentation sync?"
 
@@ -416,9 +395,8 @@ If yes:
 
 1. Update `BACKLOG.md`
 2. Update `TECH_SPEC.md`
-3. Update `ROADMAP.md`
-4. Update `README.md` if needed
-5. Append a summary to `PROGRESS.md`
+3. Update `README.md` if needed
+4. Append a summary to `PROGRESS.md`
 
 > This is a consistency pass, not a rewrite.
 
@@ -428,20 +406,7 @@ If yes:
 
 Promote backlog items **only when explicitly instructed**.
 
-### Issue Fields Must Include
-
-- Summary
-- Description (problem + solution intent)
-- Acceptance Criteria (checkbox list)
-- Status
-- Priority
-- Type (Feature / Bug / Maintenance)
-- Assignee
-
-### After Promotion
-
-- Update `BACKLOG` with issue number
-- Keep states aligned
+Use backlog item format plus Acceptance Criteria (checkbox list). After promotion, update BACKLOG.md with issue number and keep states aligned.
 
 ---
 
@@ -463,11 +428,7 @@ Before ending a session:
 
 ## Operational Documentation (OPS)
 
-This project may include operational documentation that describes how to OPERATE, PROTECT, RECOVER, and MAINTAIN the system.
-
-Operational documentation is intentionally separate from design and planning documents. It focuses on real-world procedures and risk management, not system architecture or feature behavior.
-
-The project owner (Alex) does NOT need to be an operations expert. The AI collaborator is explicitly expected to assist with identifying, proposing, and maintaining operational knowledge in a safe, conservative manner.
+OPS documentation describes how to OPERATE, PROTECT, RECOVER, and MAINTAIN the system. It is procedural (not design), and the AI collaborator is expected to assist with identifying and maintaining operational knowledge safely.
 
 ### OPS Document Structure
 
@@ -536,19 +497,7 @@ OPS documentation is a practical runbook. It prioritizes safety, clarity, and re
 
 ### What Does NOT Belong in OPS
 
-OPS documentation must NOT contain:
-
-- Feature definitions
-- Product requirements
-- User-facing behavior descriptions
-- Architectural reasoning or tradeoffs
-- Data model explanations
-- Long-term product intent
-- Planning, prioritization, or backlog items
-
-Those belong in BACKLOG.md, TECH_SPEC.md, or ROADMAP.md.
-
-OPS documentation must not duplicate TECH_SPEC content. TECH_SPEC may reference OPS documentation, but OPS must not explain how the system is designed or implemented.
+OPS is procedural, not design. Feature specs, architecture, data models, and planning belong in TECH_SPEC.md or BACKLOG.md. OPS must not duplicate or explain system design.
 
 ### AI Responsibility for OPS
 
@@ -570,7 +519,7 @@ If the AI is uncertain about an operational detail:
 
 ### OPS Update Frequency
 
-OPS documentation does NOT follow the 60-minute documentation sync rule.
+OPS documentation does NOT follow the 90-minute documentation sync rule.
 
 Update OPS documentation ONLY when:
 

@@ -4,26 +4,16 @@
 
 ---
 
-## Table of Contents
-
-1. [Overview](#1-overview)
-2. [Design Philosophy](#2-design-philosophy)
-3. [Core Concepts & Language](#3-core-concepts--language)
-4. [Metrics & Balance](#4-metrics--balance)
-5. [Primary UI Views](#5-primary-ui-views-contract--all-complete)
-6. [Data Integrity & Persistence](#6-data-integrity--persistence)
-7. [Testing Strategy](#7-testing-strategy)
-8. [Visual Design Guidelines](#8-visual-design-guidelines)
-9. [Non-Goals](#9-non-goals)
-10. [Implementation Status](#10-implementation-status)
-11. [Data Model](#11-data-model)
-12. [Import Specification](#12-import-specification)
-
----
-
-## 1. Overview
+## Purpose
 
 **The Shelf** is a personal, single-user system for managing attention, balance, and long-term memory of effort.
+
+It exists to answer practical questions:
+- What do I intend to focus on today?
+- What actually happened?
+- Where did my time go?
+- Am I balanced right now—and what is influencing that balance?
+- What should I adjust next?
 
 It is designed to be:
 - a place to *start* the day intentionally
@@ -31,8 +21,7 @@ It is designed to be:
 - a system that preserves history across years
 - a tool that makes balance visible without judgment
 
-The Shelf is not a productivity app.
-It does not optimize output, enforce streaks, or pressure consistency.
+The Shelf is not a productivity app. It does not optimize output, enforce streaks, or pressure consistency.
 
 Instead, it provides:
 - neutral data
@@ -40,75 +29,39 @@ Instead, it provides:
 - optional reflection
 - explicit closure
 
-The system assumes one user (you).
-There is no social layer, no comparison, and no performance scoring.
+The system assumes one user (you). There is no social layer, no comparison, and no performance scoring.
 
 ---
 
-## 2. Design Philosophy
+## Non-Goals
 
-### 2.1 Attention over productivity
+These are explicitly out of scope:
 
-The core problem The Shelf addresses is **fragmented attention**, not insufficient effort.
+- Gamification or streaks
+- Scoring or rankings
+- Social features or sharing
+- Notifications or reminders
+- AI-generated judgments
+- Multi-user support
 
-The system assumes:
-- effort already exists
-- energy fluctuates
-- life events matter
-- rest is necessary
-
-The goal is to *see where attention went*, not to maximize how much occurred.
-
----
-
-### 2.2 Numbers are neutral
-
-Metrics are not goals.
-Metrics are not scores.
-Metrics are not judgments.
-
-They exist to answer questions like:
-- Where did my time go?
-- What patterns are emerging?
-- Why did certain habits feel heavier this week?
-- What changed before balance shifted?
-
-Numbers are treated the same way iOS Screen Time treats app usage:
-informative, factual, and non-moral.
+The Shelf describes reality without judging it.
 
 ---
 
-### 2.3 Closure is as important as effort
+## Table of Contents
 
-Many systems track "doing."
-Very few systems track "stopping."
-
-The Shelf treats:
-- preparation (framing)
-- closure (ending)
-- reflection (meaning)
-
-as first-class concepts.
-
-A day is considered *complete* when it is closed, not when all habits are executed.
+1. [Core Concepts & Language](#1-core-concepts--language)
+2. [Metrics & Balance](#2-metrics--balance)
+3. [Primary UI Views](#3-primary-ui-views)
+4. [Testing Strategy](#4-testing-strategy)
+5. [Data Model](#5-data-model)
+6. [Import Specification](#6-import-specification)
 
 ---
 
-### 2.4 History is sacred
+## 1. Core Concepts & Language
 
-This system is designed to be used for **years**.
-
-Nothing meaningful is ever deleted.
-Archiving removes items from current views but never from history or metrics.
-
-The intent is that in 2028 you can still answer:
-> "What did 2026 actually look like?"
-
----
-
-## 3. Core Concepts & Language
-
-### 3.1 Habits
+### 1.1 Habits
 
 **Habits are long-running pillars of attention**, not tasks.
 
@@ -132,7 +85,7 @@ Changing which habits are active is meaningful and tracked.
 
 ---
 
-### 3.2 Practices
+### 1.2 Practices
 
 **Practices are concrete expressions of a habit.**
 
@@ -157,7 +110,7 @@ Practices allow:
 
 ---
 
-### 3.2.1 Behaviors (Actions)
+### 1.2.1 Behaviors (Actions)
 
 **Behaviors are granular, trackable sub-components of a practice.**
 
@@ -181,7 +134,7 @@ Properties:
 
 ---
 
-### 3.3 Targets
+### 1.3 Targets
 
 **Targets represent direction, not obligation.**
 
@@ -211,7 +164,7 @@ Targets live on **The Shelf** when not active.
 
 ---
 
-### 3.4 Entries (Canonical Ledger)
+### 1.4 Entries (Canonical Ledger)
 
 **Entries are the source of truth for what happened.**
 
@@ -251,7 +204,7 @@ They are never hard-deleted.
 
 ---
 
-### 3.5 Preparations & Closures
+### 1.5 Preparations & Closures
 
 Preparations and closures are **intentional framing events**, not effort tracking.
 
@@ -298,7 +251,7 @@ Counts of preparations and closures are meaningful indicators of:
 
 ---
 
-### 3.5.1 Preparation & Closure Library
+### 1.5.1 Preparation & Closure Library
 
 The library stores reusable warm-up and cool-down templates per habit.
 
@@ -328,7 +281,7 @@ The library is managed in the Attention view alongside habits and practices.
 
 ---
 
-### 3.6 Reflections
+### 1.6 Reflections
 
 Reflections are **macro step-back moments**.
 
@@ -347,7 +300,7 @@ Reflections are often triggered by noticing patterns, not by the system.
 
 ---
 
-### 3.7 Highlights (Accomplishments)
+### 1.7 Highlights (Accomplishments)
 
 A highlight is a **celebratory marker**, not a score.
 
@@ -362,7 +315,7 @@ Highlights allow:
 
 ---
 
-### 3.8 Habit Transitions (Transition Windows)
+### 1.8 Habit Transitions (Transition Windows)
 
 Transitions track **changes to the habit set**, not daily behavior.
 
@@ -395,7 +348,7 @@ Transitions explain balance shifts without blame.
 
 ---
 
-### 3.9 Rest Days
+### 1.9 Rest Days
 
 A rest day is defined as:
 
@@ -411,7 +364,7 @@ Optional:
 
 ---
 
-## 4. Metrics & Balance
+## 2. Metrics & Balance
 
 Metrics in The Shelf exist to **describe reality**, not to judge it.
 
@@ -424,7 +377,7 @@ Metrics never imply success, failure, or obligation.
 
 ---
 
-### 4.1 The Central Question
+### 2.1 The Central Question
 
 > "Am I balanced — and what influenced that balance?"
 
@@ -444,7 +397,7 @@ Metrics exist to support reflection, adjustment, and closure.
 
 ---
 
-### 4.2 Balance vs. Patterns (Explicit Separation)
+### 2.2 Balance vs. Patterns (Explicit Separation)
 
 The Progress system is intentionally split into **two analytical lenses**:
 
@@ -473,7 +426,7 @@ This separation prevents:
 
 ---
 
-### 4.3 Derived Metrics
+### 2.3 Derived Metrics
 
 All metrics are derived from persisted history.
 
@@ -497,7 +450,7 @@ No metric is treated as a goal.
 
 ---
 
-### 4.4 Visualization Model
+### 2.4 Visualization Model
 
 Visualizations are inspired by **iOS Screen Time**.
 
@@ -536,7 +489,7 @@ Patterns answer *why* balance changed.
 
 ---
 
-### 4.5 Rest Days as a Metric
+### 2.5 Rest Days as a Metric
 
 A rest day is defined as:
 > No habit entries and no life entries for the day.
@@ -552,7 +505,7 @@ Both are valid and informative.
 
 ---
 
-## 5. Primary UI Views (Contract) — All Complete
+## 3. Primary UI Views (Contract) — All Complete
 
 Each view has a **clear responsibility**.
 No view tries to do everything.
@@ -561,7 +514,7 @@ All six views are fully implemented as of v1.
 
 ---
 
-### 5.1 Shelf (Macro Attention Surface) — Complete
+### 3.1 Shelf (Macro Attention Surface) — Complete
 
 **Purpose**
 The Shelf is the home view and emotional anchor — a dashboard for orientation, not action.
@@ -620,7 +573,7 @@ It exists to:
 
 ---
 
-### 5.2 Today (Action & Logging) — Complete
+### 3.2 Today (Action & Logging) — Complete
 
 **Purpose**
 Today is where the day is assembled, lived, and closed.
@@ -688,7 +641,7 @@ It is the **only place** where daily actions occur.
 
 ---
 
-### 5.3 Progress (Balance & Patterns) — Complete
+### 3.3 Progress (Balance & Patterns) — Complete
 
 **Purpose**
 Progress exists to make attention visible over time.
@@ -751,7 +704,7 @@ It is analytical and read-only.
 
 ---
 
-### 5.4 Review (Reflection & Accomplishments) — Complete
+### 3.4 Review (Reflection & Accomplishments) — Complete
 
 **Purpose**
 Review is for meaning-making and celebration.
@@ -815,7 +768,7 @@ Reflections can be triggered by:
 
 ---
 
-### 5.5 Attention (Targets & Habits) — Complete
+### 3.5 Attention (Targets & Habits) — Complete
 
 **Purpose**
 Attention is where structure is managed.
@@ -879,7 +832,7 @@ This is where you decide **what gets attention at all**.
 
 ---
 
-### 5.6 Settings & Data Management — Complete
+### 3.6 Settings & Data Management — Complete
 
 **Purpose**
 Settings control system behavior, not behavior itself.
@@ -927,11 +880,11 @@ Settings control system behavior, not behavior itself.
 - History is preserved
 - Designed for longevity
 
-### 5.6.1 Demo Data
+### 3.6.1 Demo Data
 
 For testing and demonstration purposes, a set of sample data is available in the `data/logs/demo` directory. These files are structured according to the JSON import specification and can be used to populate the system via the import interface in the settings view. This allows developers and testers to quickly see the system's features populated with realistic data without needing to create it manually.
 
-### 5.6.2 Live Data Logging
+### 3.6.2 Live Data Logging
 
 In addition to the database, the system will maintain a real-time log of all entries in JSON format. For each day that data is recorded, a corresponding JSON file will be created in the `data/logs/` directory. The structure of the objects within the JSON file will adhere to the format defined for `Entries` in the Data Model section.
 
@@ -941,16 +894,7 @@ In addition to the database, the system will maintain a real-time log of all ent
 
 ---
 
-## 6. Data Integrity & Persistence
-
-- No destructive deletes
-- Archival preserves metrics
-- Multi-year continuity
-- Designed for long-term retrospection
-
----
-
-## 7. Testing Strategy
+## 4. Testing Strategy
 
 ### End-to-End (Playwright)
 
@@ -966,193 +910,12 @@ Tests validate continuity and correctness, not performance.
 
 ---
 
-## 8. Visual Design Guidelines
-
-### 8.1 Tone
-
-- calm
-- welcoming
-- grounded
-
-The app should feel safe to return to.
-
-UI avoids:
-- alarms
-- badges
-- streak warnings
-
----
-
-### 8.2 Color System (Light Mode)
-
-The color palette uses warm earth tones with muted green accents. All colors are defined as HSL CSS variables.
-
-#### Foundation Colors
-
-| Variable | HSL Value | Purpose |
-|----------|-----------|---------|
-| `--background` | 38 25% 94% | Page background (warm sand) |
-| `--card` | 40 28% 97% | Card backgrounds (soft cream) |
-| `--border` | 35 25% 72% | Card and input borders |
-| `--primary` | 160 38% 32% | Primary actions (evergreen) |
-
-#### Text Hierarchy (3-Tier Brown System)
-
-Text uses a coordinated brown palette on hue 20 (warm terracotta-brown):
-
-| Tier | Variable | HSL Value | Usage |
-|------|----------|-----------|-------|
-| **Darkest** | `--foreground` | 20 45% 20% | Headers, stats, practice names |
-| **Medium** | `--content-foreground` | 20 35% 35% | Notes, behaviors, timestamps, durations |
-| **Lightest** | `--muted-foreground` | 20 30% 48% | Actions (Edit, Highlight), warm-up/cool-down notes |
-
-The hierarchy creates clear visual layers while maintaining warmth and cohesion.
-
-#### UI Accent vs Content Accent
-
-| Purpose | Variable | Color |
-|---------|----------|-------|
-| UI interactions | `--color-ui-accent` | Evergreen (160 38% 32%) |
-| Content highlights | `--accent` | Sage (150 34% 86%) |
-| Secondary interactions | `--secondary` | Warm cream (40 30% 92%) |
-
-Dropdowns and hover states use `--secondary` (neutral) to distinguish from content highlights.
-
-#### Entry Type Colors (Left Border)
-
-| Entry Type | Color | Variable |
-|------------|-------|----------|
-| Habit | Evergreen | `--color-ui-accent` |
-| Life | Sky blue | `--color-sky` (200 45% 48%) |
-| Caution | Terracotta | `--color-terracotta` (20 50% 48%) |
-
-#### Day Prompt Colors
-
-| Prompt | Background | Icon Color |
-|--------|------------|------------|
-| Start your day | Amber light | Amber (45 90% 50%) |
-| Close the day | Slate light | Slate (200 30% 55%) |
-
-#### Habit Badge Colors (15 Nature Tones)
-
-Habits can be assigned distinct colors for visual differentiation:
-
-**Greens:** sage, forest
-**Blues:** teal, ocean, sky, dusk
-**Purples:** lavender, plum, orchid
-**Pinks/Reds:** berry, rose, coral
-**Warm tones:** sienna, copper, marigold
-
-Each color has a base and light variant for badges.
-
----
-
-### 8.3 Color System (Dark Mode)
-
-Dark mode activates automatically 6 PM - 6 AM EST. The palette shifts to warm, cozy evening tones.
-
-#### Foundation Colors
-
-| Variable | HSL Value | Purpose |
-|----------|-----------|---------|
-| `--background` | 30 20% 10% | Page background (warm dark) |
-| `--card` | 30 18% 14% | Card backgrounds |
-| `--border` | 30 15% 20% | Card borders |
-| `--primary` | 165 40% 50% | Primary actions (eucalyptus) |
-
-#### Text Hierarchy (3-Tier System)
-
-Text uses warm cream tones on hue 38:
-
-| Tier | Variable | HSL Value | Usage |
-|------|----------|-----------|-------|
-| **Brightest** | `--foreground` | 38 20% 88% | Headers, stats, practice names |
-| **Medium** | `--content-foreground` | 38 20% 72% | Notes, behaviors, timestamps, durations |
-| **Dimmest** | `--muted-foreground` | 38 18% 58% | Actions (Edit, Highlight), secondary text |
-
-#### UI Accent
-
-| Purpose | Variable | Color |
-|---------|----------|-------|
-| UI interactions | `--color-ui-accent` | Eucalyptus (165 40% 50%) |
-| Content highlights | `--accent` | Muted eucalyptus (165 25% 20%) |
-
-#### Day Prompt Colors (Dark Mode)
-
-| Prompt | Background | Icon Color |
-|--------|------------|------------|
-| Start your day | Amber light (40 55% 22%) | Amber (38 70% 55%) |
-| Close the day | Slate light (215 20% 20%) | Slate (215 25% 60%) |
-
-#### Dark Mode Input Styling
-
-- Inputs use warm dark background: `hsl(30 18% 22%)`
-- Visible borders for definition: `hsl(30 20% 32%)`
-- Button variants (outline, secondary, ghost) have visible borders
-
----
-
-### 8.4 Shadows & Borders
-
-- Cards use `shadow-sm` for subtle depth
-- Buttons use `shadow-sm` for consistency
-- Borders are warm-toned (hue 35) at 72% lightness in light mode
-- Day prompt buttons inside cards use `shadow-none` to avoid doubling
-
----
-
-### 8.5 Input Fields
-
-**Light mode:**
-- Input and textarea backgrounds use `bg-white/80` for contrast against card backgrounds
-
-**Dark mode:**
-- Warm dark background (`hsl(30 18% 22%)`) instead of white
-- Visible borders (`hsl(30 20% 32%)`) for definition
-
-Focus rings use the primary color (evergreen in light, eucalyptus in dark).
-
----
-
-## 9. Non-Goals
-
-- gamification
-- scoring
-- streaks
-- social features
-- notifications
-- AI judgment
-
----
-
-## 10. Implementation Status
-
-**v1 Web Frontend: Complete (January 2026)**
-
-All six views are fully implemented and functional:
-- Shelf (Home) — 100%
-- Today (Logging) — 100%
-- Progress (Analysis) — 100%
-- Review (Reflection) — 100%
-- Attention (Structure) — 100%
-- Settings — 100%
-
-**Backend API: Complete**
-- Full REST API with all endpoints
-- PostgreSQL database with all tables
-- Import/export with preview and duplicate detection
-- Metrics calculation and aggregation
-
-**Next Phase: React Native Mobile App**
-
----
-
-## 11. Data Model
+## 5. Data Model
 
 > The system is **single-tenant** (no users table).
 > **Entries are the canonical source of truth**, and the system also supports **stored daily metrics** to enable fast, stable, Screen Time–style visualizations.
 
-### 11.1 Core Principles
+### 5.1 Core Principles
 
 - **Entries are the canonical ledger** of what happened.
 - **Targets unify** projects, milestones, and ideas.
@@ -1171,7 +934,7 @@ All six views are fully implemented and functional:
 
 ---
 
-### 11.2 Source of Truth
+### 5.2 Source of Truth
 
 1. **`data/habits.json`** — Canonical baseline for habits, practices, and actions
 2. **`data/logs/*.json`** — Daily log files with entries and optional transitions
@@ -1179,7 +942,7 @@ All six views are fully implemented and functional:
 
 ---
 
-### 11.3 Canonical Definitions (Domain Language)
+### 5.3 Canonical Definitions (Domain Language)
 
 - **Habit**: A recurring domain of attention (e.g., Software, Spanish, Exercise).
 - **Practice**: A concrete way to fulfill a habit (e.g., Walking, Conversations, Personal Project Development).
@@ -1194,7 +957,7 @@ All six views are fully implemented and functional:
 
 ---
 
-### 11.4 Entity Details
+### 5.4 Entity Details
 
 #### Habits
 
@@ -1416,7 +1179,7 @@ Examples:
 
 ---
 
-### 11.5 Daily Metrics (Stored)
+### 5.5 Daily Metrics (Stored)
 
 To support Screen Time–style charts, the system persists daily aggregates.
 
@@ -1457,7 +1220,7 @@ This supports stacked bars with overlay markers.
 
 ---
 
-### 11.6 Table List
+### 5.6 Table List
 
 **Core:**
 - `habits`
@@ -1480,11 +1243,11 @@ This supports stacked bars with overlay markers.
 
 ---
 
-## 12. Import Specification
+## 6. Import Specification
 
 > The import system is designed to be forgiving, forward-compatible, history-preserving, safe for repeated use, and suitable for both manual and programmatic generation.
 
-### 12.1 Core Import Principles
+### 6.1 Core Import Principles
 
 - History is preserved at all costs
 - Unknown fields are ignored
@@ -1499,7 +1262,7 @@ Imports are intentionally tolerant to support:
 - AI-generated logs
 - future format evolution
 
-### 12.2 Import Unit & File Scope
+### 6.2 Import Unit & File Scope
 
 Each import file represents one calendar day. The system processes imports day by day, not as bulk timelines.
 
@@ -1518,7 +1281,7 @@ _Example:_
 
 All other fields are optional.
 
-### 12.3 Supported Top-Level Fields
+### 6.3 Supported Top-Level Fields
 
 A full import file may include:
 
@@ -1539,7 +1302,7 @@ A full import file may include:
 - Unknown arrays are ignored
 - Order does not matter
 
-### 12.4 Date & Time Handling
+### 6.4 Date & Time Handling
 
 - `date` represents the local calendar day
 - Timestamps may be provided without timezone
@@ -1550,7 +1313,7 @@ A full import file may include:
 - `YYYY-MM-DDTHH:mm`
 - `YYYY-MM-DDTHH:mm:ss`
 
-### 12.5 Preparations (Start-of-Day / Session Framing)
+### 6.5 Preparations (Start-of-Day / Session Framing)
 
 Preparations represent intentional framing.
 
@@ -1577,7 +1340,7 @@ _Shape example:_
 - Preparations do not invalidate rest days
 - Preparation count is tracked as a metric
 
-### 12.6 Closures (End-of-Day / Session Stopping)
+### 6.6 Closures (End-of-Day / Session Stopping)
 
 Closures represent intentional stopping.
 
@@ -1603,7 +1366,7 @@ _Shape example:_
 - Closure count is tracked as a metric
 - Closures enable last-session retrieval
 
-### 12.7 Entries (Canonical Ledger)
+### 6.7 Entries (Canonical Ledger)
 
 Entries record what actually happened.
 
@@ -1684,7 +1447,7 @@ _Example — Entry with Actions:_
 - Action names are strings (matched to practice's action list)
 - Unknown actions are preserved but may not display in UI
 
-### 12.8 Reflections
+### 6.8 Reflections
 
 Reflections are optional narrative artifacts.
 
@@ -1709,7 +1472,7 @@ _Shape example:_
 - Reflections are never required
 - Multiple reflections per day are allowed
 
-### 12.9 Rest Days
+### 6.9 Rest Days
 
 A rest day is inferred when:
 - no `habit` entries exist
@@ -1723,7 +1486,7 @@ Rest days:
 **Optional:**
 - mark intent via `rest_day: true` in a preparation or closure
 
-### 12.10 Validation Rules (Minimal)
+### 6.10 Validation Rules (Minimal)
 
 An import file is valid if:
 - `date` exists
@@ -1732,14 +1495,14 @@ An import file is valid if:
 
 Invalid objects are skipped. The import continues.
 
-### 12.11 Forward Compatibility
+### 6.11 Forward Compatibility
 
 - Unknown fields are ignored
 - Unknown arrays are ignored
 - No schema version is required
 - Versioning will be introduced only for breaking changes
 
-### 12.12 Import Outcomes
+### 6.12 Import Outcomes
 
 On successful import:
 - entries are appended
@@ -1752,7 +1515,7 @@ Imports never:
 - overwrite history
 - remove archived items
 
-### 12.13 Transitions (Structural Changes)
+### 6.13 Transitions (Structural Changes)
 
 Log files may include a `transitions` array to record structural changes to habits, practices, or actions.
 

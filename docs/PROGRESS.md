@@ -1,6 +1,6 @@
 # The Shelf — Progress Report
 
-> Session-by-session changelog and implementation status.
+> Session-by-session changelog and decision log.
 
 Last updated: 2026-01-19
 
@@ -43,71 +43,94 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 ### Database (PostgreSQL)
 
-Core tables:
-- habits, practices, actions
-- targets, entries
-- preparations, closures, reflections
-- settings, habit_prompts
+Core tables: habits, practices, actions, targets, entries, preparations, closures, reflections, settings, habit_prompts
 
 ---
 
-## Recent Sessions
+## Sessions
 
-### 2026-01-19
+### 2026-01-19 (Evening)
 
-**Documentation restructure**
+**Summary:**
+- Aligned all documentation to INSTRUCTIONS.md format
+- Slimmed README.md from 427 lines to ~130 lines
+- Converted BACKLOG.md to checkbox format with required fields
+- Added Purpose/Non-goals at top of TECH_SPEC.md
+- Deleted ROADMAP.md (redundant with BACKLOG.md priorities)
+- Trimmed TECH_SPEC.md from ~1795 to ~1557 lines (removed Design Philosophy, Visual Design Guidelines, Implementation Status sections; kept Testing Strategy)
+- Simplified INSTRUCTIONS.md (90-minute sync, no ROADMAP references)
+
+**Decisions:**
+- README stays concise; detailed content lives in TECH_SPEC.md
+- BACKLOG items use checkbox format with Description, Status, Priority, Assignee, GitHub Issue fields
+- ROADMAP.md eliminated — priorities live in BACKLOG.md, session state in PROGRESS.md
+- Testing Strategy section retained in TECH_SPEC.md
+
+**What's next:**
+- Continue React Native mobile app implementation (SHELF-012)
+
+---
+
+### 2026-01-19 (Earlier)
+
+**Summary:**
 - Created INSTRUCTIONS.md (universal AI workflow rules)
 - Created merged TECH_SPEC.md (combining tech-spec, data-model, import-spec)
 - Restructured BACKLOG.md with SHELF- prefix IDs
 - Created ROADMAP.md for high-level milestones
 - Cleaned up redundant documentation files
+- Moved DEPLOY.md to docs/OPS.md
 
-**Bug fixes**
+**Decisions:**
+- SHELF- prefix confirmed for all backlog items
+- OPS.md committed (no secrets), OPS_PRIVATE.md gitignored
+- CLAUDE.md simplified to behavior preferences only; domain knowledge in TECH_SPEC.md
+
+**What's next:**
+- Align all documentation to INSTRUCTIONS.md format
+
+---
+
+### 2026-01-19 (Morning)
+
+**Summary:**
 - Fixed "Last entry" showing stale date (removed mock data initialization)
 - Fixed Progress view filters turning off when habits loaded async
 - Changed "Total entries" to "Active entries" in Data Health
 
+**Decisions:**
+- None
+
+**What's next:**
+- Documentation restructure
+
+---
+
 ### 2026-01-18
 
-**AttentionView enhancements**
+**Summary:**
 - Made dark mode Kanban lane colors more intense
-- Improved column color visibility
+- Improved column color visibility in AttentionView
+
+**Decisions:**
+- None
+
+**What's next:**
+- Bug fixes and documentation cleanup
+
+---
 
 ### 2026-01-15
 
-**v1 completion**
-- All views implemented and functional
+**Summary:**
+- All views implemented and functional (v1 complete)
 - Import/export system complete with preview mode
 - Data Health metrics in Settings
 - Warm-up/cool-down template persistence
 
----
+**Decisions:**
+- v1 web frontend declared complete
+- Next focus: mobile app
 
-## Gap Analysis
-
-### Remaining for v2
-
-| Item | Priority | Status |
-|------|----------|--------|
-| Template Preview (dynamic elements) | Medium | Planned |
-| ProgressView Practice Breakdowns | Medium | Planned |
-| ProgressView Calendar View | Low | Planned |
-| Transition/Caution Markers | Low | Planned |
-| Database Migrations | Low | Planned |
-| Playwright E2E Tests | Medium | Planned |
-| React Native Mobile App | High | Planned |
-
----
-
-## Documentation Files
-
-| File | Purpose |
-|------|---------|
-| INSTRUCTIONS.md | Universal AI workflow rules |
-| BACKLOG.md | All work items with SHELF- IDs |
-| PROGRESS.md | This file - session changelog |
-| ROADMAP.md | High-level milestones |
-| TECH_SPEC.md | Technical spec, data model, import format |
-| CLAUDE.md | Project-specific AI context |
-| OPS.md | Operational procedures (committed, no secrets) |
-| OPS_PRIVATE.md | Sensitive operational details (gitignored) |
+**What's next:**
+- Polish, bug fixes, documentation
