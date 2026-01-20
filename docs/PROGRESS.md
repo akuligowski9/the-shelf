@@ -49,6 +49,38 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 
 ## Sessions
 
+### 2026-01-20 (Early Morning)
+
+**Summary:**
+- Rewrote entire BACKLOG.md to unified format from INSTRUCTIONS.md
+- Renumbered all items sequentially SHELF-001 through SHELF-044 (eliminated 100-series gap)
+- Created 10 new GitHub issues for community contributors (#2-#11)
+- Updated all GitHub issues with verbose descriptions, file paths, code examples
+- Added 9 new backlog items: Unit tests, Demo mode, Loading skeletons, Search, Accessibility, PWA, PDF reports, Storybook, Notifications
+- Updated INSTRUCTIONS.md to require minimum 3-sentence descriptions
+- Closed GitHub issue #1 (GitHub Integration - already done)
+
+**Decisions:**
+- Unified format for backlog AND GitHub Issues (same template)
+- 3-sentence minimum for descriptions (problem context, solution, implementation notes)
+- Undo/redo moved to Parking Lot pending decision
+- All notifications must be opt-in with settings toggle
+
+**GitHub Issues Created:**
+- #6: Search entries
+- #7: Accessibility
+- #8: PWA support
+- #9: PDF reports
+- #10: Storybook
+- #11: Notifications
+
+**What's next:**
+- SHELF-001 (Mobile Phase 7: Polish) is in progress
+- SHELF-037 (Demo Mode) for public visibility
+- Community contributors can pick up any open GitHub issue
+
+---
+
 ### 2026-01-19 (Night)
 
 **Summary:**
