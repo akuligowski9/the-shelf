@@ -49,6 +49,44 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 
 ## Sessions
 
+### 2026-01-20 (Evening)
+
+**Summary:**
+- Deployed production infrastructure: Google Cloud Run (backend) + Neon (PostgreSQL) + Vercel (frontend)
+- Added rich text notes field to Edit Target dialog (SHELF plan)
+- Fixed rest day count bug in Review view (was using mock data)
+- Removed unused mock data from mockData.js (~185 lines)
+- Updated documentation for new deployment architecture
+
+**Deployment Details:**
+- Backend: `shelf-api-785607788916.us-east1.run.app` (Cloud Run, max 2 instances)
+- Frontend: `the-shelf-amk.vercel.app` (Vercel)
+- Database: Neon PostgreSQL (the-shelf project, aws-us-east-1)
+- Created production Dockerfile for Cloud Run
+- Created vercel.json for Vercel build config
+- Set up budget alerts and instance limits for cost protection
+
+**Target Notes Feature:**
+- Added `notes TEXT` column to targets table
+- Updated POST/PATCH /targets API routes
+- Added `updateTargetNotes` function to HabitsContext
+- Integrated RichTextEditor in TargetEditDialog
+- Notes support bold, italic, bullet points via Tiptap
+
+**Bug Fixes:**
+- ReviewView rest day count was reading from mockPreparations instead of API
+- Now fetches real preparations via `getPreparationsInRange`
+
+**Cleanup:**
+- Removed unused: mockPreparations, mockReflections, mockClosures, mockTransitions
+- Removed unused functions: getActionsForPractice, habitTracksActions, getPracticesForHabit, getActiveHabits, getEntriesForDate
+
+**Documentation:**
+- README.md: Added live app link, updated tech stack with Neon and hosting
+- OPS.md: Rewrote for Cloud Run + Neon + Vercel (was Render), added auth setup docs
+
+---
+
 ### 2026-01-20 (Afternoon)
 
 **Summary:**
