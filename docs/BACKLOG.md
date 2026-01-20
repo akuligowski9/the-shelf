@@ -10,6 +10,8 @@
 Planned → In Progress → Done
               ↓
            Blocked
+              ↓
+           Archived
 ```
 
 ---
@@ -22,220 +24,851 @@ Planned → In Progress → Done
 
 ## High
 
-- [ ] SHELF-011 SwiftUI Dashboard Parity Planning
-  - Description: Plan how the React dashboard maps to SwiftUI. Identify views, API needs, and what not to port yet.
-  - Status: Planned
-  - Priority: High
-  - Assignee: Alex
-  - GitHub Issue: No
+## SHELF-001: Mobile Phase 7: Polish
 
-- [ ] SHELF-012 React Native Mobile App
-  - Description: Build full-feature-parity React Native (Expo) mobile app with all 6 tabs, shared API and colors, offline support.
-  - Status: Planned
-  - Priority: High
-  - Assignee: Alex
-  - GitHub Issue: No
-  - Notes: See plan file for detailed implementation phases.
+### Description
+
+Final polish for React Native mobile app. Offline queue and sync, error handling improvements. Haptics and swipe actions already done.
+
+### Acceptance Criteria
+
+- [ ] Offline queue persists mutations when network unavailable
+- [ ] Sync resolves when connectivity restored
+- [ ] Error handling shows user-friendly messages
+- [ ] Edge cases handled gracefully (empty states, loading, failures)
+
+### Metadata
+
+- **Status:** In Progress
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
 
 ---
 
 ## Medium
 
-- [ ] SHELF-001 Import Practice/Action Drill Down
-  - Description: Extend import preview to show practice and action resolution. Auto-create missing practices/actions during import.
-  - Status: Planned
-  - Priority: Medium
-  - Assignee: Unassigned
-  - GitHub Issue: No
+## SHELF-002: Link Targets to GitHub Issues
 
-- [ ] SHELF-002 Template Preview with Dynamic Elements
-  - Description: Preview templates with variables like `{{last_session_note}}` substituted. Parse and fetch relevant data in HabitEditDialog.
-  - Status: Planned
-  - Priority: Medium
-  - Assignee: Unassigned
-  - GitHub Issue: No
+### Description
 
-- [ ] SHELF-003 ProgressView Practice Breakdowns
-  - Description: Drill into practice-level data within habits in Progress view. Visual representation in charts with filter by practice.
-  - Status: Planned
-  - Priority: Medium
-  - Assignee: Unassigned
-  - GitHub Issue: No
+Add optional `github_issue_url` field to targets. Display issue status/link in UI. Enable tracking software targets alongside GitHub issues.
 
-- [ ] SHELF-008 JSON → Database Importer for Daily Logs
-  - Description: Allow importing existing JSON daily logs into the database. Safe to run multiple times (idempotent or controlled).
-  - Status: Planned
-  - Priority: Medium
-  - Assignee: Unassigned
-  - GitHub Issue: No
+### Acceptance Criteria
+
+- [ ] Targets schema includes `github_issue_url` field
+- [ ] Target edit form includes GitHub Issue URL input
+- [ ] UI displays clickable link to GitHub issue when set
+- [ ] Issue status fetched and displayed (optional enhancement)
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-003: Import Practice/Action Drill Down
+
+### Description
+
+Extend import preview to show practice and action resolution. Auto-create missing practices/actions during import.
+
+### Acceptance Criteria
+
+- [ ] Import preview shows practice/action resolution status
+- [ ] Missing practices/actions flagged in preview
+- [ ] Import auto-creates missing practices/actions when confirmed
+- [ ] User can review what will be created before import
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-004: Template Preview with Dynamic Elements
+
+### Description
+
+Preview templates with variables like `{{last_session_note}}` substituted. Parse and fetch relevant data in HabitEditDialog.
+
+### Acceptance Criteria
+
+- [ ] Template preview shows substituted variables
+- [ ] Variables like `{{last_session_note}}` fetch real data
+- [ ] Preview updates as template is edited
+- [ ] Unsupported variables shown with placeholder or warning
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #2
+
+---
+
+## SHELF-005: ProgressView Practice Breakdowns
+
+### Description
+
+Drill into practice-level data within habits in Progress view. Visual representation in charts with filter by practice.
+
+### Acceptance Criteria
+
+- [ ] Progress view shows practice-level breakdown for selected habit
+- [ ] Charts visualize time per practice
+- [ ] Filter allows selecting specific practices
+- [ ] Drill-down from habit to practices is intuitive
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
 
 ---
 
 ## Low
 
-- [ ] SHELF-004 ProgressView Calendar View
-  - Description: Compact grid visualization for year-at-a-glance. Calendar heatmap with click to drill into day.
-  - Status: Planned
-  - Priority: Low
-  - Assignee: Unassigned
-  - GitHub Issue: No
+## SHELF-006: ProgressView Calendar View
 
-- [ ] SHELF-005 ProgressView Transition/Caution Markers
-  - Description: Overlay markers on charts for transitions and caution spikes. Visual markers with tooltips on timeline charts.
-  - Status: Planned
-  - Priority: Low
-  - Assignee: Unassigned
-  - GitHub Issue: No
+### Description
 
-- [ ] SHELF-007 Database Migrations System
-  - Description: Implement formal migration system vs direct SQL for schema versioning. Up/down migration support.
-  - Status: Planned
-  - Priority: Low
-  - Assignee: Unassigned
-  - GitHub Issue: No
+Compact grid visualization for year-at-a-glance. Calendar heatmap with click to drill into day.
 
-- [ ] SHELF-009 Balance Metrics (Lightweight)
-  - Description: Derive simple balance signals (not scores) from entries and habits. Metrics explain context without gamification.
-  - Status: Planned
-  - Priority: Low
-  - Assignee: Unassigned
-  - GitHub Issue: No
+### Acceptance Criteria
 
-- [ ] SHELF-010 Calendar Framing (Programs / Time Blocks)
-  - Description: Support time-bound programs (e.g., "4 weeks of PT"). Program has start/end dates, entries can associate to it.
-  - Status: Planned
-  - Priority: Low
-  - Assignee: Unassigned
-  - GitHub Issue: No
+- [ ] Calendar heatmap displays year-at-a-glance
+- [ ] Color intensity indicates activity level
+- [ ] Clicking a day drills into that day's details
+- [ ] Navigation between years supported
 
-- [ ] SHELF-013 GitHub Projects Integration
-  - Description: Integrate backlog with GitHub Projects for visual work management. Sync backlog items to GitHub Issues.
-  - Status: Planned
-  - Priority: Low
-  - Assignee: Unassigned
-  - GitHub Issue: #1
+### Metadata
 
-- [ ] SHELF-014 Re-entry Guide Documentation
-  - Description: Write a short guide for future-you on how to re-enter the project calmly. One-page doc emphasizing permission to pause.
-  - Status: Planned
-  - Priority: Low
-  - Assignee: Unassigned
-  - GitHub Issue: No
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #3
 
 ---
 
-## Parking Lot
+## SHELF-007: ProgressView Transition/Caution Markers
 
-*Ideas not yet actionable. May be promoted or discarded.*
+### Description
 
-*Empty.*
+Overlay markers on charts for transitions and caution spikes. Visual markers with tooltips on timeline charts.
+
+### Acceptance Criteria
+
+- [ ] Transition events marked on timeline charts
+- [ ] Caution spikes highlighted visually
+- [ ] Tooltips show details on hover/tap
+- [ ] Markers are toggleable
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #4
+
+---
+
+## SHELF-008: Database Migrations System
+
+### Description
+
+Implement formal migration system vs direct SQL for schema versioning. Up/down migration support.
+
+### Acceptance Criteria
+
+- [ ] Migration files track schema changes
+- [ ] Up migrations apply changes
+- [ ] Down migrations revert changes
+- [ ] Migration state tracked in database
+- [ ] CLI command to run migrations
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Maintenance
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-009: Calendar Framing (Programs / Time Blocks)
+
+### Description
+
+Support time-bound programs (e.g., "4 weeks of PT", "30-day challenge"). Programs have start/end dates and link to a habit. Entries within the timeframe auto-associate. Progress view can filter by program. Schema (`programs` table), API (CRUD + query), UI (Attention create/edit, Shelf progress indicator, Progress filter, Today badge).
+
+### Acceptance Criteria
+
+- [ ] Programs table created with start/end dates, habit link
+- [ ] CRUD API for programs
+- [ ] Entries within program dates auto-associate
+- [ ] Progress view filters by program
+- [ ] UI for creating/editing programs in Attention view
+- [ ] Program progress indicator on Shelf view
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #5
+
+---
+
+## Archived
+
+## SHELF-010: SwiftUI Dashboard Parity Planning
+
+### Description
+
+Plan how the React dashboard maps to SwiftUI. Identify views, API needs, and what not to port yet. Superseded by React Native mobile app (SHELF-026 through SHELF-031).
+
+### Acceptance Criteria
+
+- [ ] N/A - Archived
+
+### Metadata
+
+- **Status:** Archived
+- **Priority:** High
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Alex
+- **GitHub Issue:** No
 
 ---
 
 ## Done
 
-- [x] SHELF-100 Refine Core Terminology
-  - Description: Clarified and locked in conceptual model: habit, target, practice definitions. Terminology reflected consistently in README and UI.
-  - Status: Done
-  - Priority: Critical
-  - Assignee: Alex
-  - GitHub Issue: No
+## SHELF-011: Refine Core Terminology
 
-- [x] SHELF-101 React Dashboard Layout Refinement
-  - Description: Refined dashboard layout with calm, scannable "Shelf" metaphor. Expandable habits accordion, targets grouped by status, activity stats.
-  - Status: Done
-  - Priority: Critical
-  - Assignee: Alex
-  - GitHub Issue: No
+### Description
 
-- [x] SHELF-102 Parking Lot Interaction
-  - Description: Targets can be moved via AttentionView Kanban columns (drag-drop) and ShelfView drag-drop between status groups.
-  - Status: Done
-  - Priority: Critical
-  - Assignee: Alex
-  - GitHub Issue: No
+Clarified and locked in conceptual model: habit, target, practice definitions. Terminology reflected consistently in README and UI.
 
-- [x] SHELF-103 Define and Surface Highlights
-  - Description: Highlights are manual (user marks entries). Visible on ShelfView and ReviewView with type-specific icons.
-  - Status: Done
-  - Priority: High
-  - Assignee: Alex
-  - GitHub Issue: No
+### Acceptance Criteria
 
-- [x] SHELF-104 Entry Creation (Manual Logging)
-  - Description: Full entry CRUD in TodayView with form dialog, practice selection, duration, notes, highlighting, and archiving.
-  - Status: Done
-  - Priority: High
-  - Assignee: Alex
-  - GitHub Issue: No
+- [x] Terminology documented in TECH_SPEC.md
+- [x] README uses consistent terminology
+- [x] UI labels match documented terms
 
-- [x] SHELF-105 Warm-Up Prompt Support
-  - Description: Implemented in HabitEditDialog with collapsible template library. Templates shown as count in habit tree.
-  - Status: Done
-  - Priority: Medium
-  - Assignee: Alex
-  - GitHub Issue: No
+### Metadata
 
-- [x] SHELF-106 Cool-Down Capture
-  - Description: Cool-down templates managed in HabitEditDialog. Templates shown as count in habit tree.
-  - Status: Done
-  - Priority: High
-  - Assignee: Alex
-  - GitHub Issue: No
+- **Status:** Done
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
 
-- [x] SHELF-107 Weekly Reflection View
-  - Description: ReviewView with rich text editor, triggers, past reflections, period summary stats, and accomplishments. Supports week/month/year.
-  - Status: Done
-  - Priority: Medium
-  - Assignee: Alex
-  - GitHub Issue: No
+---
 
-- [x] SHELF-108 Today/Yesterday Accomplishment View
-  - Description: ShelfView shows Recent Highlights, ReviewView shows Accomplishments with completed targets and highlighted entries.
-  - Status: Done
-  - Priority: Medium
-  - Assignee: Alex
-  - GitHub Issue: No
+## SHELF-012: React Dashboard Layout Refinement
 
-- [x] SHELF-109 Settings Import/Export
-  - Description: Full import/export with preview mode, pending imports UI, and file-based import workflow.
-  - Status: Done
-  - Priority: Medium
-  - Assignee: Alex
-  - GitHub Issue: No
+### Description
 
-- [x] SHELF-110 Warm-up/Cool-down Template Persistence
-  - Description: Created `habit_prompts` table. API endpoints for template CRUD. Frontend connected via HabitsContext.
-  - Status: Done
-  - Priority: Critical
-  - Assignee: Alex
-  - GitHub Issue: No
+Refined dashboard layout with calm, scannable "Shelf" metaphor. Expandable habits accordion, targets grouped by status, activity stats.
 
-- [x] SHELF-111 Metrics Calculation
-  - Description: Backend provides `/metrics/range?start=X&end=Y` for any date range. Frontend ProgressView uses server-side metrics.
-  - Status: Done
-  - Priority: Critical
-  - Assignee: Alex
-  - GitHub Issue: No
+### Acceptance Criteria
 
-- [x] SHELF-112 Import/Export System
-  - Description: GET `/data/export`, POST `/data/import` with validation, upsert, duplicate detection. Frontend buttons functional.
-  - Status: Done
-  - Priority: Critical
-  - Assignee: Alex
-  - GitHub Issue: No
+- [x] Habits displayed in expandable accordion
+- [x] Targets grouped by status
+- [x] Activity stats visible on dashboard
+- [x] Layout supports scanning at a glance
 
-- [x] SHELF-113 Visual Identity
-  - Description: Earth-tone color palette with 15 habit badge colors. Warm sand backgrounds, evergreen accents, 3-tier brown text hierarchy. Dark mode.
-  - Status: Done
-  - Priority: Low
-  - Assignee: Alex
-  - GitHub Issue: No
+### Metadata
 
-- [x] SHELF-006 Playwright E2E Testing Setup
-  - Description: Set up Playwright and write E2E tests for critical flows: Start → Log → Close, Edit history, Import/export round-trip.
-  - Status: Done
-  - Priority: Medium
-  - Assignee: Alex
-  - GitHub Issue: No
-  - Notes: 11 test files in frontend/web/tests/ covering navigation, entries, attention, shelf, settings, reflections, metrics, import/export.
+- **Status:** Done
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-013: Parking Lot Interaction
+
+### Description
+
+Targets can be moved via AttentionView Kanban columns (drag-drop) and ShelfView drag-drop between status groups.
+
+### Acceptance Criteria
+
+- [x] Kanban columns in AttentionView support drag-drop
+- [x] ShelfView supports drag-drop between status groups
+- [x] Status updates persist to database
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-014: Define and Surface Highlights
+
+### Description
+
+Highlights are manual (user marks entries). Visible on ShelfView and ReviewView with type-specific icons.
+
+### Acceptance Criteria
+
+- [x] Entries can be marked as highlights
+- [x] Highlights visible on ShelfView
+- [x] Highlights visible in ReviewView
+- [x] Type-specific icons displayed
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-015: Entry Creation (Manual Logging)
+
+### Description
+
+Full entry CRUD in TodayView with form dialog, practice selection, duration, notes, highlighting, and archiving.
+
+### Acceptance Criteria
+
+- [x] Create entries via form dialog
+- [x] Edit existing entries
+- [x] Delete entries
+- [x] Archive entries
+- [x] Practice selection, duration, notes supported
+- [x] Highlight toggle available
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-016: Warm-Up Prompt Support
+
+### Description
+
+Implemented in HabitEditDialog with collapsible template library. Templates shown as count in habit tree.
+
+### Acceptance Criteria
+
+- [x] Warm-up templates manageable in HabitEditDialog
+- [x] Template library is collapsible
+- [x] Template count shown in habit tree
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-017: Cool-Down Capture
+
+### Description
+
+Cool-down templates managed in HabitEditDialog. Templates shown as count in habit tree.
+
+### Acceptance Criteria
+
+- [x] Cool-down templates manageable in HabitEditDialog
+- [x] Template count shown in habit tree
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-018: Weekly Reflection View
+
+### Description
+
+ReviewView with rich text editor, triggers, past reflections, period summary stats, and accomplishments. Supports week/month/year.
+
+### Acceptance Criteria
+
+- [x] Rich text editor for reflections
+- [x] Triggers section available
+- [x] Past reflections viewable
+- [x] Period summary stats displayed
+- [x] Accomplishments section
+- [x] Week/month/year periods supported
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-019: Today/Yesterday Accomplishment View
+
+### Description
+
+ShelfView shows Recent Highlights, ReviewView shows Accomplishments with completed targets and highlighted entries.
+
+### Acceptance Criteria
+
+- [x] Recent Highlights on ShelfView
+- [x] Accomplishments section in ReviewView
+- [x] Completed targets displayed
+- [x] Highlighted entries displayed
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-020: Settings Import/Export
+
+### Description
+
+Full import/export with preview mode, pending imports UI, and file-based import workflow.
+
+### Acceptance Criteria
+
+- [x] Export all data to JSON file
+- [x] Import from JSON file
+- [x] Preview mode shows what will be imported
+- [x] Pending imports UI for review
+- [x] Duplicate detection
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-021: Warm-up/Cool-down Template Persistence
+
+### Description
+
+Created `habit_prompts` table. API endpoints for template CRUD. Frontend connected via HabitsContext.
+
+### Acceptance Criteria
+
+- [x] habit_prompts table in database
+- [x] CRUD API endpoints for templates
+- [x] Frontend loads and saves templates
+- [x] Templates persist across sessions
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-022: Metrics Calculation
+
+### Description
+
+Backend provides `/metrics/range?start=X&end=Y` for any date range. Frontend ProgressView uses server-side metrics.
+
+### Acceptance Criteria
+
+- [x] /metrics/range endpoint returns metrics for date range
+- [x] Metrics include habit minutes, life minutes, caution count
+- [x] ProgressView consumes server-side metrics
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-023: Import/Export System
+
+### Description
+
+GET `/data/export`, POST `/data/import` with validation, upsert, duplicate detection. Frontend buttons functional.
+
+### Acceptance Criteria
+
+- [x] /data/export returns full data export
+- [x] /data/import accepts and processes import
+- [x] Validation prevents bad data
+- [x] Duplicate detection prevents duplicates
+- [x] Frontend export/import buttons work
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-024: Visual Identity
+
+### Description
+
+Earth-tone color palette with 15 habit badge colors. Warm sand backgrounds, evergreen accents, 3-tier brown text hierarchy. Dark mode.
+
+### Acceptance Criteria
+
+- [x] Earth-tone color palette implemented
+- [x] 15 habit badge colors available
+- [x] Dark mode supported
+- [x] Consistent visual hierarchy
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-025: Playwright E2E Testing Setup
+
+### Description
+
+Set up Playwright and write E2E tests for critical flows: Start → Log → Close, Edit history, Import/export round-trip. 11 test files in frontend/web/tests/ covering navigation, entries, attention, shelf, settings, reflections, metrics, import/export.
+
+### Acceptance Criteria
+
+- [x] Playwright configured
+- [x] Navigation tests pass
+- [x] Entry CRUD tests pass
+- [x] Import/export tests pass
+- [x] Critical user flows covered
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Maintenance
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-026: Mobile Phase 1: Foundation
+
+### Description
+
+Create Expo project, setup Expo Router with 6 tabs, create shared API/colors/types, Zustand stores, base UI components.
+
+### Acceptance Criteria
+
+- [x] Expo project created at frontend/mobile
+- [x] Expo Router with 6 tabs configured
+- [x] frontend/shared with API, colors, types
+- [x] Zustand stores for habits, entries, theme
+- [x] Base UI components (Button, Card, Badge, Input)
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-027: Mobile Phase 2: Today View
+
+### Description
+
+Date navigator, entry list with pull-to-refresh, entry form modal, day stats, preparation/closure modals.
+
+### Acceptance Criteria
+
+- [x] Date navigator component
+- [x] Entry list with pull-to-refresh
+- [x] Entry form modal
+- [x] Day stats summary
+- [x] Preparation modal
+- [x] Closure modal
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-028: Mobile Phase 3: Shelf View
+
+### Description
+
+Target cards with status badges, draggable target list, expandable habit sections, activity stats.
+
+### Acceptance Criteria
+
+- [x] Target cards with status badges
+- [x] Draggable target list
+- [x] Expandable habit sections
+- [x] Activity stats displayed
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-029: Mobile Phase 4: Attention View
+
+### Description
+
+Habits management (add/edit/delete), practices and actions management, targets Kanban with drag between columns.
+
+### Acceptance Criteria
+
+- [x] Habits CRUD
+- [x] Practices and actions CRUD
+- [x] Targets Kanban view
+- [x] Drag between Kanban columns
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-030: Mobile Phase 5: Progress View
+
+### Description
+
+Period selector, bar charts with Victory Native, time split visualization, habit filters.
+
+### Acceptance Criteria
+
+- [x] Period selector (week/month/year)
+- [x] Bar charts with Victory Native
+- [x] Time split visualization
+- [x] Habit filters
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-031: Mobile Phase 6: Review & Settings
+
+### Description
+
+Period metrics summary, reflection editor, settings (theme, timezone), data export/import.
+
+### Acceptance Criteria
+
+- [x] Period metrics summary
+- [x] Reflection editor
+- [x] Theme settings
+- [x] Timezone settings
+- [x] Data export/import
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-032: JSON → Database Importer for Daily Logs
+
+### Description
+
+Allow importing existing JSON daily logs into the database. Safe to run multiple times (idempotent or controlled). Covered by existing import/export system (SHELF-020, SHELF-023).
+
+### Acceptance Criteria
+
+- [x] JSON logs can be imported
+- [x] Import is idempotent
+- [x] Duplicate detection prevents double-imports
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-033: GitHub Integration
+
+### Description
+
+Integrate with GitHub Issues for work tracking and collaboration. Issues workflow established. Projects board not needed.
+
+### Acceptance Criteria
+
+- [x] GitHub Issues used for tracking
+- [x] Workflow documented
+- [x] Integration functional
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Low
+- **Type:** Maintenance
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** #1
+
+---
+
+## SHELF-034: Re-entry Guide
+
+### Description
+
+Documentation for re-entering the project after a break. INSTRUCTIONS.md and PROGRESS.md serve this purpose.
+
+### Acceptance Criteria
+
+- [x] INSTRUCTIONS.md provides session start guidance
+- [x] PROGRESS.md tracks where work left off
+- [x] Re-entry workflow documented
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Low
+- **Type:** Maintenance
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-035: Balance Metrics (Lightweight)
+
+### Description
+
+Derive simple balance signals (not scores) from entries and habits. Metrics explain context without gamification. Implemented in ProgressView balance mode with time split, trends, neglected habits, active days.
+
+### Acceptance Criteria
+
+- [x] Time split visualization
+- [x] Trend indicators
+- [x] Neglected habits highlighted
+- [x] Active days tracked
+- [x] No gamification or scores
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No

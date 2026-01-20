@@ -49,6 +49,26 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 
 ## Sessions
 
+### 2026-01-19 (Night)
+
+**Summary:**
+- Rewrote entire BACKLOG.md to new unified format from INSTRUCTIONS.md
+- All 34 items now use consistent structure: Description, Acceptance Criteria, Metadata
+- Format now matches GitHub Issue template for seamless promotion
+- Mobile prep/closure feature completed (PreparationSheet, ClosureSheet)
+- Shared types fixed (Preparation/Closure interfaces matched to schema)
+
+**Decisions:**
+- Unified format for backlog AND GitHub Issues (same template)
+- All items include Type field (Feature/Bug/Maintenance) and Version field
+- Archived status used for superseded items (SHELF-011)
+
+**What's next:**
+- SHELF-021 (Mobile Phase 7: Polish) is in progress
+- Consider promoting items to GitHub Issues using the new format
+
+---
+
 ### 2026-01-19 (Late Evening)
 
 **Summary:**

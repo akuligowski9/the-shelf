@@ -126,6 +126,8 @@ When documentation is first set up and no prefix exists:
 Planned → In Progress → Done
               ↓
            Blocked
+              ↓
+           Archived
 ```
 
 ### Definitions
@@ -136,6 +138,9 @@ Planned → In Progress → Done
 | **In Progress** | Actively being worked on                              |
 | **Blocked**     | Cannot proceed without input, decision, or dependency |
 | **Done**        | Complete                                              |
+| **Archived**    | Was planned, no longer pursuing (kept for history)    |
+
+Use **Archived** for tasks that were planned but later abandoned, superseded, or deemed not worth doing. This preserves decision history without cluttering active work. Different from **Documented Gaps**, which are known limitations accepted by design from the start.
 
 This flow must be used consistently in:
 
@@ -190,19 +195,46 @@ Must include:
    - Medium
    - Low
    - Parking Lot
+   - Documented Gaps (optional — for known limitations accepted as "Won't Fix")
    - Done
 
-### Backlog Item Format
+### Item Format (Backlog & GitHub Issues)
+
+This format is used consistently in BACKLOG.md and when creating GitHub Issues.
 
 ```markdown
-- [ ] <PREFIX>-### Short title
-  - Description: combined problem + intended solution (1–4 sentences)
-  - Status: Planned | In Progress | Blocked | Done
-  - Priority: Critical | High | Medium | Low
-  - Assignee: Alex | <name> | Unassigned
-  - GitHub Issue: No OR #<issue_number>
-  - Notes / Links: optional
+## <PREFIX>-###: <Short title>
+
+### Description
+
+<1-4 sentences: problem, solution, relevant details. Notes/links go here.>
+
+### Acceptance Criteria
+
+- [ ] <Specific, testable criterion>
+- [ ] <Specific, testable criterion>
+
+### Metadata
+
+- **Status:** Planned | In Progress | Blocked | Done | Archived
+- **Priority:** Critical | High | Medium | Low
+- **Type:** Feature | Bug | Maintenance
+- **Version:** v1 | v2 | Unassigned
+- **Assignee:** <name> | Unassigned
+- **GitHub Issue:** No | #<issue_number>
 ```
+
+When an item is promoted to GitHub Issues, copy this format directly. Keep backlog and issue in sync.
+
+### Version Field
+
+The Version field groups tasks by release without restructuring the backlog. This approach is simplest and most flexible — you can visually scan for version while keeping priority-based organization intact. It doesn't require restructuring existing backlogs when adding version tracking later.
+
+- Use `v1`, `v2`, etc. for committed versions
+- Use `Unassigned` for tasks not yet slotted into a version
+- The **Parking Lot** section already serves as "not versioned yet" for ideas that aren't committed
+
+The Version field is optional. Omit it entirely for projects that don't need version-based planning.
 
 ### Rules
 
@@ -224,10 +256,26 @@ It must include:
 - Tech stack
 - Quickstart (run locally)
 - Environment variables
-- Contribution guidance
+- Contributing section (see below)
 - Links to BACKLOG, TECH_SPEC
 
 > If README content becomes inaccurate, it must be updated during the next documentation sync.
+
+### Contributing Section
+
+Include a Contributing section to guide outside contributors. For personal projects where contributions aren't expected, this section may be omitted.
+
+Standard Contributing content:
+
+- How to report bugs (open an issue with steps to reproduce)
+- How to suggest features (open an issue describing the use case)
+- How to submit PRs (fork, branch, test, submit)
+- Code style expectations (link to linter config or note "run `npm run lint`")
+- Testing expectations (run tests before submitting, add tests for new features)
+- Branch naming convention (e.g., `feature/description`, `fix/description`)
+- Commit message guidance (concise, imperative mood)
+
+Keep it brief — a few sentences per item is sufficient. Link to BACKLOG.md so contributors can see what's planned.
 
 ---
 
@@ -406,7 +454,7 @@ If yes:
 
 Promote backlog items **only when explicitly instructed**.
 
-Use backlog item format plus Acceptance Criteria (checkbox list). After promotion, update BACKLOG.md with issue number and keep states aligned.
+Use the same Item Format defined in "BACKLOG.md Required Structure" above. Copy the item directly from backlog to GitHub Issue. After promotion, update the backlog item's GitHub Issue field with the issue number and keep states aligned.
 
 ---
 
