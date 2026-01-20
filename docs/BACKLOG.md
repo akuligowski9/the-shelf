@@ -501,6 +501,62 @@ The current PWA setup caches static assets and API responses, allowing the app s
 
 ---
 
+## SHELF-046: OAuth Authentication (Google + GitHub)
+
+### Description
+
+The app needs authentication to protect personal data while allowing demo visitors to browse. OAuth with Google and GitHub provides secure, passwordless login without managing credentials. Users stay logged in across devices via JWT cookies. When DEMO_MODE=true and user is not authenticated, the app is read-only. When authenticated as the allowed user (ALLOWED_EMAIL), full read/write access is granted.
+
+### Acceptance Criteria
+
+- [x] Backend OAuth routes for Google and GitHub
+- [x] JWT-based session with httpOnly cookies
+- [x] Auth middleware protects write operations in demo mode
+- [x] Frontend login page with OAuth buttons
+- [x] Auth context tracks login state
+- [x] Demo banner shows login/logout
+- [ ] Google OAuth credentials configured in Cloud Run
+- [ ] GitHub OAuth credentials configured in Cloud Run
+- [ ] End-to-end login flow tested in production
+
+### Metadata
+
+- **Status:** In Progress
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1.0
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-047: Demo Data Separation (user_id)
+
+### Description
+
+Currently all data is shared - demo visitors and the owner see the same data. For a cleaner demo experience, data should be separated by user_id column ('demo' vs 'owner'). Demo visitors see pre-seeded demo data, and their edits go to localStorage (not the database), giving each visitor an isolated sandbox that resets on new session. Owner data is completely separate and persists normally.
+
+### Acceptance Criteria
+
+- [ ] Add user_id column to all data tables (entries, habits, practices, actions, targets, preparations, closures, reflections)
+- [ ] Migrate existing data to user_id='owner'
+- [ ] Seed demo data with user_id='demo'
+- [ ] Backend routes filter by user_id based on auth state
+- [ ] Frontend intercepts demo writes → localStorage
+- [ ] Frontend merges localStorage edits on top of DB reads for demo
+- [ ] New browser session = fresh localStorage = pristine demo
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
 ## Parking Lot
 
 *Ideas not yet actionable. May be promoted or discarded.*

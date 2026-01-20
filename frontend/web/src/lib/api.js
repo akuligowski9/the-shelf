@@ -7,6 +7,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 async function fetchJson(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`
   const res = await fetch(url, {
+    credentials: 'include', // Send cookies for auth
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,

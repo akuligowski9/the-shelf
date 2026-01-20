@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const passport = require('passport');
 
 const entriesRouter = require('./routes/entries');
 const habitsRouter = require('./routes/habits');
@@ -13,32 +15,45 @@ const metricsRouter = require('./routes/metrics');
 const transitionsRouter = require('./routes/transitions');
 const dataRouter = require('./routes/data');
 const demoRouter = require('./routes/demo');
+const authRouter = require('./routes/auth');
+const { requireAuth } = require('./middleware/auth');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json({ strict: false })); // strict: false allows primitive JSON values
+// CORS configuration - allow credentials for cookies
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+app.use(cors({
+  origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174'],
+  credentials: true,
+}));
 
-// health
+app.use(express.json({ strict: false })); // strict: false allows primitive JSON values
+app.use(cookieParser());
+app.use(passport.initialize());
+
+// health - no auth needed
 app.get('/health', (_req, res) => {
   res.json({ ok: true });
 });
 
-// core routes
-app.use('/entries', entriesRouter);
-app.use('/habits', habitsRouter);
-app.use('/targets', targetsRouter);
+// auth routes - no auth needed
+app.use('/auth', authRouter);
 
-// new routes
-app.use('/settings', settingsRouter);
-app.use('/reflections', reflectionsRouter);
-app.use('/preparations', preparationsRouter);
-app.use('/closures', closuresRouter);
-app.use('/dashboard', dashboardRouter);
-app.use('/metrics', metricsRouter);
-app.use('/transitions', transitionsRouter);
-app.use('/data', dataRouter);
+// demo routes - special auth handling (reset needs demo mode)
 app.use('/demo', demoRouter);
+
+// protected routes - require auth for writes in demo mode
+app.use('/entries', requireAuth, entriesRouter);
+app.use('/habits', requireAuth, habitsRouter);
+app.use('/targets', requireAuth, targetsRouter);
+app.use('/settings', requireAuth, settingsRouter);
+app.use('/reflections', requireAuth, reflectionsRouter);
+app.use('/preparations', requireAuth, preparationsRouter);
+app.use('/closures', requireAuth, closuresRouter);
+app.use('/dashboard', requireAuth, dashboardRouter);
+app.use('/metrics', requireAuth, metricsRouter);
+app.use('/transitions', requireAuth, transitionsRouter);
+app.use('/data', requireAuth, dataRouter);
 
 // basic error handler
 app.use((err, _req, res, _next) => {
