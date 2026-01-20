@@ -896,6 +896,19 @@ In addition to the database, the system will maintain a real-time log of all ent
 
 ## 4. Testing Strategy
 
+### Unit Tests
+
+**Frontend (Vitest)** — `frontend/web/src/**/*.test.js`
+- `colors.test.js` — Color utilities, badge classes, entry styles (23 tests)
+- `mockData.test.js` — Date formatting, session lookup, template rendering (14 tests)
+- Run: `cd frontend/web && npm run test`
+
+**Backend (Jest)** — `backend/api/__tests__/*.test.js`
+- `health.test.js` — Health endpoint (1 test)
+- `metrics.test.js` — Metrics range validation and response (5 tests)
+- `entries.test.js` — Full CRUD operations with mocked database (16 tests)
+- Run: `cd backend/api && npm test`
+
 ### End-to-End (Playwright)
 
 Critical flows:
