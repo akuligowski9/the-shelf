@@ -25,6 +25,7 @@ import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
 import { getPreparationsInRange, getClosuresInRange, getReflections, getMetricsForRange } from '@/lib/api'
 import { colorPalette } from '@/lib/colors'
+import { SkeletonChart, Skeleton } from '@/components/ui/skeleton'
 
 // Info tooltip helper component
 function InfoTip({ text }) {
@@ -846,7 +847,19 @@ export default function ProgressView() {
         </CardHeader>
         <CardContent>
           <div>
-            {viewMode === 'balance' ? (
+            {metricsLoading ? (
+              <div className="space-y-4">
+                <div className="flex items-end justify-between gap-2 h-[256px]">
+                  {Array.from({ length: 7 }).map((_, i) => (
+                    <Skeleton
+                      key={i}
+                      className="flex-1 rounded-t"
+                      style={{ height: `${30 + Math.random() * 60}%` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : viewMode === 'balance' ? (
               <ResponsiveContainer width="100%" height={256}>
                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

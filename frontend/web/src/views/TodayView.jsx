@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { SkeletonList, SkeletonCard } from '@/components/ui/skeleton'
 import EntryFormDialog from '@/components/today/EntryFormDialog'
 import PreparationDialog from '@/components/today/PreparationDialog'
 import ClosureDialog from '@/components/today/ClosureDialog'
@@ -33,7 +34,7 @@ export default function TodayView() {
   const { getHabitByName } = useHabits()
 
   // Entries from context (API)
-  const { entries: allEntries, setEntries: setAllEntries, createEntry, updateEntry, deleteEntry } = useEntries()
+  const { entries: allEntries, setEntries: setAllEntries, createEntry, updateEntry, deleteEntry, isLoading: isLoadingEntries } = useEntries()
 
   // Date state
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -414,7 +415,9 @@ export default function TodayView() {
 
       {/* Entry List */}
       <div className="space-y-3">
-        {sortedEntries.length === 0 ? (
+        {isLoadingEntries ? (
+          <SkeletonList count={3} variant="entry" />
+        ) : sortedEntries.length === 0 ? (
           <Card>
             <CardContent className="pt-6 pb-6 text-center">
               <p className="text-muted-foreground">

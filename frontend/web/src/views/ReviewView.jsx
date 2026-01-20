@@ -12,6 +12,7 @@ import {
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
 import { getReflections, createReflection, deleteReflection, getPreparationsInRange } from '@/lib/api'
+import { SkeletonReflection, SkeletonCard, Skeleton } from '@/components/ui/skeleton'
 import { Star, Target, Lightbulb, Clock, Activity, AlertCircle, Coffee, Zap, PenLine, X, Trash2, Leaf } from 'lucide-react'
 import RichTextEditor, { RichTextDisplay } from '@/components/ui/rich-text-editor'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -938,7 +939,12 @@ export default function ReviewView() {
           )}
         </CardHeader>
         <CardContent className="space-y-5">
-          {pastReflections.length === 0 ? (
+          {isLoadingReflections ? (
+            <div className="space-y-4">
+              <SkeletonCard lines={3} />
+              <SkeletonCard lines={2} />
+            </div>
+          ) : pastReflections.length === 0 ? (
             <p className="text-sm text-muted-foreground py-2">
               No reflections for this period yet.
             </p>
