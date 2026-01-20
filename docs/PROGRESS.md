@@ -55,6 +55,7 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - Implemented SHELF-038 (Loading Skeletons) — comprehensive skeleton components for all views
 - Implemented SHELF-041 (PWA Support) — full Progressive Web App configuration
 - Implemented SHELF-036 (Unit Tests) — 59 tests across frontend and backend
+- Implemented SHELF-002 (Link Targets to GitHub Issues) — schema, API, and UI
 - Created custom Shelf icon (bookshelf design) with all required PNG sizes
 - Added SHELF-045 (Full Offline Support) to backlog for future work
 - Closed GitHub issue #8 (PWA Support)
@@ -78,6 +79,13 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - Refactored backend to export app.js for testable server
 - Test commands: `npm run test` (frontend), `npm test` (backend)
 
+**SHELF-002 Details:**
+- Added `github_issue_url` TEXT field to targets schema
+- Updated POST/PATCH /targets routes to accept new field
+- Added input field in TargetEditDialog
+- Added clickable link icons in ShelfView and AttentionView Kanban cards
+- Migration for existing DB: `ALTER TABLE targets ADD COLUMN IF NOT EXISTS github_issue_url TEXT;`
+
 **SHELF-045 (New Backlog Item):**
 - Full offline support with IndexedDB, mutation queue, sync, and conflict resolution
 - Builds on PWA foundation to enable true offline usage
@@ -89,10 +97,11 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - Offline indicator deferred to SHELF-045 (full offline support)
 - Vitest for frontend (Vite-native), Jest for backend (Node standard)
 - Custom hooks tests deferred (tightly coupled to React context)
+- GitHub issue status fetch deferred (could add via GitHub API later)
 
 **What's next:**
+- SHELF-037 (Demo Mode) for public visibility
 - SHELF-045 (Full Offline Support) when offline usage becomes priority
-- More quick wins: SHELF-002, SHELF-037
 
 ---
 
