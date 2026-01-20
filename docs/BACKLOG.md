@@ -62,13 +62,6 @@ Planned → In Progress → Done
   - Assignee: Unassigned
   - GitHub Issue: No
 
-- [ ] SHELF-006 Playwright E2E Testing Setup
-  - Description: Set up Playwright and write E2E tests for critical flows: Start → Log → Close, Edit history, Import/export round-trip.
-  - Status: Planned
-  - Priority: Medium
-  - Assignee: Unassigned
-  - GitHub Issue: No
-
 - [ ] SHELF-008 JSON → Database Importer for Daily Logs
   - Description: Allow importing existing JSON daily logs into the database. Safe to run multiple times (idempotent or controlled).
   - Status: Planned
@@ -238,3 +231,11 @@ Planned → In Progress → Done
   - Priority: Low
   - Assignee: Alex
   - GitHub Issue: No
+
+- [x] SHELF-006 Playwright E2E Testing Setup
+  - Description: Set up Playwright and write E2E tests for critical flows: Start → Log → Close, Edit history, Import/export round-trip.
+  - Status: Done
+  - Priority: Medium
+  - Assignee: Alex
+  - GitHub Issue: No
+  - Notes: 11 test files in frontend/web/tests/ covering navigation, entries, attention, shelf, settings, reflections, metrics, import/export.

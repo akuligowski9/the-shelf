@@ -84,8 +84,9 @@ export interface Preparation {
   id: number
   period_type: 'day' | 'week' | 'month'
   period_start: string
-  intentions: string | null
-  focus_areas: string | null
+  occurred_at: string
+  note: string | null
+  rest_day: boolean
   created_at: string
   updated_at: string
 }
@@ -94,10 +95,8 @@ export interface Closure {
   id: number
   scope: 'day' | 'week' | 'month'
   date: string
-  wins: string | null
-  challenges: string | null
-  lessons: string | null
-  gratitude: string | null
+  occurred_at: string
+  note: string | null
   created_at: string
   updated_at: string
 }
