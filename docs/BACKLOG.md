@@ -247,6 +247,243 @@ Support time-bound programs (e.g., "4 weeks of PT", "30-day challenge"). Program
 
 ---
 
+## SHELF-036: Unit Tests
+
+### Description
+
+Add unit tests for utility functions, hooks, and API handlers. Currently only E2E tests exist. Unit tests run faster, catch bugs earlier, and make contributions safer.
+
+### Acceptance Criteria
+
+- [ ] Jest configured for web frontend
+- [ ] Unit tests for utility functions (date formatting, calculations)
+- [ ] Unit tests for custom hooks
+- [ ] Unit tests for API route handlers (backend)
+- [ ] Coverage reporting configured
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Maintenance
+- **Version:** Unassigned
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-037: Demo Mode
+
+### Description
+
+Create a demo mode with sample data so visitors can explore the app from the README without setting up a backend. Includes deployment planning and OPS updates.
+
+### Acceptance Criteria
+
+- [ ] Demo data seed script or fixtures
+- [ ] Demo mode toggle or separate demo deployment
+- [ ] README links to live demo
+- [ ] OPS.md updated with deployment instructions
+- [ ] Demo resets periodically or is read-only
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-038: Loading Skeletons
+
+### Description
+
+Add consistent skeleton loading states across all views. Some exist but coverage is not comprehensive.
+
+### Acceptance Criteria
+
+- [ ] Skeleton components for cards, lists, charts
+- [ ] All views show skeletons during initial load
+- [ ] Skeletons match actual content layout
+- [ ] Works in both light and dark mode
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-039: Search Entries
+
+### Description
+
+Add search functionality to find entries by note content and filter by date range. Essential as user data grows.
+
+### Acceptance Criteria
+
+- [ ] Search input available in TodayView or dedicated search view
+- [ ] Search matches entry note content (case-insensitive)
+- [ ] Date range filter (from/to dates)
+- [ ] Results show matching entries with highlighted matches
+- [ ] Search works on both web and mobile
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #6
+
+---
+
+## SHELF-040: Accessibility Improvements
+
+### Description
+
+Improve accessibility across the application with proper ARIA labels, keyboard navigation, focus management, and screen reader support.
+
+### Acceptance Criteria
+
+- [ ] All interactive elements have appropriate ARIA labels
+- [ ] Focus states are visible and follow logical order
+- [ ] Keyboard navigation works for all core flows
+- [ ] Screen reader announces dynamic content changes
+- [ ] Color contrast meets WCAG AA standards
+- [ ] Forms have proper labels and error announcements
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #7
+
+---
+
+## SHELF-041: PWA Support
+
+### Description
+
+Make the web app installable as a Progressive Web App with offline capability and app-like experience.
+
+### Acceptance Criteria
+
+- [ ] Web app manifest configured (name, icons, theme color)
+- [ ] Service worker caches static assets
+- [ ] App is installable on desktop and mobile browsers
+- [ ] Offline indicator shown when network unavailable
+- [ ] Basic offline functionality (view cached data)
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #8
+
+---
+
+## SHELF-042: PDF Summary Reports
+
+### Description
+
+Generate PDF reports summarizing activity over a time period. Useful for personal review, sharing with coaches/therapists, or archival.
+
+### Acceptance Criteria
+
+- [ ] Export button in Progress or Review view
+- [ ] Period selection (week, month, custom range)
+- [ ] PDF includes: time breakdown by habit, entry counts, highlights, reflection content
+- [ ] Clean, readable layout suitable for printing
+- [ ] Works on web (mobile can share/download)
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #9
+
+---
+
+## SHELF-043: Storybook Component Documentation
+
+### Description
+
+Set up Storybook for documenting and visually testing UI components. Helps contributors understand the component library and catch visual regressions.
+
+### Acceptance Criteria
+
+- [ ] Storybook configured for React (web frontend)
+- [ ] Stories for core UI components (Button, Card, Badge, Input, etc.)
+- [ ] Stories show component variants and states
+- [ ] Dark mode toggle in Storybook
+- [ ] Deployment to static hosting (optional)
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Maintenance
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #10
+
+---
+
+## SHELF-044: Notifications and Reminders
+
+### Description
+
+Add optional notifications to remind users to log entries, complete reflections, or maintain habits. Must be fully configurable via settings and off by default.
+
+### Acceptance Criteria
+
+- [ ] Settings toggle to enable/disable notifications (off by default)
+- [ ] Daily reminder time configurable
+- [ ] Weekly reflection reminder (configurable day/time)
+- [ ] Push notifications on mobile (Expo notifications)
+- [ ] Browser notifications on web (with permission request)
+- [ ] Notification preferences persist to database
+- [ ] Tests cover notification scheduling and settings
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** #11
+
+---
+
+## Parking Lot
+
+*Ideas not yet actionable. May be promoted or discarded.*
+
+### Undo/Redo for Entry Operations
+
+Reversible actions for entry create, edit, delete, archive. Could use command pattern or state snapshots. Unclear if complexity is worth it for this use case.
+
+---
+
 ## Archived
 
 ## SHELF-010: SwiftUI Dashboard Parity Planning
