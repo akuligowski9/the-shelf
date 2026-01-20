@@ -305,17 +305,17 @@ Loading states across the app are inconsistent - some views show skeletons, othe
 
 ### Acceptance Criteria
 
-- [ ] Skeleton components for cards, lists, charts
-- [ ] All views show skeletons during initial load
-- [ ] Skeletons match actual content layout
-- [ ] Works in both light and dark mode
+- [x] Skeleton components for cards, lists, charts
+- [x] All views show skeletons during initial load
+- [x] Skeletons match actual content layout
+- [x] Works in both light and dark mode
 
 ### Metadata
 
-- **Status:** Planned
+- **Status:** Done
 - **Priority:** Low
 - **Type:** Feature
-- **Version:** Unassigned
+- **Version:** v1
 - **Assignee:** Alex
 - **GitHub Issue:** No
 
@@ -380,19 +380,19 @@ Users who prefer the web app over the native mobile app should be able to instal
 
 ### Acceptance Criteria
 
-- [ ] Web app manifest configured (name, icons, theme color)
-- [ ] Service worker caches static assets
-- [ ] App is installable on desktop and mobile browsers
+- [x] Web app manifest configured (name, icons, theme color)
+- [x] Service worker caches static assets
+- [x] App is installable on desktop and mobile browsers
 - [ ] Offline indicator shown when network unavailable
-- [ ] Basic offline functionality (view cached data)
+- [x] Basic offline functionality (view cached data)
 
 ### Metadata
 
-- **Status:** Planned
+- **Status:** Done
 - **Priority:** Low
 - **Type:** Feature
-- **Version:** Unassigned
-- **Assignee:** Unassigned
+- **Version:** v1
+- **Assignee:** Alex
 - **GitHub Issue:** #8
 
 ---
@@ -471,6 +471,33 @@ Habit tracking apps are most effective when they help users remember to log cons
 - **Version:** Unassigned
 - **Assignee:** Unassigned
 - **GitHub Issue:** #11
+
+---
+
+## SHELF-045: Full Offline Support
+
+### Description
+
+The current PWA setup caches static assets and API responses, allowing the app shell and previously-viewed data to load offline. However, users cannot create or edit entries when offline - mutations fail without network connectivity. For a habit tracker used daily, true offline support is valuable. This feature implements local storage (IndexedDB) to persist data client-side, a mutation queue that saves creates/edits/deletes locally when offline, automatic sync when connectivity is restored, and conflict resolution for cases where server data changed while offline. An offline indicator should inform users when they're working offline and changes are queued.
+
+### Acceptance Criteria
+
+- [ ] IndexedDB stores habits, entries, and other data locally
+- [ ] Mutation queue persists offline creates/edits/deletes
+- [ ] Automatic sync when connectivity restored
+- [ ] Conflict resolution strategy (last-write-wins or user prompt)
+- [ ] Offline indicator visible in UI when network unavailable
+- [ ] Queued changes indicator shows pending sync count
+- [ ] Works on both web PWA and mobile app
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
 
 ---
 
