@@ -255,18 +255,18 @@ The test suite currently consists only of Playwright E2E tests, which are compre
 
 ### Acceptance Criteria
 
-- [ ] Jest configured for web frontend
-- [ ] Unit tests for utility functions (date formatting, calculations)
-- [ ] Unit tests for custom hooks
-- [ ] Unit tests for API route handlers (backend)
-- [ ] Coverage reporting configured
+- [x] Vitest configured for web frontend (Jest-compatible)
+- [x] Unit tests for utility functions (date formatting, color utilities)
+- [ ] Unit tests for custom hooks (deferred - context-heavy)
+- [x] Unit tests for API route handlers (backend)
+- [x] Coverage reporting configured
 
 ### Metadata
 
-- **Status:** Planned
+- **Status:** Done
 - **Priority:** Medium
 - **Type:** Maintenance
-- **Version:** Unassigned
+- **Version:** v1
 - **Assignee:** Alex
 - **GitHub Issue:** No
 
