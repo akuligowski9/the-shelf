@@ -3,8 +3,11 @@
 ############################
 
 # Daily JSON logs (personal, local-first)
-data/logs/
+data/logs/*.json
 data/daily/
+
+# Keep demo logs for demo-seed script
+# (only the demo/ subdirectory is tracked)
 
 # Keep documentation about data
 !data/README.md

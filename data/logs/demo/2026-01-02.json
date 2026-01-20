@@ -1,0 +1,32 @@
+{
+  "date": "2026-01-02",
+  "preparations": [
+    {
+      "occurred_at": "2026-01-02T08:30",
+      "period_type": "day",
+      "note": "A bit tired today, but let's get it done."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Books",
+      "occurred_at": "2026-01-02T09:00",
+      "duration_minutes": 30,
+      "note": "Read a chapter of 'Sapiens'."
+    },
+    {
+      "type": "caution",
+      "occurred_at": "2026-01-02T15:00",
+      "note": "Ate too much sugar."
+    }
+  ],
+  "closures": [
+    {
+      "occurred_at": "2026-01-02T22:00",
+      "scope": "day",
+      "note": "Calling it a day."
+    }
+  ]
+}

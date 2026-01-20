@@ -56,6 +56,7 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - Implemented SHELF-041 (PWA Support) — full Progressive Web App configuration
 - Implemented SHELF-036 (Unit Tests) — 59 tests across frontend and backend
 - Implemented SHELF-002 (Link Targets to GitHub Issues) — schema, API, and UI
+- Implemented SHELF-037 (Demo Mode) — seed script, API endpoint, UI banner
 - Created custom Shelf icon (bookshelf design) with all required PNG sizes
 - Added SHELF-045 (Full Offline Support) to backlog for future work
 - Closed GitHub issue #8 (PWA Support)
@@ -86,6 +87,16 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - Added clickable link icons in ShelfView and AttentionView Kanban cards
 - Migration for existing DB: `ALTER TABLE targets ADD COLUMN IF NOT EXISTS github_issue_url TEXT;`
 
+**SHELF-037 Details:**
+- Created `backend/api/demo-seed.js` - comprehensive seed script
+- Loads habits from `data/habits.json`, demo entries from `data/logs/demo/*.json`
+- Creates sample targets in various states (active, planned, parked, completed)
+- Fixed demo log files to use correct habit/practice names from habits.json
+- Created `backend/api/routes/demo.js` with `/demo/status` and `/demo/reset` endpoints
+- Added `DemoBanner` component to frontend (shows when DEMO_MODE=true)
+- Updated OPS.md with demo deployment instructions
+- Added npm scripts: `npm run seed`, `npm run demo-seed`
+
 **SHELF-045 (New Backlog Item):**
 - Full offline support with IndexedDB, mutation queue, sync, and conflict resolution
 - Builds on PWA foundation to enable true offline usage
@@ -98,9 +109,11 @@ Core tables: habits, practices, actions, targets, entries, preparations, closure
 - Vitest for frontend (Vite-native), Jest for backend (Node standard)
 - Custom hooks tests deferred (tightly coupled to React context)
 - GitHub issue status fetch deferred (could add via GitHub API later)
+- Demo mode uses environment variable DEMO_MODE=true
+- Demo reset endpoint only works when DEMO_MODE=true (security)
 
 **What's next:**
-- SHELF-037 (Demo Mode) for public visibility
+- SHELF-012 (React Native Mobile App)
 - SHELF-045 (Full Offline Support) when offline usage becomes priority
 
 ---

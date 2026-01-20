@@ -99,6 +99,62 @@ docker-compose -f docker-compose.dev.yml up
 
 ---
 
+## Demo Deployment
+
+To deploy a public demo instance for visitors to explore:
+
+### 1. Create a Separate Neon Database
+
+1. Create a new Neon project called `the-shelf-demo`
+2. Run `db/schema.sql` to create tables
+3. Note the connection string
+
+### 2. Deploy Demo Instance on Render
+
+Create new services (or a new Blueprint) for the demo:
+
+**Environment Variables for `shelf-api-demo`:**
+```
+DATABASE_URL=<your demo Neon connection string>
+DEMO_MODE=true
+```
+
+**Environment Variables for `shelf-web-demo`:**
+```
+VITE_API_URL=https://shelf-api-demo.onrender.com
+VITE_DEMO_MODE=true
+```
+
+### 3. Seed Demo Data
+
+After deployment, seed the database:
+
+```bash
+# Option A: Run via Render Shell
+cd backend/api && npm run demo-seed
+
+# Option B: Call the reset endpoint (requires DEMO_MODE=true)
+curl -X POST https://shelf-api-demo.onrender.com/demo/reset
+```
+
+### 4. Demo Mode Features
+
+When `DEMO_MODE=true`:
+- `GET /demo/status` returns `{ demo_mode: true }`
+- `POST /demo/reset` resets the database to sample data
+- Frontend can show a demo banner (if VITE_DEMO_MODE=true)
+
+### 5. Periodic Reset (Optional)
+
+Set up a scheduled job (Render Cron or external) to reset demo data daily:
+
+```bash
+# Reset demo data
+curl -X POST https://shelf-api-demo.onrender.com/demo/reset
+```
+
+---
+
 ## Backup & Recovery
 
 *To be documented when backup strategy is established.*

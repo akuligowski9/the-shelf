@@ -1,0 +1,47 @@
+{
+  "date": "2026-01-07",
+  "preparations": [
+    {
+      "occurred_at": "2026-01-07T08:15",
+      "period_type": "day",
+      "note": "Light day. Focus on presence."
+    }
+  ],
+  "closures": [
+    {
+      "occurred_at": "2026-01-07T22:10",
+      "scope": "day",
+      "note": "Enough for today."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Spanish",
+      "practice": "Conversation",
+      "occurred_at": "2026-01-07T14:30",
+      "duration_minutes": 45,
+      "note": "Call with family",
+      "is_highlight": true
+    },
+    {
+      "type": "life",
+      "occurred_at": "2026-01-07T18:00",
+      "duration_minutes": 120,
+      "note": "Dinner with family"
+    },
+    {
+      "type": "caution",
+      "occurred_at": "2026-01-07T16:10",
+      "note": "Distracted scrolling"
+    }
+  ],
+  "reflections": [
+    {
+      "note": "Reducing habits helped this week.",
+      "reflection_type": "week",
+      "period_start": "2026-01-01",
+      "period_end": "2026-01-07"
+    }
+  ]
+}

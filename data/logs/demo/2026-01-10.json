@@ -1,0 +1,18 @@
+{
+  "date": "2026-01-10",
+  "preparations": [
+    {
+      "occurred_at": "2026-01-10T11:00",
+      "period_type": "day",
+      "note": "Weekend vibes. No plans.",
+      "rest_day": true
+    }
+  ],
+  "entries": [
+    {
+      "type": "life",
+      "occurred_at": "2026-01-10T15:00",
+      "note": "Long walk in the afternoon."
+    }
+  ]
+}

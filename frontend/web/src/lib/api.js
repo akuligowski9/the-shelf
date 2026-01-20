@@ -375,3 +375,28 @@ export async function loadInitialData() {
 
   return { habits, practices, actions, targets, prompts }
 }
+
+// Generic API helper for custom endpoints
+const api = {
+  async get(endpoint) {
+    try {
+      const data = await fetchJson(endpoint)
+      return { ok: true, data }
+    } catch (err) {
+      return { ok: false, error: err.message }
+    }
+  },
+  async post(endpoint, body) {
+    try {
+      const data = await fetchJson(endpoint, {
+        method: 'POST',
+        body: body ? JSON.stringify(body) : undefined,
+      })
+      return { ok: true, data }
+    } catch (err) {
+      return { ok: false, error: err.message }
+    }
+  }
+}
+
+export default api

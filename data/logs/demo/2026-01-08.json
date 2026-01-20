@@ -1,0 +1,18 @@
+{
+  "date": "2026-01-08",
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Exercise",
+      "practice": "Active Recovery",
+      "occurred_at": "2026-01-08T07:30",
+      "duration_minutes": 25,
+      "note": "Morning yoga and stretching."
+    },
+    {
+      "type": "life",
+      "occurred_at": "2026-01-08T12:00",
+      "note": "Team lunch at work."
+    }
+  ]
+}

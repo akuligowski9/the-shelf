@@ -280,18 +280,18 @@ Visitors to the GitHub repo or README currently have no way to try the app witho
 
 ### Acceptance Criteria
 
-- [ ] Demo data seed script or fixtures
-- [ ] Demo mode toggle or separate demo deployment
-- [ ] README links to live demo
-- [ ] OPS.md updated with deployment instructions
-- [ ] Demo resets periodically or is read-only
+- [x] Demo data seed script or fixtures
+- [x] Demo mode toggle or separate demo deployment
+- [x] README links to live demo
+- [x] OPS.md updated with deployment instructions
+- [x] Demo resets periodically or is read-only
 
 ### Metadata
 
-- **Status:** Planned
+- **Status:** Done
 - **Priority:** Medium
 - **Type:** Feature
-- **Version:** Unassigned
+- **Version:** v1.0
 - **Assignee:** Alex
 - **GitHub Issue:** No
 

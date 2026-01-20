@@ -10,7 +10,19 @@ The Shelf helps you plan attention, log what actually happened, and review balan
 
 ## Demo
 
-*Screenshots and live demo coming soon.*
+*Live demo link coming soon.*
+
+To run a demo locally with sample data:
+
+```bash
+# Start the stack
+docker compose -f docker-compose.dev.yml up -d
+
+# Seed demo data
+cd backend/api && npm run demo-seed
+```
+
+Visit `http://localhost:5173` to explore.
 
 ---
 
@@ -104,7 +116,19 @@ DATABASE_URL=postgresql://user:pass@host:5432/dbname
 
 ## Demo Data
 
-Sample data is available in `data/logs/demo/` for testing. Import via Settings > Import/Export.
+Seed the database with sample habits, entries, and targets:
+
+```bash
+cd backend/api && npm run demo-seed
+```
+
+This loads:
+- 7 habits with 49 practices and 91 actions
+- 12 days of sample entries (24 entries total)
+- 6 sample targets in various states
+- Preparations, closures, and reflections
+
+Raw demo data is available in `data/logs/demo/` for manual import via Settings > Import/Export.
 
 ---
 

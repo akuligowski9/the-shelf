@@ -1,0 +1,29 @@
+{
+  "date": "2026-01-05",
+  "preparations": [
+    {
+      "occurred_at": "2026-01-05T08:00",
+      "period_type": "day",
+      "note": "Back to the grind. Let's make it a good day."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Exercise",
+      "practice": "Cardio",
+      "occurred_at": "2026-01-05T18:00",
+      "duration_minutes": 30,
+      "note": "5k run in the park.",
+      "is_highlight": true
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Books",
+      "occurred_at": "2026-01-05T21:00",
+      "duration_minutes": 45,
+      "note": "Finished 'The Hobbit'."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "date": "2026-01-12",
+  "preparations": [
+    {
+      "occurred_at": "2026-01-12T08:00",
+      "period_type": "day",
+      "note": "Final day of this import set. Let's finish strong."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Software",
+      "practice": "Project Planning",
+      "occurred_at": "2026-01-12T08:30",
+      "duration_minutes": 30,
+      "note": "Reviewed last week and planned the next."
+    },
+    {
+      "type": "life",
+      "occurred_at": "2026-01-12T19:30",
+      "note": "Movie night."
+    }
+  ],
+  "reflections": [
+    {
+      "note": "The past 12 days have been a good experiment in tracking."
+    }
+  ]
+}

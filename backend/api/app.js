@@ -12,6 +12,7 @@ const dashboardRouter = require('./routes/dashboard');
 const metricsRouter = require('./routes/metrics');
 const transitionsRouter = require('./routes/transitions');
 const dataRouter = require('./routes/data');
+const demoRouter = require('./routes/demo');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/dashboard', dashboardRouter);
 app.use('/metrics', metricsRouter);
 app.use('/transitions', transitionsRouter);
 app.use('/data', dataRouter);
+app.use('/demo', demoRouter);
 
 // basic error handler
 app.use((err, _req, res, _next) => {
