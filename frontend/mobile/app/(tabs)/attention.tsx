@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Plus } from 'lucide-react-native'
 import { useThemeStore, useHabitsStore } from '@/stores'
-import { Card, CardContent } from '@/components/ui'
+import { Card, CardContent, SkeletonList, SkeletonCard } from '@/components/ui'
 import { useErrorHandler } from '@/hooks'
 import {
   KanbanCard,
@@ -33,6 +33,7 @@ export default function AttentionScreen() {
     habits,
     targets,
     practices,
+    isLoading,
     loadInitialData,
     addHabit,
     updateHabit,
@@ -252,6 +253,14 @@ export default function AttentionScreen() {
           />
         }
       >
+        {isLoading && habits.length === 0 && targets.length === 0 ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          <>
         {/* Targets Section */}
         <Card>
           <View style={styles.cardHeader}>
@@ -432,6 +441,8 @@ export default function AttentionScreen() {
               {/* Would list caution behaviors here */}
             </CardContent>
           </Card>
+        )}
+          </>
         )}
       </ScrollView>
 

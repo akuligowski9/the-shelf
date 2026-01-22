@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useThemeStore, useHabitsStore, useEntriesStore } from '@/stores'
-import { Card, CardContent, Button } from '@/components/ui'
+import { Card, CardContent, Button, SkeletonCard } from '@/components/ui'
 import {
   PeriodSelector,
   FilterChips,
@@ -54,7 +54,7 @@ type ViewMode = 'balance' | 'patterns'
 
 export default function ProgressScreen() {
   const { colors, isDark } = useThemeStore()
-  const { habits, loadInitialData } = useHabitsStore()
+  const { habits, isLoading, loadInitialData } = useHabitsStore()
 
   // View state
   const [viewMode, setViewMode] = useState<ViewMode>('balance')
@@ -451,6 +451,14 @@ export default function ProgressScreen() {
           />
         }
       >
+        {isLoading && habits.length === 0 ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          <>
         {/* View Toggle */}
         <View style={styles.viewToggle}>
           <Button
@@ -613,6 +621,8 @@ export default function ProgressScreen() {
                 </View>
               </CardContent>
             </Card>
+          </>
+        )}
           </>
         )}
       </ScrollView>

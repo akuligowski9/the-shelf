@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Star, Target, Activity, Leaf, AlertCircle } from 'lucide-react-native'
 import { useThemeStore, useHabitsStore, useEntriesStore } from '@/stores'
-import { Card, CardContent, Badge } from '@/components/ui'
+import { Card, CardContent, Badge, SkeletonCard } from '@/components/ui'
 import { PeriodSelector, TimeRange } from '@/components/progress'
 import { PeriodMetrics, ReflectionCard, ReflectionEditor } from '@/components/review'
 import { useErrorHandler } from '@/hooks'
@@ -75,8 +75,8 @@ function getPeriodLabel(timeRange: TimeRange, periodOffset: number) {
 
 export default function ReviewScreen() {
   const { colors, isDark } = useThemeStore()
-  const { habits, targets, loadInitialData } = useHabitsStore()
-  const { entries, loadEntriesForRange } = useEntriesStore()
+  const { habits, targets, isLoading: habitsLoading, loadInitialData } = useHabitsStore()
+  const { entries, loadEntriesForRange, isLoading: entriesLoading } = useEntriesStore()
   const { handleError, handleSuccess } = useErrorHandler()
 
   // View state
@@ -262,6 +262,14 @@ export default function ReviewScreen() {
           />
         }
       >
+        {habitsLoading && habits.length === 0 ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          <>
         {/* Period Selector */}
         <Card>
           <CardContent>
@@ -362,6 +370,8 @@ export default function ReviewScreen() {
             )}
           </CardContent>
         </Card>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   )

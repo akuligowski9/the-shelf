@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Sun, Moon, Smartphone, Download, Upload, ChevronRight } from 'lucide-react-native'
 import { useThemeStore, useHabitsStore, useEntriesStore } from '@/stores'
-import { Card, CardContent, Button } from '@/components/ui'
+import { Card, CardContent, Button, SkeletonCard } from '@/components/ui'
 import { useErrorHandler } from '@/hooks'
 import * as api from '@/api/offlineApi'
 
@@ -34,13 +34,14 @@ type ThemeMode = 'light' | 'dark' | 'auto'
 
 export default function SettingsScreen() {
   const { colors, isDark, themeMode, setThemeMode } = useThemeStore()
-  const { habits } = useHabitsStore()
-  const { entries } = useEntriesStore()
+  const { habits, isLoading: habitsLoading } = useHabitsStore()
+  const { entries, isLoading: entriesLoading } = useEntriesStore()
   const { handleError, handleSuccess } = useErrorHandler()
 
   const [timezone, setTimezoneState] = useState('America/New_York')
   const [showTimezoneOptions, setShowTimezoneOptions] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [settingsLoading, setSettingsLoading] = useState(true)
 
   // Load settings from API
   useEffect(() => {
@@ -52,6 +53,9 @@ export default function SettingsScreen() {
       .catch((err) => {
         console.error('Failed to load settings:', err)
         handleError(err, 'Load settings')
+      })
+      .finally(() => {
+        setSettingsLoading(false)
       })
   }, [])
 
@@ -141,6 +145,14 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {settingsLoading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          <>
         {/* Preferences */}
         <Card>
           <CardContent>
@@ -302,6 +314,8 @@ export default function SettingsScreen() {
             <Text style={[styles.versionText, { color: colors.textMuted }]}>Version 0.1.0</Text>
           </CardContent>
         </Card>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   )

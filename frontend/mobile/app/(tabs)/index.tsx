@@ -18,7 +18,7 @@ import {
   ActivityStats,
   WeekMonthStats,
 } from '@/components/shelf'
-import { Card, CardContent } from '@/components/ui'
+import { Card, CardContent, SkeletonCard } from '@/components/ui'
 import { statusColors } from '@shared/colors'
 import * as api from '@/api/offlineApi'
 
@@ -32,10 +32,11 @@ export default function ShelfScreen() {
   const {
     habits,
     targets,
+    isLoading: habitsLoading,
     loadInitialData,
     getActiveHabits,
   } = useHabitsStore()
-  const { entries, loadEntriesForRange } = useEntriesStore()
+  const { entries, loadEntriesForRange, isLoading: entriesLoading } = useEntriesStore()
 
   const [refreshing, setRefreshing] = useState(false)
   const [showAllActive, setShowAllActive] = useState(false)
@@ -200,6 +201,14 @@ export default function ShelfScreen() {
           />
         }
       >
+        {habitsLoading && habits.length === 0 ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          <>
         {/* Active Targets */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -487,6 +496,8 @@ export default function ShelfScreen() {
             <WeekMonthStats title="This Month" stats={monthStats} />
           </CardContent>
         </Card>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
