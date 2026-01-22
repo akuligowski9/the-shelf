@@ -25,7 +25,7 @@ Planned → In Progress → Done
 ## High
 
 > **Active Work (In Progress):**
-> - SHELF-001: Mobile Polish - offline queue done, 5 screens need updating (Terminal A)
+> - SHELF-001: Mobile Polish - implementation & docs complete, testing remains (Terminal A)
 > - SHELF-046: OAuth Authentication - needs prod testing (Terminal B)
 > - SHELF-047: Demo Data Separation - demo DB seeded, needs deployment (Terminal B)
 > - SHELF-049: Mutation Logging - needs backend deploy (Terminal B)
@@ -55,11 +55,12 @@ The React Native mobile app is feature-complete but needs final polish before re
 
 ### Notes
 
-Offline infrastructure and all screen integrations complete (2026-01-22). Remaining work to finish edge cases:
+Implementation and documentation complete (2026-01-22). Remaining work to finish edge cases:
 - ✅ Core offline queue system with AsyncStorage persistence
 - ✅ Network monitoring and auto-sync
 - ✅ User-friendly error handling with toasts
 - ✅ All 6 screens updated (today, attention, shelf, progress, review, settings)
+- ✅ Documentation updated (README.md, OPS.md, TECH_SPEC.md section 7)
 - ❌ Test edge cases: long offline periods, app backgrounding, queue persistence across restarts
 - ❌ Add conflict resolution for concurrent edits while offline
 - ❌ Add unit tests for offline utilities and sync manager
