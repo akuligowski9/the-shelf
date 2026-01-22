@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Entry, Preparation, Closure } from '@shared/types'
-import * as api from '@shared/api'
+import * as api from '../api/offlineApi'
+import { getUserFriendlyErrorMessage, NetworkError } from '../utils/errors'
 
 interface EntriesState {
   // Data
@@ -12,21 +13,25 @@ interface EntriesState {
   isLoading: boolean
   dateRange: { from: string; to: string } | null
 
+  // Error state
+  lastError: string | null
+  clearError: () => void
+
   // Actions
   loadEntriesForRange: (from: string, to: string) => Promise<void>
   loadPreparations: (periodType: string, from: string, to: string) => Promise<void>
   loadClosures: (scope: string, from: string, to: string) => Promise<void>
 
   // Entry actions
-  createEntry: (entry: Partial<Entry>) => Promise<Entry | null>
-  updateEntry: (id: number, updates: Partial<Entry>) => Promise<void>
-  deleteEntry: (id: number) => Promise<void>
+  createEntry: (entry: Partial<Entry>) => Promise<{ success: boolean; entry?: Entry; error?: string }>
+  updateEntry: (id: number, updates: Partial<Entry>) => Promise<{ success: boolean; error?: string }>
+  deleteEntry: (id: number) => Promise<{ success: boolean; error?: string }>
 
   // Preparation actions
-  savePreparation: (preparation: Partial<Preparation>) => Promise<void>
+  savePreparation: (preparation: Partial<Preparation>) => Promise<{ success: boolean; error?: string }>
 
   // Closure actions
-  saveClosure: (closure: Partial<Closure>) => Promise<void>
+  saveClosure: (closure: Partial<Closure>) => Promise<{ success: boolean; error?: string }>
 
   // Computed
   getEntriesForDate: (date: string) => Entry[]
@@ -46,6 +51,10 @@ export const useEntriesStore = create<EntriesState>((set, get) => ({
   closures: [],
   isLoading: false,
   dateRange: null,
+  lastError: null,
+
+  // Clear error
+  clearError: () => set({ lastError: null }),
 
   // Load entries for date range
   loadEntriesForRange: async (from, to) => {
@@ -83,35 +92,82 @@ export const useEntriesStore = create<EntriesState>((set, get) => ({
   createEntry: async (entry) => {
     try {
       const newEntry = await api.createEntry(entry)
-      set((state) => ({ entries: [...state.entries, newEntry] }))
-      return newEntry
+      set((state) => ({ entries: [...state.entries, newEntry], lastError: null }))
+      return { success: true, entry: newEntry }
     } catch (error) {
       console.error('Failed to create entry:', error)
-      return null
+      const errorMessage = getUserFriendlyErrorMessage(error)
+
+      // If it's a network error, optimistically add entry (will sync later)
+      if (error instanceof NetworkError && entry.date) {
+        const optimisticEntry = {
+          ...entry,
+          id: Date.now(), // Temporary ID
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as Entry
+        set((state) => ({ entries: [...state.entries, optimisticEntry], lastError: errorMessage }))
+        return { success: true, entry: optimisticEntry }
+      }
+
+      set({ lastError: errorMessage })
+      return { success: false, error: errorMessage }
     }
   },
 
   updateEntry: async (id, updates) => {
+    // Optimistic update
+    const previousEntries = get().entries
     set((state) => ({
       entries: state.entries.map((e) =>
         e.id === id ? { ...e, ...updates } : e
       ),
     }))
+
     try {
       await api.updateEntry(id, updates)
+      set({ lastError: null })
+      return { success: true }
     } catch (error) {
       console.error('Failed to update entry:', error)
+      const errorMessage = getUserFriendlyErrorMessage(error)
+
+      // If network error, keep optimistic update (will sync later)
+      if (error instanceof NetworkError) {
+        set({ lastError: errorMessage })
+        return { success: true }
+      }
+
+      // Revert on other errors
+      set({ entries: previousEntries, lastError: errorMessage })
+      return { success: false, error: errorMessage }
     }
   },
 
   deleteEntry: async (id) => {
+    // Optimistic delete
+    const previousEntries = get().entries
     set((state) => ({
       entries: state.entries.filter((e) => e.id !== id),
     }))
+
     try {
       await api.deleteEntry(id)
+      set({ lastError: null })
+      return { success: true }
     } catch (error) {
       console.error('Failed to delete entry:', error)
+      const errorMessage = getUserFriendlyErrorMessage(error)
+
+      // If network error, keep optimistic delete (will sync later)
+      if (error instanceof NetworkError) {
+        set({ lastError: errorMessage })
+        return { success: true }
+      }
+
+      // Revert on other errors
+      set({ entries: previousEntries, lastError: errorMessage })
+      return { success: false, error: errorMessage }
     }
   },
 
@@ -132,9 +188,14 @@ export const useEntriesStore = create<EntriesState>((set, get) => ({
                 : p
             )
           : [...state.preparations, saved],
+        lastError: null,
       }))
+      return { success: true }
     } catch (error) {
       console.error('Failed to save preparation:', error)
+      const errorMessage = getUserFriendlyErrorMessage(error)
+      set({ lastError: errorMessage })
+      return { success: false, error: errorMessage }
     }
   },
 
@@ -150,9 +211,14 @@ export const useEntriesStore = create<EntriesState>((set, get) => ({
               c.scope === saved.scope && c.date === saved.date ? saved : c
             )
           : [...state.closures, saved],
+        lastError: null,
       }))
+      return { success: true }
     } catch (error) {
       console.error('Failed to save closure:', error)
+      const errorMessage = getUserFriendlyErrorMessage(error)
+      set({ lastError: errorMessage })
+      return { success: false, error: errorMessage }
     }
   },
 

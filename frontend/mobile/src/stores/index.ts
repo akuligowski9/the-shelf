@@ -3,3 +3,4 @@
 export { useHabitsStore } from './habitsStore'
 export { useEntriesStore } from './entriesStore'
 export { useThemeStore } from './themeStore'
+export { useOfflineQueueStore } from './offlineQueueStore'

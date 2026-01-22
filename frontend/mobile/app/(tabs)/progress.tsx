@@ -20,7 +20,7 @@ import {
   TimeRange,
 } from '@/components/progress'
 import { getHabitColor } from '@shared/colors'
-import * as api from '@shared/api'
+import * as api from '@/api/offlineApi'
 
 // Helper to format date as YYYY-MM-DD
 function formatDate(date: Date): string {

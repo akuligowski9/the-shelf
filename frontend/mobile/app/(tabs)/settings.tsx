@@ -12,7 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Sun, Moon, Smartphone, Download, Upload, ChevronRight } from 'lucide-react-native'
 import { useThemeStore, useHabitsStore, useEntriesStore } from '@/stores'
 import { Card, CardContent, Button } from '@/components/ui'
-import * as api from '@shared/api'
+import { useErrorHandler } from '@/hooks'
+import * as api from '@/api/offlineApi'
 
 // Common timezones
 const TIMEZONES = [
@@ -35,6 +36,7 @@ export default function SettingsScreen() {
   const { colors, isDark, themeMode, setThemeMode } = useThemeStore()
   const { habits } = useHabitsStore()
   const { entries } = useEntriesStore()
+  const { handleError, handleSuccess } = useErrorHandler()
 
   const [timezone, setTimezoneState] = useState('America/New_York')
   const [showTimezoneOptions, setShowTimezoneOptions] = useState(false)
@@ -47,14 +49,22 @@ export default function SettingsScreen() {
         const tzSetting = settings.find((s) => s.key === 'timezone')
         if (tzSetting?.value) setTimezoneState(tzSetting.value)
       })
-      .catch((err) => console.error('Failed to load settings:', err))
+      .catch((err) => {
+        console.error('Failed to load settings:', err)
+        handleError(err, 'Load settings')
+      })
   }, [])
 
   // Save timezone setting
-  const handleTimezoneChange = (tz: string) => {
+  const handleTimezoneChange = async (tz: string) => {
     setTimezoneState(tz)
     setShowTimezoneOptions(false)
-    api.setSetting('timezone', tz).catch((err) => console.error('Failed to save timezone:', err))
+    try {
+      await api.setSetting('timezone', tz)
+      handleSuccess('Timezone updated')
+    } catch (err) {
+      handleError(err, 'Save timezone')
+    }
   }
 
   // Handle export
@@ -68,9 +78,10 @@ export default function SettingsScreen() {
         message: jsonStr,
         title: `the-shelf-export-${new Date().toISOString().split('T')[0]}.json`,
       })
+      handleSuccess('Data exported')
     } catch (err: any) {
       if (err.message !== 'Share dismissed') {
-        Alert.alert('Export Failed', err.message || 'Failed to export data')
+        handleError(err, 'Export data')
       }
     } finally {
       setExporting(false)

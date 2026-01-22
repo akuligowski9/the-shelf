@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Habit, Practice, Action, Target, Prompt, HabitTransition } from '@shared/types'
-import * as api from '@shared/api'
+import * as api from '../api/offlineApi'
+import { getUserFriendlyErrorMessage, NetworkError } from '../utils/errors'
 
 interface TransitionChange {
   habitId: number
@@ -25,6 +26,10 @@ interface HabitsState {
 
   // Loading state
   isLoading: boolean
+
+  // Error state
+  lastError: string | null
+  clearError: () => void
 
   // Transition window state
   inTransition: boolean
@@ -96,10 +101,14 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
   prompts: [],
   habitTransitions: [],
   isLoading: true,
+  lastError: null,
   inTransition: false,
   transitionStartedAt: null,
   transitionChanges: [],
   cascadeChanges: { targets: [], practices: [] },
+
+  // Clear error
+  clearError: () => set({ lastError: null }),
 
   // Load initial data
   loadInitialData: async () => {
@@ -249,10 +258,12 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
         color,
         active: true,
       } as any)
-      set((state) => ({ habits: [...state.habits, newHabit] }))
+      set((state) => ({ habits: [...state.habits, newHabit], lastError: null }))
       return newHabit.id
     } catch (error) {
       console.error('Failed to create habit:', error)
+      const errorMessage = getUserFriendlyErrorMessage(error)
+      set({ lastError: errorMessage })
       return null
     }
   },

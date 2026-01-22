@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-01-20
+Last updated: 2026-01-22
 
 ---
 
@@ -14,7 +14,284 @@ All six views are fully implemented and functional.
 **Backend API: Complete**
 Full REST API with all endpoints, PostgreSQL database, import/export with preview.
 
-**Next Phase: React Native Mobile App (SHELF-012)**
+**Next Phase: React Native Mobile App**
+- SHELF-001 (Mobile Polish) - offline queue and error handling complete
+
+---
+
+## Sessions
+
+### 2026-01-22 (Terminal A) - Mobile Offline Support & Error Handling (Complete)
+
+**Summary:**
+- Implemented offline queue system for React Native mobile app (SHELF-001)
+- Added network monitoring, automatic sync, and user-friendly error handling
+- Updated all 6 screens to use offline API and error handling
+
+**Offline Queue Implementation:**
+- Created `offlineQueueStore` with AsyncStorage persistence
+- Mutations queue automatically when offline
+- Auto-sync triggers when connectivity restored
+- Retry logic with exponential backoff (max 3 attempts)
+
+**Network Monitoring:**
+- Added `useNetwork` hook with NetInfo integration
+- Real-time connectivity detection
+- Monitors both connection and internet reachability
+
+**Error Handling:**
+- Custom error types (NetworkError, ServerError, ValidationError, QueueError)
+- User-friendly error message conversion
+- `useErrorHandler` hook for consistent error display
+- Network errors shown as info (queued), others as errors
+
+**Visual Feedback:**
+- Created `NetworkStatus` banner component
+- Animated slide-in/slide-out
+- Color-coded states: red (offline), blue (syncing), amber (pending)
+- Shows pending mutation count
+
+**Store Updates:**
+- Updated `entriesStore` to use offline API wrapper
+- Updated `habitsStore` to use offline API wrapper
+- Optimistic updates with rollback on non-network errors
+- Mutations return `{ success, entry?, error? }`
+
+**Integration:**
+- Created `OfflineQueueProvider` to initialize system
+- Updated `app/_layout.tsx` with provider and status banner
+- Updated `today.tsx` screen as example implementation
+- Created offline API wrapper around shared API functions
+
+**Dependencies Added:**
+- `@react-native-community/netinfo` - Network state monitoring
+- `@react-native-async-storage/async-storage` - Persistent queue storage
+
+**Files Created:**
+- `src/hooks/useNetwork.ts`
+- `src/hooks/useErrorHandler.ts`
+- `src/hooks/index.ts`
+- `src/utils/errors.ts`
+- `src/utils/syncManager.ts`
+- `src/stores/offlineQueueStore.ts`
+- `src/api/offlineApi.ts`
+- `src/components/ui/NetworkStatus.tsx`
+- `src/providers/OfflineQueueProvider.tsx`
+
+**Screen Updates (All 6 screens now use offline API + error handling):**
+- `app/(tabs)/today.tsx` - Entry CRUD with error handling
+- `app/(tabs)/attention.tsx` - Habits/practices/actions/targets CRUD with error handling
+- `app/(tabs)/index.tsx` (Shelf) - Updated to use offline API
+- `app/(tabs)/progress.tsx` - Updated to use offline API
+- `app/(tabs)/review.tsx` - Reflections CRUD with error handling
+- `app/(tabs)/settings.tsx` - Settings and export with error handling
+
+**Files Modified:**
+- `src/stores/entriesStore.ts`
+- `src/stores/habitsStore.ts`
+- `src/stores/index.ts`
+- `src/utils/index.ts`
+- `src/components/ui/index.ts`
+- `app/_layout.tsx`
+- `app/(tabs)/today.tsx`
+- `app/(tabs)/attention.tsx`
+- `app/(tabs)/index.tsx`
+- `app/(tabs)/progress.tsx`
+- `app/(tabs)/review.tsx`
+- `app/(tabs)/settings.tsx`
+
+**Decisions:**
+- Queue stored in AsyncStorage (not encrypted - noted as limitation)
+- FIFO queue processing (sequential, not parallel)
+- Max 3 retry attempts with exponential backoff
+- Optimistic updates for better UX
+- Last-write-wins (no conflict resolution yet)
+- Network errors queue mutations, other errors fail immediately
+
+**What's Next (Remaining for SHELF-001):**
+- Test edge cases (long offline periods, app backgrounding, empty states)
+- Add conflict resolution for concurrent edits while offline
+- Add unit tests for offline utilities (errors.ts, syncManager.ts, offlineQueueStore.ts)
+- Add E2E tests for offline scenarios
+- Consider enhancements: manual sync button, queue inspection UI, encrypted queue storage
+
+**Known Limitations:**
+- No conflict resolution (last write wins)
+- No optimistic ID mapping for created items
+- No queue size limit
+- No mutation merging (multiple updates queue separately)
+- Queue not encrypted in AsyncStorage
+
+---
+
+### 2026-01-22 (Afternoon) - SESSION ENDED DUE TO ERRORS
+
+**Summary:**
+- Completed mutation logging setup with database persistence
+- Fixed missing DATABASE_URL in Cloud Run
+- Updated INSTRUCTIONS.md to v1.1 with Destructive Action Protocol
+- Decided on multi-database architecture for data separation
+- Created shelf-demo Neon database and seeded with 6 months of data (406 entries)
+- Deployed updated backend to Cloud Run
+- Created shelf-api-demo Cloud Run service
+
+**Critical Errors Made:**
+- Failed to verify prod Cloud Run state before deploying
+- Prod service had `DEMO_MODE=true` which was incorrect
+- Did not follow Destructive Action Protocol for Cloud Run deployments
+- Session terminated due to unreliable behavior
+
+**Current State (Incomplete):**
+- Prod backend: `shelf-api-785607788916.us-east1.run.app` - DEMO_MODE set to false (fixed)
+- Demo backend: `shelf-api-demo-785607788916.us-east1.run.app` - created but incomplete
+- Demo database: Neon `shelf-demo` - seeded with 406 entries across 6 months
+- Demo frontend: NOT CREATED
+- Prod DATABASE_URL: Needs verification
+
+**What Needs to Be Done (Next Session):**
+1. Verify prod Cloud Run has correct DATABASE_URL pointing to shelf-prod Neon
+2. Verify all prod env vars are correct (DEMO_MODE=false, OAuth credentials, etc.)
+3. Complete demo Vercel frontend deployment
+4. Update demo Cloud Run with FRONTEND_URL
+5. Implement unauthorized login → portfolio redirect
+6. Update OPS.md with multi-database architecture
+7. Test both prod and demo end-to-end
+
+**Neon Connection Strings (for reference):**
+- Prod: `postgresql://neondb_owner:***@ep-raspy-field-ah0w3ev0-pooler.c-3.us-east-1.aws.neon.tech/neondb`
+- Demo: `postgresql://neondb_owner:***@ep-withered-sound-ah7kr1w3-pooler.c-3.us-east-1.aws.neon.tech/neondb`
+
+---
+
+### 2026-01-22 (Afternoon) - Original Notes
+
+**Summary:**
+- Completed mutation logging setup with database persistence
+- Fixed missing DATABASE_URL in Cloud Run (was never configured)
+- Updated INSTRUCTIONS.md to v1.1 with Destructive Action Protocol
+- Decided on multi-database architecture for data separation
+- Planning demo infrastructure setup
+
+**Mutation Logging to Database:**
+- Changed middleware from stdout logging to database persistence
+- Created `mutation_logs` table in schema.sql and on Neon
+- Columns: id, method, path, status, duration_ms, body (JSONB), created_at
+- Indexes on created_at and path for querying
+- More reliable than Cloud Logging for data recovery
+
+**DATABASE_URL Fix:**
+- Discovered DATABASE_URL was never set in Cloud Run (only had OAuth credentials)
+- Local .env had localhost URL which was wrong
+- Found Neon connection string and added to both .env and Cloud Run
+- Production backend can now connect to database
+
+**Data Separation Architecture Decision:**
+- Problem: Demo data and production data were mixed in one database
+- Problem: Local dev could accidentally write to production
+- Evaluated options:
+  1. Single DB with `user_id` column - adds complexity to every query
+  2. Multiple Neon databases - complete isolation, simpler queries
+  3. Neon branching - like git branches for databases
+- **Decision: Multiple Neon databases**
+  - `shelf-prod` (existing) - owner's real data
+  - `shelf-demo` (to create) - demo visitors, can reset anytime
+  - Local PostgreSQL for dev testing
+- Neon free tier allows 100 projects, so this is free
+
+**Security Clarification:**
+- OAuth with Google/GitHub is secure
+- Someone can't "enter your email" - they need access to your actual Google/GitHub account
+- ALLOWED_EMAIL check ensures only specific email gets write access
+- Demo mode: read-only for unauthenticated users
+
+**Demo UX Ideas (to implement):**
+- Demo URL should have "demo" in it (e.g., demo-the-shelf.vercel.app)
+- Unauthorized login attempts → redirect to portfolio contact page
+- Portfolio link: https://akuligowski-portfolio.vercel.app/
+
+**INSTRUCTIONS.md v1.1 Updates:**
+- Added Destructive Action Protocol (confirm before destructive operations)
+- Added Task Scoping Rule (max 3 file modifications per step)
+- Added Hard Stops in CLAUDE.md section
+- Added Action-Based Check-ins (5 backlog items triggers sync prompt)
+
+**Files Changed:**
+- Modified: `db/schema.sql` (added mutation_logs table)
+- Modified: `backend/api/app.js` (middleware writes to DB instead of stdout)
+- Modified: `backend/api/.env` (Neon DATABASE_URL)
+- Modified: `docs/INSTRUCTIONS.md` (v1.1)
+- Cloud Run: Added DATABASE_URL environment variable
+
+**What's Next:**
+- Create `shelf-demo` Neon project
+- Run schema.sql on demo database
+- Seed demo database with demo data
+- Configure separate demo deployment
+- Deploy updated backend code to Cloud Run
+- Implement unauthorized login → portfolio redirect
+
+---
+
+### 2026-01-22 (Continued)
+
+**Summary:**
+- Added backlog items SHELF-049 (Mutation Logging) and SHELF-050 (Automated Backup System)
+- These track the work done earlier and establish data security procedures
+
+**Backlog Updates:**
+- SHELF-049: Mutation Logging for Data Recovery (In Progress - middleware done, needs Cloud Run config)
+- SHELF-050: Automated Database Backup System (Planned - prevent future data loss)
+
+**What's Next:**
+- Set `LOG_MUTATIONS=true` in Cloud Run
+- Restore data to production database using `data-recovery-user.sql`
+- Continue with mobile app development (SHELF-001)
+
+---
+
+### 2026-01-22 (Early Morning)
+
+**Summary:**
+- Data recovery effort after local database reset lost user entries
+- Created `data-recovery-user.sql` with recovered data from Claude conversation logs
+- Added mutation logging middleware for future data recovery
+- Removed NODE_ENV dependency from codebase
+
+**Data Recovery:**
+- Searched Claude conversation logs (~90MB JSONL files) for lost entries
+- Found 3 API-created entries from Jan 15 (Walking, Planning, Marriage)
+- Found 9 practices, 8 targets created via API
+- Database had 92 entries on Jan 19 (89 from seed data + 3 API-created)
+- Created `data-recovery-user.sql` for restoring user-created data
+
+**Mutation Logging (New Feature):**
+- Added middleware in `app.js` to log all POST/PUT/PATCH/DELETE requests
+- Logs include timestamp, method, path, status, duration, and full request body
+- Enabled via `LOG_MUTATIONS=true` env var (production only)
+- Logs to stdout for capture by Cloud Run/container logging
+
+**NODE_ENV Removal:**
+- User previously decided not to use NODE_ENV (wanted simpler env config)
+- Removed `NODE_ENV === 'production'` check from logging middleware
+- Changed `auth.js` cookie settings to detect production via `!API_URL.includes('localhost')`
+- No more NODE_ENV dependencies in codebase
+
+**Files Changed:**
+- Created: `data-recovery-user.sql`
+- Modified: `backend/api/app.js` (added logging middleware)
+- Modified: `backend/api/routes/auth.js` (removed NODE_ENV, use API_URL check)
+
+**What's Next:**
+- Set `LOG_MUTATIONS=true` in Cloud Run
+- Restore data to production database using `data-recovery-user.sql`
+- Continue with mobile app development (SHELF-012)
+
+---
+
+### 2026-01-21
+
+**Summary:**
+- Session details not captured. See git log for commits made on this date.
 
 ---
 

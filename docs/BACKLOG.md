@@ -24,6 +24,13 @@ Planned → In Progress → Done
 
 ## High
 
+> **Active Work (In Progress):**
+> - SHELF-001: Mobile Polish - offline queue done, 5 screens need updating (Terminal A)
+> - SHELF-046: OAuth Authentication - needs prod testing (Terminal B)
+> - SHELF-047: Demo Data Separation - demo DB seeded, needs deployment (Terminal B)
+> - SHELF-049: Mutation Logging - needs backend deploy (Terminal B)
+> - SHELF-048: Data Recovery - needs to run recovery SQL (Terminal B)
+
 ## SHELF-001: Mobile Phase 7: Polish
 
 ### Description
@@ -32,9 +39,9 @@ The React Native mobile app is feature-complete but needs final polish before re
 
 ### Acceptance Criteria
 
-- [ ] Offline queue persists mutations when network unavailable
-- [ ] Sync resolves when connectivity restored
-- [ ] Error handling shows user-friendly messages
+- [x] Offline queue persists mutations when network unavailable
+- [x] Sync resolves when connectivity restored
+- [x] Error handling shows user-friendly messages
 - [ ] Edge cases handled gracefully (empty states, loading, failures)
 
 ### Metadata
@@ -43,8 +50,20 @@ The React Native mobile app is feature-complete but needs final polish before re
 - **Priority:** High
 - **Type:** Feature
 - **Version:** v1
-- **Assignee:** Alex
+- **Assignee:** Alex (Terminal A)
 - **GitHub Issue:** No
+
+### Notes
+
+Offline infrastructure and all screen integrations complete (2026-01-22). Remaining work to finish edge cases:
+- ✅ Core offline queue system with AsyncStorage persistence
+- ✅ Network monitoring and auto-sync
+- ✅ User-friendly error handling with toasts
+- ✅ All 6 screens updated (today, attention, shelf, progress, review, settings)
+- ❌ Test edge cases: long offline periods, app backgrounding, queue persistence across restarts
+- ❌ Add conflict resolution for concurrent edits while offline
+- ❌ Add unit tests for offline utilities and sync manager
+- ❌ Add E2E tests for offline scenarios
 
 ---
 
@@ -530,28 +549,120 @@ The app needs authentication to protect personal data while allowing demo visito
 
 ---
 
-## SHELF-047: Demo Data Separation (user_id)
+## SHELF-047: Demo Data Separation (Multi-Database)
 
 ### Description
 
-Currently all data is shared - demo visitors and the owner see the same data. For a cleaner demo experience, data should be separated by user_id column ('demo' vs 'owner'). Demo visitors see pre-seeded demo data, and their edits go to localStorage (not the database), giving each visitor an isolated sandbox that resets on new session. Owner data is completely separate and persists normally.
+Demo visitors and the owner need completely separate data. After evaluating options (user_id column vs multiple databases), decided on **multiple Neon databases** for complete isolation and simpler queries. This avoids adding `WHERE user_id = ?` to every query and eliminates risk of data leakage.
+
+Architecture:
+- `shelf-prod` Neon project: Owner's real data (existing)
+- `shelf-demo` Neon project: Demo visitors, read-only, can reset anytime (created)
+- Local PostgreSQL: Dev testing, periodic sync from prod backup
+
+Connection strings:
+- Prod: `postgresql://neondb_owner:***@ep-raspy-field-ah0w3ev0-pooler.c-3.us-east-1.aws.neon.tech/neondb`
+- Demo: `postgresql://neondb_owner:***@ep-withered-sound-ah7kr1w3-pooler.c-3.us-east-1.aws.neon.tech/neondb`
 
 ### Acceptance Criteria
 
-- [ ] Add user_id column to all data tables (entries, habits, practices, actions, targets, preparations, closures, reflections)
-- [ ] Migrate existing data to user_id='owner'
-- [ ] Seed demo data with user_id='demo'
-- [ ] Backend routes filter by user_id based on auth state
-- [ ] Frontend intercepts demo writes → localStorage
-- [ ] Frontend merges localStorage edits on top of DB reads for demo
-- [ ] New browser session = fresh localStorage = pristine demo
+- [x] Create `shelf-demo` Neon project
+- [x] Run schema.sql on demo database
+- [x] Run demo-seed.js to populate demo data (7 habits, 406 entries across 6 months, 6 targets, 18 preparations, 6 reflections)
+- [x] Deploy separate demo frontend (https://demo-the-shelf.vercel.app)
+- [x] Configure demo backend with demo DATABASE_URL (https://shelf-api-demo-785607788916.us-east1.run.app)
+- [x] Demo URL contains "demo" for clarity
+- [ ] Unauthorized login attempts → redirect to portfolio contact page (https://akuligowski-portfolio.vercel.app/)
+- [ ] Document multi-database architecture in OPS.md
+- [ ] Test both prod and demo end-to-end
+
+### Metadata
+
+- **Status:** In Progress
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v1.0
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-048: Data Recovery from JSON Logs
+
+### Description
+
+User data was lost when the local database was reset. Recovery data exists in JSON log files at `data/logs/*.json` and in `data/habits.json`. A recovery SQL file (`data-recovery.sql`) was generated from these sources containing habits, practices, entries, and targets from Jan 1-15, 2026. This task tracks running the recovery and implementing automated backups to prevent future data loss.
+
+### Acceptance Criteria
+
+- [ ] Run `data-recovery.sql` against local database to restore data
+- [ ] Verify restored data appears correctly in UI
+- [ ] Consider implementing automated daily backups (pg_dump to cloud storage)
+- [ ] Document backup/restore procedure in OPS.md
 
 ### Metadata
 
 - **Status:** Planned
-- **Priority:** Medium
-- **Type:** Feature
-- **Version:** Unassigned
+- **Priority:** High
+- **Type:** Maintenance
+- **Version:** v1.0
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-049: Mutation Logging for Data Recovery
+
+### Description
+
+API mutations (POST/PUT/PATCH/DELETE) need to be logged to enable data recovery if the database is lost or corrupted. The middleware in `backend/api/app.js` logs all mutating requests to a `mutation_logs` database table when `LOG_MUTATIONS=true`. This creates a persistent audit trail that can be queried to reconstruct user data. Database storage is more reliable than Cloud Logging for recovery purposes.
+
+### Acceptance Criteria
+
+- [x] Middleware added to `app.js` that logs mutations
+- [x] Log includes timestamp, method, path, status, duration, body
+- [x] Logging controlled by `LOG_MUTATIONS=true` env var
+- [x] Set `LOG_MUTATIONS=true` in Cloud Run environment
+- [x] Created `mutation_logs` table in schema.sql
+- [x] Created `mutation_logs` table on Neon production
+- [x] Middleware writes to database instead of stdout
+- [ ] Deploy updated backend code to Cloud Run
+- [ ] Verify logs appear in mutation_logs table
+- [ ] Document log format and recovery process in OPS.md
+
+### Metadata
+
+- **Status:** In Progress
+- **Priority:** High
+- **Type:** Maintenance
+- **Version:** v1.0
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-050: Automated Database Backup System
+
+### Description
+
+Manual database management led to data loss when the local database was reset without a backup. To prevent this from happening again, an automated backup system is needed. This should include scheduled pg_dump to cloud storage (Google Cloud Storage bucket), retention policy to manage storage costs, and documented restore procedures. Consider both production (Neon) and local development scenarios. The goal is zero data loss even in catastrophic failure scenarios.
+
+### Acceptance Criteria
+
+- [ ] Production: Neon has point-in-time recovery (verify it's enabled)
+- [ ] Production: Document Neon backup/restore procedure in OPS.md
+- [ ] Local: Script to backup local PostgreSQL to file
+- [ ] Local: Script to restore local PostgreSQL from backup file
+- [ ] Consider Cloud Storage bucket for off-site backups
+- [ ] Retention policy defined (e.g., keep 7 daily, 4 weekly, 12 monthly)
+- [ ] Test restore procedure and document in OPS.md
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** High
+- **Type:** Maintenance
+- **Version:** v1.0
 - **Assignee:** Alex
 - **GitHub Issue:** No
 

@@ -20,7 +20,7 @@ import {
 } from '@/components/shelf'
 import { Card, CardContent } from '@/components/ui'
 import { statusColors } from '@shared/colors'
-import * as api from '@shared/api'
+import * as api from '@/api/offlineApi'
 
 function formatDateKey(date: Date): string {
   return date.toISOString().split('T')[0]

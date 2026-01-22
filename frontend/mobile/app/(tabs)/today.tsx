@@ -12,7 +12,8 @@ import { Plus, Sun, Moon, Pencil } from 'lucide-react-native'
 import { useThemeStore, useHabitsStore, useEntriesStore } from '@/stores'
 import { DateNavigator, SwipeableEntryCard, DayStats, EntryFormSheet, PreparationSheet, ClosureSheet } from '@/components/today'
 import { Card, CardContent, Button, SkeletonList, useToast } from '@/components/ui'
-import * as api from '@shared/api'
+import { useErrorHandler } from '@/hooks'
+import * as api from '@/api/offlineApi'
 import type { Entry } from '@shared/types'
 
 // Format date to YYYY-MM-DD
@@ -23,8 +24,8 @@ function formatDateKey(date: Date): string {
 export default function TodayScreen() {
   const { colors, isDark } = useThemeStore()
   const { habits, isLoading: habitsLoading, loadInitialData } = useHabitsStore()
-  const { entries, loadEntriesForRange, isLoading: entriesLoading } = useEntriesStore()
-  const { showSuccess, showError } = useToast()
+  const { entries, createEntry, updateEntry, deleteEntry, loadEntriesForRange, isLoading: entriesLoading } = useEntriesStore()
+  const { handleError, handleSuccess } = useErrorHandler()
 
   // Date state
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -148,42 +149,53 @@ export default function TodayScreen() {
   const handleEntrySubmit = async (entryData: Partial<Entry>) => {
     try {
       if (editingEntry) {
-        await api.updateEntry(editingEntry.id, entryData)
-        showSuccess('Entry updated')
+        const result = await updateEntry(editingEntry.id, entryData)
+        if (result.success) {
+          handleSuccess('Entry updated')
+          handleEntryFormClose()
+        } else if (result.error) {
+          handleError(new Error(result.error), 'Update entry')
+        }
       } else {
-        await api.createEntry({
+        const result = await createEntry({
           ...entryData,
           date: dateKey,
         } as any)
-        showSuccess('Entry added')
+        if (result.success) {
+          handleSuccess('Entry added')
+          handleEntryFormClose()
+        } else if (result.error) {
+          handleError(new Error(result.error), 'Create entry')
+        }
       }
-      // Reload entries
-      await loadData()
     } catch (error) {
-      console.error('Failed to save entry:', error)
-      showError('Failed to save entry')
+      handleError(error, editingEntry ? 'Update entry' : 'Create entry')
     }
   }
 
   const handleArchiveEntry = async (entry: Entry) => {
     try {
-      await api.archiveEntry(entry.id)
-      showSuccess('Entry archived')
-      await loadData()
+      const result = await updateEntry(entry.id, { archived_at: new Date().toISOString() })
+      if (result.success) {
+        handleSuccess('Entry archived')
+      } else if (result.error) {
+        handleError(new Error(result.error), 'Archive entry')
+      }
     } catch (error) {
-      console.error('Failed to archive entry:', error)
-      showError('Failed to archive entry')
+      handleError(error, 'Archive entry')
     }
   }
 
   const handleDeleteEntry = async (entry: Entry) => {
     try {
-      await api.deleteEntry(entry.id)
-      showSuccess('Entry deleted')
-      await loadData()
+      const result = await deleteEntry(entry.id)
+      if (result.success) {
+        handleSuccess('Entry deleted')
+      } else if (result.error) {
+        handleError(new Error(result.error), 'Delete entry')
+      }
     } catch (error) {
-      console.error('Failed to delete entry:', error)
-      showError('Failed to delete entry')
+      handleError(error, 'Delete entry')
     }
   }
 

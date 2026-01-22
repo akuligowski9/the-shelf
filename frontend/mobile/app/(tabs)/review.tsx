@@ -12,7 +12,8 @@ import { useThemeStore, useHabitsStore, useEntriesStore } from '@/stores'
 import { Card, CardContent, Badge } from '@/components/ui'
 import { PeriodSelector, TimeRange } from '@/components/progress'
 import { PeriodMetrics, ReflectionCard, ReflectionEditor } from '@/components/review'
-import * as api from '@shared/api'
+import { useErrorHandler } from '@/hooks'
+import * as api from '@/api/offlineApi'
 import type { Reflection, Entry, Target as TargetType } from '@shared/types'
 
 // Helper to format date as YYYY-MM-DD
@@ -76,6 +77,7 @@ export default function ReviewScreen() {
   const { colors, isDark } = useThemeStore()
   const { habits, targets, loadInitialData } = useHabitsStore()
   const { entries, loadEntriesForRange } = useEntriesStore()
+  const { handleError, handleSuccess } = useErrorHandler()
 
   // View state
   const [timeRange, setTimeRange] = useState<TimeRange>('week')
@@ -208,8 +210,9 @@ export default function ReviewScreen() {
         content,
       })
       setReflections((prev) => [saved, ...prev])
+      handleSuccess('Reflection saved')
     } catch (err) {
-      console.error('Failed to save reflection:', err)
+      handleError(err, 'Save reflection')
     }
   }
 
@@ -218,8 +221,9 @@ export default function ReviewScreen() {
     try {
       await api.deleteReflection(id)
       setReflections((prev) => prev.filter((r) => r.id !== id))
+      handleSuccess('Reflection deleted')
     } catch (err) {
-      console.error('Failed to delete reflection:', err)
+      handleError(err, 'Delete reflection')
     }
   }
 

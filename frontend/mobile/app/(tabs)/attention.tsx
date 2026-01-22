@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Plus } from 'lucide-react-native'
 import { useThemeStore, useHabitsStore } from '@/stores'
 import { Card, CardContent } from '@/components/ui'
+import { useErrorHandler } from '@/hooks'
 import {
   KanbanCard,
   KanbanColumn,
@@ -47,7 +48,10 @@ export default function AttentionScreen() {
     updateAction,
     deleteAction,
     getTargetsByStatus,
+    lastError,
+    clearError,
   } = useHabitsStore()
+  const { handleError, handleSuccess } = useErrorHandler()
 
   const [refreshing, setRefreshing] = useState(false)
 
@@ -112,58 +116,118 @@ export default function AttentionScreen() {
   )
 
   // Handle add target
-  const handleAddTarget = (name: string) => {
-    addTarget(name, null, 'planned')
-    setAddingTarget(false)
+  const handleAddTarget = async (name: string) => {
+    try {
+      const id = await addTarget(name, null, 'planned')
+      if (id) {
+        handleSuccess('Target added')
+        setAddingTarget(false)
+      } else {
+        handleError(new Error('Failed to add target'), 'Add target')
+      }
+    } catch (error) {
+      handleError(error, 'Add target')
+    }
   }
 
   // Handle add habit
-  const handleAddHabit = (name: string) => {
-    addHabit(name)
-    setAddingHabit(false)
+  const handleAddHabit = async (name: string) => {
+    try {
+      const id = await addHabit(name)
+      if (id) {
+        handleSuccess('Habit added')
+        setAddingHabit(false)
+      } else {
+        handleError(new Error('Failed to add habit'), 'Add habit')
+      }
+    } catch (error) {
+      handleError(error, 'Add habit')
+    }
   }
 
   // Handle add practice
-  const handleAddPractice = (name: string) => {
+  const handleAddPractice = async (name: string) => {
     if (addingPracticeFor) {
-      addPractice(addingPracticeFor, name)
-      setAddingPracticeFor(null)
+      try {
+        const id = await addPractice(addingPracticeFor, name)
+        if (id) {
+          handleSuccess('Practice added')
+          setAddingPracticeFor(null)
+        } else {
+          handleError(new Error('Failed to add practice'), 'Add practice')
+        }
+      } catch (error) {
+        handleError(error, 'Add practice')
+      }
     }
   }
 
   // Handle add action
-  const handleAddAction = (name: string) => {
+  const handleAddAction = async (name: string) => {
     if (addingActionFor) {
-      addAction(addingActionFor, name)
-      setAddingActionFor(null)
+      try {
+        const id = await addAction(addingActionFor, name)
+        if (id) {
+          handleSuccess('Action added')
+          setAddingActionFor(null)
+        } else {
+          handleError(new Error('Failed to add action'), 'Add action')
+        }
+      } catch (error) {
+        handleError(error, 'Add action')
+      }
     }
   }
 
   // Handle save habit
-  const handleSaveHabit = (updates: any) => {
+  const handleSaveHabit = async (updates: any) => {
     if (editingHabit) {
-      updateHabit(editingHabit.id, updates)
+      try {
+        await updateHabit(editingHabit.id, updates)
+        handleSuccess('Habit updated')
+        setEditingHabit(null)
+      } catch (error) {
+        handleError(error, 'Update habit')
+      }
     }
   }
 
   // Handle save target
-  const handleSaveTarget = (updates: any) => {
+  const handleSaveTarget = async (updates: any) => {
     if (editingTarget) {
-      updateTarget(editingTarget.id, updates)
+      try {
+        await updateTarget(editingTarget.id, updates)
+        handleSuccess('Target updated')
+        setEditingTarget(null)
+      } catch (error) {
+        handleError(error, 'Update target')
+      }
     }
   }
 
   // Handle save practice
-  const handleSavePractice = (updates: any) => {
+  const handleSavePractice = async (updates: any) => {
     if (editingPractice) {
-      updatePractice(editingPractice.practice.id, updates)
+      try {
+        await updatePractice(editingPractice.practice.id, updates)
+        handleSuccess('Practice updated')
+        setEditingPractice(null)
+      } catch (error) {
+        handleError(error, 'Update practice')
+      }
     }
   }
 
   // Handle save action
-  const handleSaveAction = (updates: any) => {
+  const handleSaveAction = async (updates: any) => {
     if (editingAction) {
-      updateAction(editingAction.action.id, updates)
+      try {
+        await updateAction(editingAction.action.id, updates)
+        handleSuccess('Action updated')
+        setEditingAction(null)
+      } catch (error) {
+        handleError(error, 'Update action')
+      }
     }
   }
 
