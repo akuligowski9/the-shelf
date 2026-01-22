@@ -10,7 +10,8 @@ The Shelf helps you plan attention, log what actually happened, and review balan
 
 ## Demo
 
-**Live app:** [the-shelf-amk.vercel.app](https://the-shelf-amk.vercel.app)
+**Live demo:** [demo-the-shelf.vercel.app](https://demo-the-shelf.vercel.app) *(public instance with sample data)*
+**Personal app:** [the-shelf-amk.vercel.app](https://the-shelf-amk.vercel.app)
 
 To run a demo locally with sample data:
 
@@ -30,6 +31,7 @@ Visit `http://localhost:5173` to explore.
 
 ### Current (v1)
 
+**Web App:**
 - **6 views**: Shelf, Today, Progress, Review, Attention, Settings
 - **Full habit/practice/behavior management** with drag-drop
 - **Entry logging** with warm-up/cool-down flows
@@ -38,12 +40,20 @@ Visit `http://localhost:5173` to explore.
 - **Import/export** with preview and duplicate detection
 - **Dark mode** (auto 6PM-6AM or manual)
 
+**Mobile App (React Native):**
+- All 6 views optimized for mobile
+- **Offline queue** - mutations sync automatically when connectivity restored
+- **Network monitoring** - visual status banner shows offline/syncing state
+- **Error handling** - user-friendly messages with toast notifications
+- **Haptic feedback** on interactions
+- **Swipeable entry cards** for quick actions
+
 ### Planned
 
-- React Native mobile app
 - E2E testing with Playwright
 - Practice-level drill down in Progress view
 - Calendar heatmap visualization
+- Mobile app conflict resolution for concurrent offline edits
 
 See [BACKLOG.md](./docs/BACKLOG.md) for details.
 
@@ -55,11 +65,15 @@ See [BACKLOG.md](./docs/BACKLOG.md) for details.
 |-------|------------|
 | Backend | Node.js + Express.js |
 | Database | PostgreSQL (Neon) |
-| Frontend | React 19 + Vite |
-| UI Components | shadcn/ui + Tailwind CSS |
-| Charts | Recharts |
+| Web Frontend | React 19 + Vite |
+| Mobile Frontend | React Native + Expo |
+| UI Components (Web) | shadcn/ui + Tailwind CSS |
+| UI Components (Mobile) | Custom + Lucide React Native |
+| State Management (Mobile) | Zustand |
+| Offline Queue (Mobile) | AsyncStorage + NetInfo |
+| Charts | Recharts (web), Victory Native (mobile) |
 | Rich Text | Tiptap |
-| Drag & Drop | @hello-pangea/dnd |
+| Drag & Drop | @hello-pangea/dnd (web), react-native-draggable-flatlist (mobile) |
 | Containerization | Docker Compose |
 | Hosting | Google Cloud Run + Vercel |
 
@@ -112,6 +126,41 @@ VITE_API_BASE_URL=http://localhost:3001
 ```
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
 ```
+
+**Mobile:**
+
+The mobile app auto-detects the API URL based on platform:
+- Android emulator: `http://10.0.2.2:3001`
+- iOS simulator/real devices: `http://localhost:3001`
+
+To use a deployed API, update the default URL in `frontend/shared/api/index.ts` or call `setApiBaseUrl()` at runtime.
+
+---
+
+## Mobile App Setup
+
+**Prerequisites:**
+- Node.js 18+
+- iOS: Xcode (Mac only)
+- Android: Android Studio
+
+**Install and run:**
+
+```bash
+cd frontend/mobile
+npm install
+npm start
+```
+
+Then:
+- Press `i` for iOS simulator
+- Press `a` for Android emulator
+- Scan QR code with Expo Go app for physical device
+
+**Features:**
+- Offline queue automatically syncs mutations when connectivity restored
+- Network status banner shows offline/syncing state
+- All CRUD operations work offline with optimistic updates
 
 ---
 

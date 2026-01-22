@@ -79,8 +79,37 @@ Cloud Run scales to zero when idle. First request after idle may take 1-2 second
 
 ### Mobile App
 
-To use the mobile app with your deployed API, update the API URL in:
-`frontend/shared/api/index.ts` → change the default URL, or set it at runtime.
+**Setup:**
+
+```bash
+cd frontend/mobile
+npm install
+npm start
+```
+
+Press `i` for iOS simulator, `a` for Android emulator, or scan QR code with Expo Go for physical device.
+
+**Configure API URL:**
+
+The mobile app defaults to `http://localhost:3001` (iOS) or `http://10.0.2.2:3001` (Android emulator). To use a deployed API:
+
+1. Update `frontend/shared/api/index.ts` default URL, OR
+2. Call `setApiBaseUrl('https://your-api.run.app')` at runtime
+
+**Offline Support:**
+
+The mobile app includes an offline queue system:
+- Mutations automatically queue when network unavailable
+- Auto-syncs when connectivity restored
+- Queue persists in AsyncStorage (survives app restart)
+- Visual status banner shows offline/syncing state
+- Exponential backoff retry logic (max 3 attempts)
+
+**Dependencies:**
+- `@react-native-community/netinfo` - Network state monitoring
+- `@react-native-async-storage/async-storage` - Queue persistence
+
+Run `npm install` in `frontend/mobile` after pulling updates.
 
 ### Local Development
 

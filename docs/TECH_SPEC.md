@@ -56,6 +56,7 @@ The Shelf describes reality without judging it.
 4. [Testing Strategy](#4-testing-strategy)
 5. [Data Model](#5-data-model)
 6. [Import Specification](#6-import-specification)
+7. [Mobile Architecture](#7-mobile-architecture)
 
 ---
 
@@ -1568,3 +1569,153 @@ _Example:_
 - `data/habits.json` is the baseline; transitions extend it over time
 - Transitions create a timeline of structural evolution
 - Unknown transition types are ignored
+
+---
+
+## 7. Mobile Architecture
+
+### 7.1 Overview
+
+The mobile app (React Native + Expo) provides the same 6 views as the web app with mobile-optimized UX and offline-first architecture.
+
+**Key Features:**
+- Full offline support with mutation queueing
+- Automatic sync when connectivity restored
+- Network status monitoring
+- User-friendly error handling
+- Haptic feedback on interactions
+- Swipeable entry cards for quick actions
+
+### 7.2 Offline Queue System
+
+**Architecture:**
+
+```
+User Action → Check Network → Online?
+  ├─ Yes → Execute API call → Update store
+  └─ No  → Queue mutation → Update store optimistically → Show "Offline" banner
+           ↓
+       Connectivity Restored → Auto-sync queue → Remove from queue
+```
+
+**Components:**
+
+1. **Network Monitoring** (`useNetwork` hook)
+   - Uses `@react-native-community/netinfo`
+   - Monitors `isConnected` and `isInternetReachable`
+   - Real-time updates via event subscription
+
+2. **Offline Queue Store** (`offlineQueueStore`)
+   - Zustand store managing queued mutations
+   - Persists to AsyncStorage for durability across app restarts
+   - Tracks retry attempts and error states
+   - FIFO processing order
+
+3. **Sync Manager** (`syncManager`)
+   - Processes queue when online
+   - Auto-triggers on network state change (offline → online)
+   - Exponential backoff retry logic (1s → 2s → 4s → max 30s)
+   - Max 3 retry attempts per mutation
+   - Skips permanently failed mutations
+
+4. **Offline API Wrapper** (`offlineApi`)
+   - Wraps shared API functions
+   - Detects network status before mutations
+   - Queues mutations when offline or on network error
+   - Read operations pass through unchanged
+
+5. **Network Status Banner** (`NetworkStatus` component)
+   - Visual indicator at top of app
+   - Color-coded states:
+     - Red: Offline with pending count
+     - Blue: Syncing N changes
+     - Amber: Pending changes waiting to sync
+   - Animated slide-in/slide-out
+
+**Queue Structure:**
+
+```typescript
+interface QueuedMutation {
+  id: string                    // Unique identifier
+  timestamp: number              // When queued
+  endpoint: string               // API endpoint
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  body?: any                     // Request payload
+  entityType: string             // For categorization
+  entityId?: number              // Optional entity ID
+  retryCount: number             // Attempts made
+  lastError?: string             // Last failure reason
+}
+```
+
+**Storage:**
+- Queue persisted to AsyncStorage key: `@shelf/offline_queue`
+- JSON serialized array of mutations
+- Loaded on app start
+- Updated after every queue change
+
+### 7.3 Error Handling
+
+**Error Types:**
+
+1. **NetworkError** - No internet connection, mutation queued for sync
+2. **ServerError** - API returned error (4xx/5xx)
+3. **ValidationError** - Invalid data format
+4. **QueueError** - Failed to persist queue
+
+**User-Friendly Messages:**
+
+- Network errors shown as **info toasts** ("No internet connection. Changes will sync when online.")
+- Server/validation errors shown as **error toasts** with specific message
+- Success operations shown as **success toasts**
+
+**Retry Logic:**
+
+- Network errors: Always retry
+- 5xx server errors: Retry with exponential backoff
+- 429 rate limit: Retry with exponential backoff
+- 4xx client errors: Don't retry (except 429)
+- Validation errors: Don't retry
+
+### 7.4 Optimistic Updates
+
+All mutations update the local store immediately (optimistic UI):
+
+1. User performs action (e.g., create entry)
+2. Store updates immediately with temporary data
+3. API call executes (or queues if offline)
+4. On success: Replace temporary with real data
+5. On non-network error: Revert optimistic update
+
+**Benefits:**
+- Instant UI feedback
+- App remains responsive offline
+- Seamless online/offline transition
+
+### 7.5 State Management
+
+**Zustand Stores:**
+
+- `habitsStore` - Habits, practices, actions, targets, prompts
+- `entriesStore` - Entries, preparations, closures
+- `offlineQueueStore` - Mutation queue and sync state
+- `themeStore` - Theme preferences
+
+All stores use offline API wrapper for mutations.
+
+### 7.6 Known Limitations
+
+1. **No Conflict Resolution** - Last write wins. If server data changed while offline, local changes overwrite.
+2. **No Optimistic ID Mapping** - Temporary IDs for created items aren't mapped to real server IDs.
+3. **No Queue Size Limit** - Queue can grow large if offline for extended periods.
+4. **No Mutation Merging** - Multiple updates to same entity queue separately rather than merging.
+5. **Unencrypted Queue** - AsyncStorage not encrypted, sensitive data visible if device compromised.
+
+### 7.7 Future Enhancements
+
+- Conflict resolution for concurrent edits
+- Manual sync button
+- Queue inspection/debugging UI
+- Encrypted queue storage
+- Mutation merging/deduplication
+- Optimistic ID mapping for created entities
