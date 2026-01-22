@@ -582,13 +582,15 @@ Connection strings:
 - [x] Demo URL contains "demo" for clarity
 - [x] Hourly demo reset via GitHub Actions cron (calls /demo/reset with secret auth)
 - [x] Demo reset endpoint with DEMO_RESET_SECRET env var protection
-- [ ] Unauthorized login attempts → redirect to portfolio contact page (https://akuligowski-portfolio.vercel.app/)
-- [ ] Document multi-database architecture in OPS.md
-- [ ] Test both prod and demo end-to-end
+- [x] Unauthorized login attempts → redirect to portfolio contact page (PORTFOLIO_URL env var)
+- [x] Document multi-database architecture in OPS.md
+- [x] Test both prod and demo end-to-end (read-only verification)
+- [x] Nightly production backup via GitHub Actions (commits to data/backups/)
+- [x] Auto-restore on `npm run dev` (syncs local from latest backup)
 
 ### Metadata
 
-- **Status:** In Progress
+- **Status:** Done
 - **Priority:** High
 - **Type:** Feature
 - **Version:** v1.0

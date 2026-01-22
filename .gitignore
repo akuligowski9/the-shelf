@@ -6,6 +6,14 @@
 data/logs/*.json
 data/daily/
 
+# Nightly backups - tracked for auto-restore on dev start
+# (committed by GitHub Actions nightly backup workflow)
+!data/backups/*.json
+!data/backups/.gitkeep
+
+# Dev restore tracking file
+backend/api/.last-restore
+
 # Keep demo logs for demo-seed script
 # (only the demo/ subdirectory is tracked)
 

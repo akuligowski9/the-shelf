@@ -274,6 +274,64 @@ GITHUB_CLIENT_SECRET=<your-github-client-secret>"
 
 ---
 
+## Multi-Database Architecture
+
+The Shelf uses **separate databases for each environment** to ensure complete data isolation. This prevents demo visitors from seeing personal data and eliminates risk of accidental data corruption.
+
+### Environment Overview
+
+| Environment | Database | Backend | Frontend | Purpose |
+|-------------|----------|---------|----------|---------|
+| **Production** | shelf-prod (Neon) | shelf-api-785607788916.us-east1.run.app | the-shelf-amk.vercel.app | Owner's real data |
+| **Demo** | shelf-demo (Neon) | shelf-api-demo-785607788916.us-east1.run.app | demo-the-shelf.vercel.app | Public demo with fictional data |
+| **Local** | localhost:5432 | localhost:3001 | localhost:5173 | Development and testing |
+
+### Why Separate Databases?
+
+We evaluated three approaches:
+
+1. **Single DB with `user_id` column** - Adds complexity to every query, risk of data leakage through bugs
+2. **Multiple Neon databases** ✓ - Complete isolation, simpler queries, no risk of cross-contamination
+3. **Neon branching** - Like git branches for databases, more complex to manage
+
+**Decision:** Multiple Neon databases. Neon's free tier allows multiple projects, so there's no cost impact.
+
+### Connection Strings
+
+Store these in environment-specific `.env` files or Cloud Run env vars:
+
+```
+# Production (shelf-prod Neon project)
+DATABASE_URL=postgresql://neondb_owner:***@ep-raspy-field-ah0w3ev0-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+
+# Demo (shelf-demo Neon project)
+DATABASE_URL=postgresql://neondb_owner:***@ep-withered-sound-ah7kr1w3-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+
+# Local (Docker PostgreSQL)
+DATABASE_URL=postgres://shelf:shelf@localhost:5432/shelf
+```
+
+### Demo Data Reset
+
+Demo data resets automatically every hour via GitHub Actions:
+
+- **Workflow:** `.github/workflows/reset-demo.yml`
+- **Schedule:** Every hour at minute 0 (`0 * * * *`)
+- **Endpoint:** `POST /demo/reset` with `X-Reset-Secret` header
+- **Secret:** Stored in GitHub repository secrets as `DEMO_RESET_SECRET`
+
+The demo data is completely fictional (Music, French, Fitness, Photography, Reading, Cooking habits) spanning 6 months of entries. See `data/demo-habits.json` and `data/logs/demo/*.json`.
+
+### Unauthorized Login Behavior
+
+When someone tries to log in on the demo site but isn't the allowed user:
+- They are redirected to the portfolio contact page (`PORTFOLIO_URL` env var)
+- Default: https://akuligowski-portfolio.vercel.app/
+
+This provides a friendly redirect instead of an error message.
+
+---
+
 ## Backup & Recovery
 
 *To be documented when backup strategy is established.*

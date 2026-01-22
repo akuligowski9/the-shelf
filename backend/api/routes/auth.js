@@ -11,12 +11,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const ALLOWED_EMAIL = process.env.ALLOWED_EMAIL; // Your email
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const API_URL = process.env.API_URL || 'http://localhost:3001';
+const PORTFOLIO_URL = process.env.PORTFOLIO_URL || 'https://akuligowski-portfolio.vercel.app/';
 
-// Cookie settings
+// Cookie settings - detect production by checking if not localhost
+const isProduction = !API_URL.includes('localhost');
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  secure: isProduction,
+  sameSite: isProduction ? 'none' : 'lax',
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
 };
 
@@ -75,7 +77,8 @@ function handleOAuthCallback(req, res) {
   const user = req.user;
 
   if (!isAllowedUser(user.email)) {
-    return res.redirect(`${FRONTEND_URL}/login?error=unauthorized`);
+    // Redirect unauthorized users to portfolio contact page
+    return res.redirect(PORTFOLIO_URL);
   }
 
   const token = createToken(user);
