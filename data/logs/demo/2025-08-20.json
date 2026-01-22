@@ -1,0 +1,36 @@
+{
+  "date": "2025-08-20",
+  "preparations": [
+    {
+      "period_type": "day",
+      "rest_day": true,
+      "note": "Rest day from running."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Yoga",
+      "occurred_at": "2025-08-20T07:00:00Z",
+      "duration_minutes": 30,
+      "note": "Restorative session"
+    },
+    {
+      "type": "habit",
+      "habit": "Photography",
+      "practice": "Street Photography",
+      "occurred_at": "2025-08-20T10:00:00Z",
+      "duration_minutes": 90,
+      "note": "Morning walk downtown"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Podcasts",
+      "occurred_at": "2025-08-20T14:00:00Z",
+      "duration_minutes": 25,
+      "note": "InnerFrench episode"
+    }
+  ]
+}

@@ -3,16 +3,44 @@
   "entries": [
     {
       "type": "habit",
-      "habit": "Exercise",
-      "practice": "Active Recovery",
-      "occurred_at": "2026-01-08T07:30",
-      "duration_minutes": 25,
-      "note": "Morning yoga and stretching."
+      "habit": "Photography",
+      "practice": "Street Photography",
+      "occurred_at": "2026-01-08T05:45:00Z",
+      "duration_minutes": 85,
+      "target": "Photo essay: City at Dawn",
+      "note": "Winter dawn - steam rising from grates"
     },
     {
-      "type": "life",
-      "occurred_at": "2026-01-08T12:00",
-      "note": "Team lunch at work."
+      "type": "habit",
+      "habit": "Photography",
+      "practice": "Editing",
+      "occurred_at": "2026-01-08T11:00:00Z",
+      "duration_minutes": 50,
+      "target": "Photo essay: City at Dawn",
+      "note": "10 images selected for series"
+    },
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Strength",
+      "occurred_at": "2026-01-08T07:30:00Z",
+      "duration_minutes": 55,
+      "note": "Full body workout"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Reading",
+      "occurred_at": "2026-01-08T20:00:00Z",
+      "duration_minutes": 30,
+      "target": "French A2 certification",
+      "note": "News articles - comprehension improving"
+    },
+    {
+      "type": "caution",
+      "practice": "Late night snacking",
+      "occurred_at": "2026-01-08T23:30:00Z",
+      "note": "Post-dinner chips"
     }
   ]
 }

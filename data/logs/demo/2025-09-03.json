@@ -1,0 +1,47 @@
+{
+  "date": "2025-09-03",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Starting jazz standards project."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2025-09-03T10:00:00Z",
+      "duration_minutes": 60,
+      "target": "Learn 10 jazz standards",
+      "note": "Starting Autumn Leaves melody",
+      "is_highlight": true
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Music Theory",
+      "occurred_at": "2025-09-03T11:00:00Z",
+      "duration_minutes": 30,
+      "target": "Learn 10 jazz standards",
+      "note": "ii-V-I progressions"
+    },
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2025-09-03T06:30:00Z",
+      "duration_minutes": 35,
+      "target": "Couch to 10K",
+      "note": "Running 20 minutes straight now"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Duolingo",
+      "occurred_at": "2025-09-03T21:00:00Z",
+      "duration_minutes": 20,
+      "note": "50 day streak"
+    }
+  ]
+}

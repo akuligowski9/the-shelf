@@ -1,73 +1,186 @@
 #!/usr/bin/env node
 /**
- * Demo Seed Script - populates database with sample data for demo mode
- * Run from backend/api: node demo-seed.js
+ * ██████████████████████████████████████████████████████████████████████████████
+ * ██                                                                          ██
+ * ██   ⛔⛔⛔  DANGER: THIS SCRIPT PERMANENTLY DELETES ALL DATA  ⛔⛔⛔      ██
+ * ██                                                                          ██
+ * ██   This script WIPES the entire database and replaces it with demo data.  ██
+ * ██   There is NO UNDO. All your entries, habits, targets will be GONE.      ██
+ * ██                                                                          ██
+ * ██   DO NOT RUN THIS ON A DATABASE WITH REAL DATA.                          ██
+ * ██                                                                          ██
+ * ██████████████████████████████████████████████████████████████████████████████
  *
- * This script:
- * 1. Loads habits, practices, and actions from data/habits.json
- * 2. Loads demo entries from data/logs/demo/*.json
- * 3. Creates sample targets
- * 4. Creates preparations, closures, and reflections
+ * REQUIRED TO RUN:
+ *   1. Set environment variable: I_UNDERSTAND_THIS_DELETES_ALL_DATA=yes
+ *   2. Set environment variable: THIS_IS_A_DEMO_DATABASE=yes
+ *   3. Type exact confirmation phrase when prompted
+ *
+ * Example:
+ *   I_UNDERSTAND_THIS_DELETES_ALL_DATA=yes THIS_IS_A_DEMO_DATABASE=yes npm run demo-seed
  */
 
 const { Pool } = require('pg')
 const fs = require('fs')
 const path = require('path')
+const readline = require('readline')
+
+// ========== SAFETY CHECK 1: Require BOTH environment variables ==========
+if (process.env.I_UNDERSTAND_THIS_DELETES_ALL_DATA !== 'yes') {
+  console.error('\n' + '='.repeat(70))
+  console.error('⛔ BLOCKED: Missing I_UNDERSTAND_THIS_DELETES_ALL_DATA=yes')
+  console.error('='.repeat(70))
+  console.error('\nThis script PERMANENTLY DELETES ALL DATA. It cannot be undone.')
+  console.error('\nTo run, you must set BOTH environment variables:')
+  console.error('\n  I_UNDERSTAND_THIS_DELETES_ALL_DATA=yes THIS_IS_A_DEMO_DATABASE=yes npm run demo-seed')
+  console.error('\n' + '='.repeat(70) + '\n')
+  process.exit(1)
+}
+
+if (process.env.THIS_IS_A_DEMO_DATABASE !== 'yes') {
+  console.error('\n' + '='.repeat(70))
+  console.error('⛔ BLOCKED: Missing THIS_IS_A_DEMO_DATABASE=yes')
+  console.error('='.repeat(70))
+  console.error('\nThis safety check ensures you don\'t accidentally wipe your real data.')
+  console.error('\nOnly run this on a dedicated demo database, NEVER on your personal data.')
+  console.error('\nTo run, you must set BOTH environment variables:')
+  console.error('\n  I_UNDERSTAND_THIS_DELETES_ALL_DATA=yes THIS_IS_A_DEMO_DATABASE=yes npm run demo-seed')
+  console.error('\n' + '='.repeat(70) + '\n')
+  process.exit(1)
+}
+
+// ========== SAFETY CHECK 2: Block running on localhost/default database ==========
+const dbUrl = process.env.DATABASE_URL || ''
+if (!dbUrl || dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1') || dbUrl.includes('shelf:shelf@')) {
+  console.error('\n' + '='.repeat(70))
+  console.error('⛔ BLOCKED: Cannot run on local/default database')
+  console.error('='.repeat(70))
+  console.error('\nThis script is ONLY for dedicated demo databases on remote hosts.')
+  console.error('\nYour DATABASE_URL appears to be a local or default database.')
+  console.error('This script will NOT run on your personal development database.')
+  console.error('\nIf you truly need to seed a demo database, use a separate Neon project.')
+  console.error('\n' + '='.repeat(70) + '\n')
+  process.exit(1)
+}
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://shelf:shelf@localhost:5432/shelf'
+  connectionString: dbUrl
 })
 
-// Demo targets for different stages
+// ========== SAFETY CHECK 2: Warn if database has existing data ==========
+async function checkForExistingData() {
+  const client = await pool.connect()
+  try {
+    const result = await client.query('SELECT COUNT(*) as count FROM entries')
+    const entryCount = parseInt(result.rows[0].count, 10)
+
+    if (entryCount > 0) {
+      console.error('\n' + '='.repeat(60))
+      console.error(`⚠️  WARNING: Database contains ${entryCount} entries!`)
+      console.error('='.repeat(60))
+      console.error('\nThis script will DELETE ALL of them permanently.')
+      console.error('There is NO undo. Make sure you have a backup.\n')
+
+      // Interactive confirmation
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      })
+
+      return new Promise((resolve) => {
+        rl.question(`Type "DELETE ${entryCount} ENTRIES" to proceed: `, (answer) => {
+          rl.close()
+          if (answer === `DELETE ${entryCount} ENTRIES`) {
+            console.log('\nProceeding with deletion...\n')
+            resolve(true)
+          } else {
+            console.log('\nAborted. No data was deleted.\n')
+            resolve(false)
+          }
+        })
+      })
+    }
+    return true // No existing data, safe to proceed
+  } finally {
+    client.release()
+  }
+}
+
+// Demo targets for different stages - FICTIONAL DATA
 const DEMO_TARGETS = [
   {
-    name: 'Build a habit tracking mobile app',
+    name: 'Learn 10 jazz standards',
     status: 'active',
-    habit_name: 'Software',
-    planned_duration: '3 months',
-    notes: 'React Native app with offline support and sync capabilities.'
-  },
-  {
-    name: 'Complete Spanish B1 certification',
-    status: 'planned',
-    habit_name: 'Spanish',
+    habit_name: 'Music',
+    start_date: '2025-09-01',
     planned_duration: '6 months',
-    notes: 'Focus on conversation skills and vocabulary building.'
+    notes: 'Building repertoire for open mic nights. Currently on standard #6.'
   },
   {
-    name: 'Run a 10K race',
+    name: 'French A2 certification',
     status: 'active',
-    habit_name: 'Exercise',
-    start_date: '2026-01-01',
-    end_date: '2026-03-15',
-    notes: 'Training plan with gradual distance increase.'
+    habit_name: 'French',
+    start_date: '2025-10-01',
+    end_date: '2026-03-01',
+    notes: 'DELF A2 exam scheduled for March.'
   },
   {
-    name: 'Read 12 books this year',
+    name: 'Half marathon',
+    status: 'active',
+    habit_name: 'Fitness',
+    start_date: '2025-11-01',
+    end_date: '2026-04-15',
+    notes: 'Spring race. Following 20-week training plan.'
+  },
+  {
+    name: 'Photo essay: City at Dawn',
+    status: 'active',
+    habit_name: 'Photography',
+    start_date: '2025-12-01',
+    planned_duration: '3 months',
+    notes: '20-image series capturing early morning urban life.'
+  },
+  {
+    name: 'Read 24 books this year',
     status: 'active',
     habit_name: 'Reading',
     start_date: '2026-01-01',
     end_date: '2026-12-31',
-    notes: 'Mix of fiction and non-fiction.'
+    notes: '2 books per month goal. Mix of genres.'
   },
   {
-    name: 'Teach Luna loose-leash walking',
+    name: 'Master croissants',
     status: 'parked',
-    habit_name: 'Dog Training',
+    habit_name: 'Cooking',
     planned_duration: '2 months',
-    notes: 'Paused until weather improves.'
+    notes: 'Paused until kitchen renovation complete.'
   },
   {
-    name: 'Refactor API authentication',
+    name: 'Autumn Leaves (jazz standard)',
     status: 'completed',
-    habit_name: 'Software',
-    start_date: '2025-12-01',
-    end_date: '2025-12-15',
-    notes: 'Migrated from sessions to JWT tokens.'
+    habit_name: 'Music',
+    start_date: '2025-09-15',
+    end_date: '2025-10-20',
+    notes: 'First standard learned! Can play melody and basic chord changes.'
+  },
+  {
+    name: 'Couch to 10K',
+    status: 'completed',
+    habit_name: 'Fitness',
+    start_date: '2025-08-01',
+    end_date: '2025-10-31',
+    notes: 'Built running base before half marathon training.'
   }
 ]
 
 async function demoSeed() {
+  // Run safety check before proceeding
+  const canProceed = await checkForExistingData()
+  if (!canProceed) {
+    await pool.end()
+    process.exit(0)
+  }
+
   const client = await pool.connect()
 
   try {
@@ -84,10 +197,11 @@ async function demoSeed() {
     await client.query('DELETE FROM targets')
     await client.query('DELETE FROM actions')
     await client.query('DELETE FROM practices')
+    await client.query('DELETE FROM habit_transitions')
     await client.query('DELETE FROM habits')
 
-    // ===== 2. Load habits.json =====
-    const habitsPath = path.join(__dirname, '..', '..', 'data', 'habits.json')
+    // ===== 2. Load demo-habits.json (fictional data) =====
+    const habitsPath = path.join(__dirname, '..', '..', 'data', 'demo-habits.json')
     const habitsData = JSON.parse(fs.readFileSync(habitsPath, 'utf8'))
 
     console.log('\nSeeding habits, practices, and actions...')
@@ -97,13 +211,15 @@ async function demoSeed() {
     const practiceIdByHabitAndName = {}
 
     for (const habit of habitsData.habits) {
+      // Set type='caution' for Caution Behaviors habit
+      const habitType = habit.name === 'Caution Behaviors' ? 'caution' : 'habit'
       await client.query(
-        `INSERT INTO habits (id, name, active, color, target_minutes, track_actions)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [habit.id, habit.name, habit.active, habit.color, habit.target_minutes || 60, habit.track_actions]
+        `INSERT INTO habits (id, name, type, active, color, target_minutes, track_actions)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [habit.id, habit.name, habitType, habit.active, habit.color, habit.target_minutes || 60, habit.track_actions]
       )
       habitIdByName[habit.name] = habit.id
-      console.log(`  + Habit: ${habit.name}`)
+      console.log(`  + Habit: ${habit.name} (${habitType})`)
 
       for (const practice of habit.practices) {
         await client.query(
@@ -143,7 +259,33 @@ async function demoSeed() {
     await client.query(`SELECT setval('habits_id_seq', (SELECT COALESCE(MAX(id), 1) FROM habits))`)
     await client.query(`SELECT setval('practices_id_seq', (SELECT COALESCE(MAX(id), 1) FROM practices))`)
 
-    // ===== 3. Load demo log files =====
+    // ===== 3. Create demo targets (BEFORE entries so we can link) =====
+    console.log('\nSeeding targets...')
+
+    const targetIdByName = {}
+
+    for (const target of DEMO_TARGETS) {
+      const habitId = target.habit_name ? habitIdByName[target.habit_name] : null
+
+      const result = await client.query(
+        `INSERT INTO targets (name, status, habit_id, start_date, end_date, planned_duration, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id`,
+        [
+          target.name,
+          target.status,
+          habitId,
+          target.start_date || null,
+          target.end_date || null,
+          target.planned_duration || null,
+          target.notes || null
+        ]
+      )
+      targetIdByName[target.name] = result.rows[0].id
+      console.log(`  + Target: ${target.name} (${target.status})`)
+    }
+
+    // ===== 4. Load demo log files =====
     const demoLogsPath = path.join(__dirname, '..', '..', 'data', 'logs', 'demo')
     const logFiles = fs.readdirSync(demoLogsPath).filter(f => f.endsWith('.json')).sort()
 
@@ -189,7 +331,9 @@ async function demoSeed() {
         for (const entry of logData.entries) {
           let habitId = null
           let practiceId = null
+          let targetId = null
 
+          // Handle habit entries
           if (entry.type === 'habit' && entry.habit) {
             habitId = habitIdByName[entry.habit]
             if (!habitId) {
@@ -206,19 +350,36 @@ async function demoSeed() {
             }
           }
 
+          // Handle caution entries - link to Caution Behaviors habit
+          if (entry.type === 'caution') {
+            habitId = habitIdByName['Caution Behaviors']
+            // If caution has a practice (specific caution behavior), look it up
+            if (entry.practice) {
+              const practiceKey = `Caution Behaviors:${entry.practice}`
+              practiceId = practiceIdByHabitAndName[practiceKey]
+            }
+          }
+
+          // Link to target if specified
+          if (entry.target && targetIdByName[entry.target]) {
+            targetId = targetIdByName[entry.target]
+          }
+
           const occurredAt = entry.occurred_at || `${date}T12:00:00`
 
           await client.query(
-            `INSERT INTO entries (type, occurred_at, habit_id, practice_id, duration_minutes, note, source)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            `INSERT INTO entries (type, occurred_at, habit_id, practice_id, target_id, duration_minutes, note, source, is_highlight)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
             [
               entry.type,
               occurredAt,
               habitId,
               practiceId,
+              targetId,
               entry.duration_minutes || null,
               entry.note || null,
-              'import'
+              'import',
+              entry.is_highlight || false
             ]
           )
           entryCount++
@@ -257,28 +418,6 @@ async function demoSeed() {
     console.log(`  Closures: ${closureCount}`)
     console.log(`  Reflections: ${reflectionCount}`)
 
-    // ===== 4. Create demo targets =====
-    console.log('\nSeeding targets...')
-
-    for (const target of DEMO_TARGETS) {
-      const habitId = target.habit_name ? habitIdByName[target.habit_name] : null
-
-      await client.query(
-        `INSERT INTO targets (name, status, habit_id, start_date, end_date, planned_duration, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          target.name,
-          target.status,
-          habitId,
-          target.start_date || null,
-          target.end_date || null,
-          target.planned_duration || null,
-          target.notes || null
-        ]
-      )
-      console.log(`  + Target: ${target.name} (${target.status})`)
-    }
-
     // ===== 5. Add a weekly reflection =====
     console.log('\nSeeding weekly reflection...')
     await client.query(
@@ -291,6 +430,27 @@ async function demoSeed() {
         '## Week 2 Reflection\n\n**What went well:**\n- Consistent exercise routine\n- Good progress on software project\n- Quality reading time\n\n**What to improve:**\n- Earlier bedtimes\n- More focused dog training sessions\n\n**Focus for next week:**\n- Complete API refactor\n- Start 10K training plan'
       ]
     )
+
+    // ===== 6. Add habit transitions =====
+    console.log('\nSeeding habit transitions...')
+
+    // Transition: Paused Cooking for kitchen renovation
+    await client.query(
+      `INSERT INTO habit_transitions (started_at, ended_at, note, changes, cascades)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        '2025-11-15T10:00:00Z',
+        '2025-11-15T10:05:00Z',
+        'Kitchen renovation starting. Pausing cooking habit until complete.',
+        JSON.stringify([
+          { habit_id: habitIdByName['Cooking'], field: 'active', from: true, to: false }
+        ]),
+        JSON.stringify({
+          practices_deactivated: ['New Recipes', 'Baking', 'Meal Prep']
+        })
+      ]
+    )
+    console.log('  + Transition: Paused Cooking')
 
     await client.query('COMMIT')
 
@@ -308,7 +468,8 @@ async function demoSeed() {
         (SELECT COUNT(*) FROM targets) as targets,
         (SELECT COUNT(*) FROM preparations) as preparations,
         (SELECT COUNT(*) FROM closures) as closures,
-        (SELECT COUNT(*) FROM reflections) as reflections
+        (SELECT COUNT(*) FROM reflections) as reflections,
+        (SELECT COUNT(*) FROM habit_transitions) as transitions
     `)
 
     const c = counts.rows[0]
@@ -321,6 +482,7 @@ async function demoSeed() {
     console.log(`  Preparations: ${c.preparations}`)
     console.log(`  Closures:     ${c.closures}`)
     console.log(`  Reflections:  ${c.reflections}`)
+    console.log(`  Transitions:  ${c.transitions}`)
 
   } catch (err) {
     await client.query('ROLLBACK')

@@ -1,0 +1,37 @@
+{
+  "date": "2025-08-05",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Starting Couch to 10K program today."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2025-08-05T06:30:00Z",
+      "duration_minutes": 25,
+      "target": "Couch to 10K",
+      "note": "Week 1 Day 1 - alternating walk/jog",
+      "is_highlight": true
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2025-08-05T19:00:00Z",
+      "duration_minutes": 45,
+      "note": "Chord transitions"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Duolingo",
+      "occurred_at": "2025-08-05T21:00:00Z",
+      "duration_minutes": 15,
+      "note": "Unit 3 basics"
+    }
+  ]
+}

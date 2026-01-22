@@ -568,7 +568,13 @@ Connection strings:
 
 - [x] Create `shelf-demo` Neon project
 - [x] Run schema.sql on demo database
-- [x] Run demo-seed.js to populate demo data (7 habits, 406 entries across 6 months, 6 targets, 18 preparations, 6 reflections)
+- [x] Run demo-seed.js to populate fictional demo data (7 habits, 94 entries, 8 targets, 13 preparations, 4 reflections, 1 transition)
+- [x] Demo data is completely fictional (Music, French, Fitness, Photography, Reading, Cooking) - no personal information
+- [x] Demo data spans 6 months (August 2025 - January 2026)
+- [x] Demo data includes entries linked to targets (57 entries with target_id for time aggregation)
+- [x] Demo data includes caution entries (6 caution type entries)
+- [x] Demo data includes rest days (5 preparations with rest_day=true)
+- [x] Demo data includes habit transitions (1 transition: Cooking paused for kitchen renovation)
 - [x] Deploy separate demo frontend (https://demo-the-shelf.vercel.app)
 - [x] Configure demo backend with demo DATABASE_URL (https://shelf-api-demo-785607788916.us-east1.run.app)
 - [x] Demo URL contains "demo" for clarity

@@ -1,0 +1,40 @@
+{
+  "date": "2025-12-18",
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2025-12-18T06:30:00Z",
+      "duration_minutes": 65,
+      "target": "Half marathon",
+      "note": "10K long run"
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2025-12-18T14:00:00Z",
+      "duration_minutes": 55,
+      "target": "Learn 10 jazz standards",
+      "note": "Starting All The Things You Are"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Conversation",
+      "occurred_at": "2025-12-18T16:00:00Z",
+      "duration_minutes": 30,
+      "target": "French A2 certification",
+      "note": "italki - holiday vocabulary"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Fiction",
+      "occurred_at": "2025-12-18T21:00:00Z",
+      "duration_minutes": 40,
+      "note": "Holiday reading"
+    }
+  ]
+}

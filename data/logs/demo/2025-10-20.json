@@ -1,0 +1,47 @@
+{
+  "date": "2025-10-20",
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2025-10-20T10:00:00Z",
+      "duration_minutes": 60,
+      "target": "Autumn Leaves (jazz standard)",
+      "note": "Can play full song comfortably!",
+      "is_highlight": true
+    },
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2025-10-20T06:30:00Z",
+      "duration_minutes": 50,
+      "target": "Couch to 10K",
+      "note": "6K run"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Duolingo",
+      "occurred_at": "2025-10-20T21:00:00Z",
+      "duration_minutes": 20,
+      "target": "French A2 certification",
+      "note": "Past tense unit complete"
+    },
+    {
+      "type": "habit",
+      "habit": "Photography",
+      "practice": "Learning",
+      "occurred_at": "2025-10-20T14:00:00Z",
+      "duration_minutes": 45,
+      "note": "YouTube tutorials on composition"
+    }
+  ],
+  "reflections": [
+    {
+      "reflection_type": "day",
+      "note": "Autumn Leaves complete! First jazz standard learned."
+    }
+  ]
+}
