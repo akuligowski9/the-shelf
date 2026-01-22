@@ -14,8 +14,9 @@ All six views are fully implemented and functional.
 **Backend API: Complete**
 Full REST API with all endpoints, PostgreSQL database, import/export with preview.
 
-**Next Phase: React Native Mobile App**
-- SHELF-001 (Mobile Polish) - offline queue and error handling complete
+**React Native Mobile App: Core Complete**
+- SHELF-001 (Mobile Polish) - offline queue and error handling complete, loading skeletons complete (SHELF-038)
+- Testing and edge case handling remain
 
 ---
 
