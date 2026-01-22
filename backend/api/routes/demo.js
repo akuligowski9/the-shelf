@@ -7,6 +7,74 @@ const router = express.Router();
 
 // Check if demo mode is enabled
 const isDemoMode = process.env.DEMO_MODE === 'true';
+const RESET_SECRET = process.env.DEMO_RESET_SECRET || 'demo-reset-secret';
+
+// Fictional demo targets
+const DEMO_TARGETS = [
+  {
+    name: 'Learn 10 jazz standards',
+    status: 'active',
+    habit_name: 'Music',
+    start_date: '2025-09-01',
+    planned_duration: '6 months',
+    notes: 'Building repertoire for open mic nights. Currently on standard #6.'
+  },
+  {
+    name: 'French A2 certification',
+    status: 'active',
+    habit_name: 'French',
+    start_date: '2025-10-01',
+    end_date: '2026-03-01',
+    notes: 'DELF A2 exam scheduled for March.'
+  },
+  {
+    name: 'Half marathon',
+    status: 'active',
+    habit_name: 'Fitness',
+    start_date: '2025-11-01',
+    end_date: '2026-04-15',
+    notes: 'Spring race. Following 20-week training plan.'
+  },
+  {
+    name: 'Photo essay: City at Dawn',
+    status: 'active',
+    habit_name: 'Photography',
+    start_date: '2025-12-01',
+    planned_duration: '3 months',
+    notes: '20-image series capturing early morning urban life.'
+  },
+  {
+    name: 'Read 24 books this year',
+    status: 'active',
+    habit_name: 'Reading',
+    start_date: '2026-01-01',
+    end_date: '2026-12-31',
+    notes: '2 books per month goal. Mix of genres.'
+  },
+  {
+    name: 'Master croissants',
+    status: 'parked',
+    habit_name: 'Cooking',
+    planned_duration: '2 months',
+    notes: 'Paused until kitchen renovation complete.'
+  },
+  {
+    name: 'Autumn Leaves (jazz standard)',
+    status: 'completed',
+    habit_name: 'Music',
+    start_date: '2025-09-15',
+    end_date: '2025-10-20',
+    notes: 'First standard learned! Can play melody and basic chord changes.'
+  },
+  {
+    name: 'Couch to 10K',
+    status: 'completed',
+    habit_name: 'Fitness',
+    start_date: '2025-08-01',
+    end_date: '2025-10-31',
+    notes: 'Built running base before half marathon training.'
+  }
+];
 
 // GET /demo/status - Returns demo mode status
 router.get('/status', (_req, res) => {
@@ -14,66 +82,21 @@ router.get('/status', (_req, res) => {
     ok: true,
     demo_mode: isDemoMode,
     message: isDemoMode
-      ? 'This is a demo instance. Data may be reset periodically.'
+      ? 'This is a demo instance. Data resets hourly.'
       : 'Demo mode is disabled.'
   });
 });
 
-// Demo targets data
-const DEMO_TARGETS = [
-  {
-    name: 'Build a habit tracking mobile app',
-    status: 'active',
-    habit_name: 'Software',
-    planned_duration: '3 months',
-    notes: 'React Native app with offline support and sync capabilities.'
-  },
-  {
-    name: 'Complete Spanish B1 certification',
-    status: 'planned',
-    habit_name: 'Spanish',
-    planned_duration: '6 months',
-    notes: 'Focus on conversation skills and vocabulary building.'
-  },
-  {
-    name: 'Run a 10K race',
-    status: 'active',
-    habit_name: 'Exercise',
-    start_date: '2026-01-01',
-    end_date: '2026-03-15',
-    notes: 'Training plan with gradual distance increase.'
-  },
-  {
-    name: 'Read 12 books this year',
-    status: 'active',
-    habit_name: 'Reading',
-    start_date: '2026-01-01',
-    end_date: '2026-12-31',
-    notes: 'Mix of fiction and non-fiction.'
-  },
-  {
-    name: 'Teach Luna loose-leash walking',
-    status: 'parked',
-    habit_name: 'Dog Training',
-    planned_duration: '2 months',
-    notes: 'Paused until weather improves.'
-  },
-  {
-    name: 'Refactor API authentication',
-    status: 'completed',
-    habit_name: 'Software',
-    start_date: '2025-12-01',
-    end_date: '2025-12-15',
-    notes: 'Migrated from sessions to JWT tokens.'
-  }
-];
-
 // POST /demo/reset - Reset database to demo data (only in demo mode)
-router.post('/reset', async (_req, res) => {
-  if (!isDemoMode) {
+// Accepts either DEMO_MODE=true or a secret key in header/query for scheduled resets
+router.post('/reset', async (req, res) => {
+  const providedSecret = req.headers['x-reset-secret'] || req.query.secret;
+  const isAuthorized = isDemoMode || providedSecret === RESET_SECRET;
+
+  if (!isAuthorized) {
     return res.status(403).json({
       ok: false,
-      error: 'Demo reset is only available when DEMO_MODE=true'
+      error: 'Demo reset requires DEMO_MODE=true or valid reset secret'
     });
   }
 
@@ -94,10 +117,15 @@ router.post('/reset', async (_req, res) => {
     await client.query('DELETE FROM targets');
     await client.query('DELETE FROM actions');
     await client.query('DELETE FROM practices');
+    await client.query('DELETE FROM habit_transitions');
     await client.query('DELETE FROM habits');
 
-    // Load habits.json
-    const habitsPath = path.join(__dirname, '..', '..', '..', 'data', 'habits.json');
+    // Load demo-habits.json (fictional data)
+    // Check multiple paths for dev vs production
+    let habitsPath = path.join(__dirname, '..', 'data', 'demo-habits.json');
+    if (!fs.existsSync(habitsPath)) {
+      habitsPath = path.join(__dirname, '..', '..', '..', 'data', 'demo-habits.json');
+    }
     const habitsData = JSON.parse(fs.readFileSync(habitsPath, 'utf8'));
 
     const habitIdByName = {};
@@ -105,10 +133,11 @@ router.post('/reset', async (_req, res) => {
 
     // Insert habits
     for (const habit of habitsData.habits) {
+      const habitType = habit.type || (habit.name === 'Caution Behaviors' ? 'caution' : 'habit');
       await client.query(
-        `INSERT INTO habits (id, name, active, color, target_minutes, track_actions)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [habit.id, habit.name, habit.active, habit.color, habit.target_minutes || 60, habit.track_actions]
+        `INSERT INTO habits (id, name, type, active, color, target_minutes, track_actions)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [habit.id, habit.name, habitType, habit.active, habit.color, habit.target_minutes || 60, habit.track_actions]
       );
       habitIdByName[habit.name] = habit.id;
 
@@ -134,24 +163,36 @@ router.post('/reset', async (_req, res) => {
       }
     }
 
-    // Add practice aliases
-    if (habitsData.practice_aliases) {
-      for (const [alias, targetName] of Object.entries(habitsData.practice_aliases)) {
-        for (const [key, id] of Object.entries(practiceIdByHabitAndName)) {
-          if (key.endsWith(`:${targetName}`)) {
-            const habitName = key.split(':')[0];
-            practiceIdByHabitAndName[`${habitName}:${alias}`] = id;
-          }
-        }
-      }
-    }
-
     // Reset sequences
     await client.query(`SELECT setval('habits_id_seq', (SELECT COALESCE(MAX(id), 1) FROM habits))`);
     await client.query(`SELECT setval('practices_id_seq', (SELECT COALESCE(MAX(id), 1) FROM practices))`);
 
+    // Create targets BEFORE entries so we can link them
+    const targetIdByName = {};
+    for (const target of DEMO_TARGETS) {
+      const habitId = target.habit_name ? habitIdByName[target.habit_name] : null;
+      const result = await client.query(
+        `INSERT INTO targets (name, status, habit_id, start_date, end_date, planned_duration, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id`,
+        [
+          target.name,
+          target.status,
+          habitId,
+          target.start_date || null,
+          target.end_date || null,
+          target.planned_duration || null,
+          target.notes || null
+        ]
+      );
+      targetIdByName[target.name] = result.rows[0].id;
+    }
+
     // Load demo log files
-    const demoLogsPath = path.join(__dirname, '..', '..', '..', 'data', 'logs', 'demo');
+    let demoLogsPath = path.join(__dirname, '..', 'data', 'logs', 'demo');
+    if (!fs.existsSync(demoLogsPath)) {
+      demoLogsPath = path.join(__dirname, '..', '..', '..', 'data', 'logs', 'demo');
+    }
     const logFiles = fs.readdirSync(demoLogsPath).filter(f => f.endsWith('.json')).sort();
 
     let entryCount = 0;
@@ -191,7 +232,9 @@ router.post('/reset', async (_req, res) => {
         for (const entry of logData.entries) {
           let habitId = null;
           let practiceId = null;
+          let targetId = null;
 
+          // Handle habit entries
           if (entry.type === 'habit' && entry.habit) {
             habitId = habitIdByName[entry.habit];
             if (!habitId) continue;
@@ -202,19 +245,35 @@ router.post('/reset', async (_req, res) => {
             }
           }
 
+          // Handle caution entries
+          if (entry.type === 'caution') {
+            habitId = habitIdByName['Caution Behaviors'];
+            if (entry.practice) {
+              const practiceKey = `Caution Behaviors:${entry.practice}`;
+              practiceId = practiceIdByHabitAndName[practiceKey];
+            }
+          }
+
+          // Link to target if specified
+          if (entry.target && targetIdByName[entry.target]) {
+            targetId = targetIdByName[entry.target];
+          }
+
           const occurredAt = entry.occurred_at || `${date}T12:00:00`;
 
           await client.query(
-            `INSERT INTO entries (type, occurred_at, habit_id, practice_id, duration_minutes, note, source)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            `INSERT INTO entries (type, occurred_at, habit_id, practice_id, target_id, duration_minutes, note, source, is_highlight)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
             [
               entry.type,
               occurredAt,
               habitId,
               practiceId,
+              targetId,
               entry.duration_minutes || null,
               entry.note || null,
-              'import'
+              'import',
+              entry.is_highlight || false
             ]
           );
           entryCount++;
@@ -247,34 +306,32 @@ router.post('/reset', async (_req, res) => {
       }
     }
 
-    // Create demo targets
-    for (const target of DEMO_TARGETS) {
-      const habitId = target.habit_name ? habitIdByName[target.habit_name] : null;
-
-      await client.query(
-        `INSERT INTO targets (name, status, habit_id, start_date, end_date, planned_duration, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          target.name,
-          target.status,
-          habitId,
-          target.start_date || null,
-          target.end_date || null,
-          target.planned_duration || null,
-          target.notes || null
-        ]
-      );
-    }
-
     // Add weekly reflection
     await client.query(
       `INSERT INTO reflections (reflection_type, period_start, period_end, note)
        VALUES ($1, $2, $3, $4)`,
       [
         'weekly',
-        '2026-01-06',
-        '2026-01-12',
-        '## Week 2 Reflection\n\n**What went well:**\n- Consistent exercise routine\n- Good progress on software project\n- Quality reading time\n\n**What to improve:**\n- Earlier bedtimes\n- More focused dog training sessions\n\n**Focus for next week:**\n- Complete API refactor\n- Start 10K training plan'
+        '2026-01-13',
+        '2026-01-19',
+        '## Week 3 Reflection\n\n**What went well:**\n- Great progress on photo essay\n- French conversation improving\n- Consistent running schedule\n\n**What to improve:**\n- More focused guitar practice\n- Earlier bedtimes\n\n**Focus for next week:**\n- Finish photo essay selections\n- 14K long run'
+      ]
+    );
+
+    // Add habit transition (Cooking paused)
+    await client.query(
+      `INSERT INTO habit_transitions (started_at, ended_at, note, changes, cascades)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        '2025-11-15T10:00:00Z',
+        '2025-11-15T10:05:00Z',
+        'Kitchen renovation starting. Pausing cooking habit until complete.',
+        JSON.stringify([
+          { habit_id: habitIdByName['Cooking'], field: 'active', from: true, to: false }
+        ]),
+        JSON.stringify({
+          practices_deactivated: ['New Recipes', 'Baking', 'Meal Prep']
+        })
       ]
     );
 
@@ -284,11 +341,13 @@ router.post('/reset', async (_req, res) => {
       ok: true,
       message: 'Demo data has been reset',
       counts: {
+        habits: Object.keys(habitIdByName).length,
         entries: entryCount,
         preparations: prepCount,
         closures: closureCount,
         reflections: reflectionCount + 1,
-        targets: DEMO_TARGETS.length
+        targets: DEMO_TARGETS.length,
+        transitions: 1
       }
     });
 

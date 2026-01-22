@@ -1,0 +1,120 @@
+{
+  "habits": [
+    {
+      "id": 1,
+      "name": "Music",
+      "active": true,
+      "color": "dusk",
+      "target_minutes": 60,
+      "track_actions": false,
+      "practices": [
+        { "id": 1, "name": "Guitar Practice", "active": true },
+        { "id": 2, "name": "Music Theory", "active": true },
+        { "id": 3, "name": "Songwriting", "active": true },
+        { "id": 4, "name": "Ear Training", "active": true }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "French",
+      "active": true,
+      "color": "coral",
+      "target_minutes": 30,
+      "track_actions": false,
+      "practices": [
+        { "id": 5, "name": "Duolingo", "active": true },
+        { "id": 6, "name": "Conversation", "active": true },
+        { "id": 7, "name": "Reading", "active": true },
+        { "id": 8, "name": "Podcasts", "active": true }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Fitness",
+      "active": true,
+      "color": "forest",
+      "target_minutes": 45,
+      "track_actions": true,
+      "practices": [
+        {
+          "id": 9,
+          "name": "Strength",
+          "active": true,
+          "actions": ["Squats", "Deadlifts", "Bench Press", "Rows", "Overhead Press"]
+        },
+        {
+          "id": 10,
+          "name": "Running",
+          "active": true,
+          "actions": ["Easy Run", "Tempo Run", "Intervals", "Long Run"]
+        },
+        {
+          "id": 11,
+          "name": "Yoga",
+          "active": true,
+          "actions": ["Vinyasa", "Yin", "Power", "Restorative"]
+        },
+        { "id": 12, "name": "Swimming", "active": true },
+        { "id": 13, "name": "Cycling", "active": true }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Photography",
+      "active": true,
+      "color": "lavender",
+      "target_minutes": 60,
+      "track_actions": false,
+      "practices": [
+        { "id": 14, "name": "Street Photography", "active": true },
+        { "id": 15, "name": "Editing", "active": true },
+        { "id": 16, "name": "Learning", "active": true },
+        { "id": 17, "name": "Portrait Sessions", "active": true }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Reading",
+      "active": true,
+      "color": "sienna",
+      "target_minutes": 30,
+      "track_actions": false,
+      "practices": [
+        { "id": 18, "name": "Fiction", "active": true },
+        { "id": 19, "name": "Non-Fiction", "active": true },
+        { "id": 20, "name": "Audiobooks", "active": true }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Cooking",
+      "active": false,
+      "color": "sage",
+      "target_minutes": 60,
+      "track_actions": false,
+      "practices": [
+        { "id": 21, "name": "New Recipes", "active": true },
+        { "id": 22, "name": "Baking", "active": true },
+        { "id": 23, "name": "Meal Prep", "active": true }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Caution Behaviors",
+      "type": "caution",
+      "active": true,
+      "color": "ember",
+      "target_minutes": 0,
+      "track_actions": false,
+      "practices": [
+        { "id": 24, "name": "Late night snacking", "active": true },
+        { "id": 25, "name": "Skipped workout", "active": true },
+        { "id": 26, "name": "Excessive screen time", "active": true },
+        { "id": 27, "name": "Skipped language practice", "active": true },
+        { "id": 28, "name": "Impulse purchase", "active": true },
+        { "id": 29, "name": "Stayed up past midnight", "active": true }
+      ]
+    }
+  ],
+  "practice_aliases": {}
+}

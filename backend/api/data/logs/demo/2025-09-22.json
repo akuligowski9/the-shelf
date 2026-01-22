@@ -1,0 +1,35 @@
+{
+  "date": "2025-09-22",
+  "preparations": [
+    {
+      "period_type": "day",
+      "rest_day": true,
+      "note": "Recovery day."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Yoga",
+      "occurred_at": "2025-09-22T08:00:00Z",
+      "duration_minutes": 40,
+      "note": "Yin yoga - deep stretches"
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Ear Training",
+      "occurred_at": "2025-09-22T11:00:00Z",
+      "duration_minutes": 25,
+      "target": "Learn 10 jazz standards",
+      "note": "Interval recognition"
+    },
+    {
+      "type": "life",
+      "occurred_at": "2025-09-22T14:00:00Z",
+      "duration_minutes": 180,
+      "note": "Family lunch"
+    }
+  ]
+}

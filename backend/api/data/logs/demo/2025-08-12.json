@@ -1,0 +1,30 @@
+{
+  "date": "2025-08-12",
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2025-08-12T06:30:00Z",
+      "duration_minutes": 28,
+      "target": "Couch to 10K",
+      "note": "Week 2 - longer jog intervals"
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2025-08-12T19:00:00Z",
+      "duration_minutes": 50,
+      "note": "Fingerpicking pattern"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Fiction",
+      "occurred_at": "2025-08-12T21:30:00Z",
+      "duration_minutes": 35,
+      "note": "Started new novel"
+    }
+  ]
+}

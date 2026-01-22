@@ -1,0 +1,45 @@
+{
+  "date": "2025-10-12",
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2025-10-12T10:00:00Z",
+      "duration_minutes": 80,
+      "target": "Autumn Leaves (jazz standard)",
+      "note": "Full run-through with backing track"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Conversation",
+      "occurred_at": "2025-10-12T15:00:00Z",
+      "duration_minutes": 30,
+      "target": "French A2 certification",
+      "note": "italki lesson - introductions"
+    },
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Strength",
+      "occurred_at": "2025-10-12T07:00:00Z",
+      "duration_minutes": 45,
+      "note": "Upper body day"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Non-Fiction",
+      "occurred_at": "2025-10-12T21:00:00Z",
+      "duration_minutes": 35,
+      "note": "Atomic Habits"
+    },
+    {
+      "type": "caution",
+      "practice": "Excessive screen time",
+      "occurred_at": "2025-10-12T22:30:00Z",
+      "note": "2 hours of YouTube"
+    }
+  ]
+}

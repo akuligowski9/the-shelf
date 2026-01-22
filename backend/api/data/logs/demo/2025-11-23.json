@@ -1,0 +1,44 @@
+{
+  "date": "2025-11-23",
+  "preparations": [
+    {
+      "period_type": "day",
+      "rest_day": true,
+      "note": "Recovery day before long run tomorrow."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Yoga",
+      "occurred_at": "2025-11-23T09:00:00Z",
+      "duration_minutes": 40,
+      "note": "Gentle stretching"
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Ear Training",
+      "occurred_at": "2025-11-23T11:00:00Z",
+      "duration_minutes": 25,
+      "target": "Learn 10 jazz standards",
+      "note": "Transcribing a solo by ear"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Reading",
+      "occurred_at": "2025-11-23T14:00:00Z",
+      "duration_minutes": 30,
+      "target": "French A2 certification",
+      "note": "Le Petit Prince chapter 5"
+    },
+    {
+      "type": "life",
+      "occurred_at": "2025-11-23T16:00:00Z",
+      "duration_minutes": 120,
+      "note": "Coffee with old friend"
+    }
+  ]
+}
