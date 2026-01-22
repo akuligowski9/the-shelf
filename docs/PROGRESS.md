@@ -21,6 +21,37 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 ## Sessions
 
+### 2026-01-22 (Terminal A) - Mobile Loading Skeletons (SHELF-038)
+
+**Summary:**
+- Added skeleton loading states to all mobile screens for better UX
+- Consistent loading pattern across all 6 tab screens
+- Shows 3 skeleton cards during initial data loads
+
+**Implementation:**
+- Added `isLoading` checks to all screens using `isLoading && data.length === 0` pattern
+- Imported `SkeletonCard` component from `@/components/ui`
+- Wrapped main content in fragment with loading conditional
+- Each screen shows 3 skeleton placeholders while loading with no data
+
+**Screens Updated:**
+- `app/(tabs)/attention.tsx` - Shows skeletons while habits/targets load
+- `app/(tabs)/index.tsx` - Shows skeletons while habits/entries load
+- `app/(tabs)/progress.tsx` - Shows skeletons while habits load
+- `app/(tabs)/review.tsx` - Shows skeletons while habits load
+- `app/(tabs)/settings.tsx` - Shows skeletons while settings/habits load
+- `app/(tabs)/today.tsx` - Already had skeleton implementation
+
+**Commits:**
+- `77985ba` - Add loading skeletons to all mobile screens (SHELF-038)
+
+**Process Notes:**
+- Followed Task Scoping Rule by breaking into 2 steps:
+  - Step 1: attention.tsx, index.tsx, progress.tsx (3 files)
+  - Step 2: review.tsx, settings.tsx (2 files)
+
+---
+
 ### 2026-01-22 (Evening) - Fictional Demo Data & Hourly Reset (SHELF-047)
 
 **Summary:**
