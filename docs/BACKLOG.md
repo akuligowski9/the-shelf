@@ -579,6 +579,8 @@ Connection strings:
 - [x] Deploy separate demo frontend (https://demo-the-shelf.vercel.app)
 - [x] Configure demo backend with demo DATABASE_URL (https://shelf-api-demo-785607788916.us-east1.run.app)
 - [x] Demo URL contains "demo" for clarity
+- [x] Hourly demo reset via GitHub Actions cron (calls /demo/reset with secret auth)
+- [x] Demo reset endpoint with DEMO_RESET_SECRET env var protection
 - [ ] Unauthorized login attempts → redirect to portfolio contact page (https://akuligowski-portfolio.vercel.app/)
 - [ ] Document multi-database architecture in OPS.md
 - [ ] Test both prod and demo end-to-end

@@ -21,6 +21,62 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 ## Sessions
 
+### 2026-01-22 (Evening) - Fictional Demo Data & Hourly Reset (SHELF-047)
+
+**Summary:**
+- Replaced personal demo data with completely fictional data spanning 6 months
+- Created demo-habits.json with fictional habits (Music, French, Fitness, Photography, Reading, Cooking)
+- Created 24 demo log files with diverse entry types (habits, cautions, rest days, life events)
+- Implemented hourly automatic demo reset via GitHub Actions cron
+- Added DEMO_RESET_SECRET authentication for scheduled resets
+- Fixed Docker build issues with data file paths
+
+**Fictional Demo Data:**
+- 7 habits with practices and actions: Music (Piano, Guitar), French (Duolingo, Conversation), Fitness (Running, Strength), Photography (Street, Editing), Reading, Cooking, Caution Behaviors
+- 8 targets in various states: active (5), parked (1), completed (2)
+- Entries linked to targets for time aggregation (e.g., "Half marathon" target linked to Running entries)
+- Caution entries properly typed with habit_id pointing to Caution Behaviors
+- Rest days scattered throughout with appropriate notes
+- Weekly reflection added for Week 3 of January 2026
+
+**Demo Log Files Created (24 files):**
+- August 2025: 4 files (building running base for Couch to 10K)
+- September 2025: 4 files (started jazz standards, French A2 prep)
+- October 2025: 4 files (completed Autumn Leaves, completed Couch to 10K)
+- November 2025: 4 files (started half marathon training, paused Cooking)
+- December 2025: 4 files (photo essay started, holiday entries)
+- January 2026: 4 files (current month, reading goal started)
+
+**Hourly Reset Implementation:**
+- Created `.github/workflows/reset-demo.yml` with cron schedule `0 * * * *`
+- Added manual trigger via `workflow_dispatch`
+- Calls `/demo/reset` endpoint with `X-Reset-Secret` header
+- Secret stored in GitHub repository secrets (DEMO_RESET_SECRET)
+- Added to Cloud Run environment variables
+
+**Docker Path Fix:**
+- Demo reset endpoint failed with ENOENT for demo-habits.json
+- Docker COPY can't access files outside build context
+- Copied `data/demo-habits.json` and `data/logs/demo/` into `backend/api/data/`
+- Updated `routes/demo.js` to check multiple paths (dev vs production)
+
+**Files Created:**
+- `data/demo-habits.json` - Fictional habits configuration
+- `data/logs/demo/*.json` - 24 demo log files
+- `backend/api/data/demo-habits.json` - Copy for Docker
+- `backend/api/data/logs/demo/*.json` - Copies for Docker
+- `.github/workflows/reset-demo.yml` - Hourly reset workflow
+
+**Files Modified:**
+- `backend/api/demo-seed.js` - Uses fictional data, links entries to targets
+- `backend/api/routes/demo.js` - Complete rewrite with fictional data and secret auth
+
+**Commits:**
+- `2697670` - Add OAuth authentication with Google and GitHub (SHELF-046)
+- Previous commits from this session included in earlier push
+
+---
+
 ### 2026-01-22 (Terminal A) - Documentation Updates
 
 **Summary:**
