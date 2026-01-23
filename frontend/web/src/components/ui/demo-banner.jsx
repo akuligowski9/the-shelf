@@ -25,19 +25,24 @@ export default function DemoBanner() {
     }
   }
 
-  // Don't show banner if not in demo mode
-  if (!isDemoMode || dismissed) {
+  // Don't show banner if dismissed, or if authenticated in non-demo mode
+  if (dismissed || (!isDemoMode && isAuthenticated)) {
     return null
   }
 
+  // Show banner in demo mode OR when not authenticated in personal mode
   return (
     <div className="bg-amber-500/90 dark:bg-amber-600/90 text-amber-950 px-4 py-2 flex items-center justify-between gap-4">
       <div className="flex items-center gap-2">
         <AlertTriangle className="h-4 w-4 flex-shrink-0" />
         <span className="text-sm font-medium">
-          {isAuthenticated
+          {isDemoMode
+            ? isAuthenticated
+              ? `Signed in as ${user?.name || user?.email}`
+              : 'Demo Mode — Sign in to make changes'
+            : isAuthenticated
             ? `Signed in as ${user?.name || user?.email}`
-            : 'Demo Mode — Sign in to make changes'}
+            : 'Please sign in to continue'}
         </span>
       </div>
       <div className="flex items-center gap-2">
@@ -62,16 +67,18 @@ export default function DemoBanner() {
             Sign In
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2 text-amber-950 hover:bg-amber-600/50 dark:hover:bg-amber-700/50"
-          onClick={handleReset}
-          disabled={isResetting}
-        >
-          <RefreshCw className={`h-3.5 w-3.5 mr-1 ${isResetting ? 'animate-spin' : ''}`} />
-          Reset
-        </Button>
+        {isDemoMode && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-amber-950 hover:bg-amber-600/50 dark:hover:bg-amber-700/50"
+            onClick={handleReset}
+            disabled={isResetting}
+          >
+            <RefreshCw className={`h-3.5 w-3.5 mr-1 ${isResetting ? 'animate-spin' : ''}`} />
+            Reset
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"

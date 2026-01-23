@@ -6,10 +6,18 @@ export async function apiFetch(path, options = {}) {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include cookies for auth
     ...options,
   });
 
   if (!res.ok) {
+    // Handle authentication errors
+    if (res.status === 401) {
+      // Redirect to login page
+      window.location.href = '/login';
+      throw new Error('Authentication required');
+    }
+
     const text = await res.text();
     throw new Error(`API ${res.status}: ${text}`);
   }
