@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, BookOpen } from 'lucide-react'
 
 export default function LoginView() {
   const { isAuthenticated, isDemoMode, login, loading } = useAuth()
@@ -27,10 +27,13 @@ export default function LoginView() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+    <div className="flex flex-col items-center justify-center min-h-[100vh] gap-6">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome to The Shelf</CardTitle>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <CardTitle className="text-2xl m-0">Welcome to The Shelf</CardTitle>
+            <BookOpen className="h-7 w-7" />
+          </div>
           <CardDescription>
             {isDemoMode
               ? 'Sign in to make changes, or browse the demo below.'
