@@ -42,8 +42,11 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Automated backup $(date +%Y-%m-%d)"
-            git pull --rebase
-            git push
+            echo "Pulling latest changes..."
+            git fetch origin main
+            git rebase origin/main
+            echo "Pushing..."
+            git push origin main
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
