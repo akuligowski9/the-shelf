@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -35,18 +36,28 @@ jobs:
 
       - name: Commit and push backup
         run: |
+          echo "=== WORKFLOW VERSION 2 ==="
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/backups/
           if git diff --staged --quiet; then
             echo "No changes to commit"
-          else
-            git commit -m "Automated backup $(date +%Y-%m-%d)"
-            echo "Pulling latest changes..."
-            git fetch origin main
-            git rebase origin/main
-            echo "Pushing..."
-            git push origin main
+            exit 0
           fi
+          git commit -m "Automated backup $(date +%Y-%m-%d)"
+
+          # Retry push up to 3 times with pull
+          for i in 1 2 3; do
+            echo "Push attempt $i..."
+            git pull --rebase origin main || true
+            if git push origin main; then
+              echo "Push succeeded!"
+              exit 0
+            fi
+            echo "Push failed, retrying..."
+            sleep 2
+          done
+          echo "All push attempts failed"
+          exit 1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
