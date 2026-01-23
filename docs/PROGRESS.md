@@ -22,6 +22,47 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 ## Sessions
 
+### 2026-01-22 (Late Night) - Automated Backup System (SHELF-050)
+
+**Summary:**
+- Implemented nightly production backups via GitHub Actions
+- Backups automatically committed to repo using `stefanzweifel/git-auto-commit-action`
+- Created backup/restore scripts for local development
+- Auto-restore on `npm run dev` syncs local DB from latest backup
+
+**GitHub Actions Workflow:**
+- Runs nightly at 5am UTC (midnight EST)
+- Manual trigger available via "Run workflow" button
+- Uses `stefanzweifel/git-auto-commit-action@v5` to commit backup files
+- Backup stored at `data/backups/backup-YYYY-MM-DD.json`
+
+**Scripts Created:**
+- `backup.js` - Exports all tables to JSON (30-day retention)
+- `restore.js` - Imports backup JSON to local DB (safety check prevents running against Neon)
+- `dev-start.js` - Auto-restores from latest backup before starting dev server
+
+**npm Scripts Added:**
+- `npm run backup` - Manual backup
+- `npm run restore` - Manual restore
+- `npm run dev` - Now auto-restores before starting
+- `npm run dev:skip-restore` - Skip restore if needed
+
+**GitHub Secrets Required:**
+- `PROD_DATABASE_URL` - Production Neon connection string
+
+**Challenges:**
+- Initial git push attempts failed with "rejected - fetch first" errors
+- Tried manual git pull --rebase in workflow - didn't work
+- Solution: Used `stefanzweifel/git-auto-commit-action` which handles git operations properly
+
+**Files Created:**
+- `.github/workflows/nightly-backup.yml`
+- `backend/api/backup.js`
+- `backend/api/restore.js`
+- `backend/api/dev-start.js`
+
+---
+
 ### 2026-01-22 (Terminal A) - Mobile Loading Skeletons (SHELF-038)
 
 **Summary:**
