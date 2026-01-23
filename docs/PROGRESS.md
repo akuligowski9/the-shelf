@@ -20,6 +20,27 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 ---
 
+## Pending Deployment (2026-01-23)
+
+Vercel rate-limited until ~11am EST. After deployment, verify:
+
+**Backend (Cloud Run):**
+- [ ] Deploy backend: `gcloud run deploy shelf-api --source backend/api --region us-east1 --allow-unauthenticated --max-instances=2`
+- [ ] Deploy demo backend: `gcloud run deploy shelf-api-demo --source backend/api --region us-east1 --allow-unauthenticated --max-instances=2`
+- [ ] Verify `/backup-status` endpoint returns GitHub Actions status
+- [ ] Verify portfolio redirect works for unauthorized login on demo
+
+**Frontend (Vercel):**
+- [ ] Verify Settings → Backup Status shows last backup with ✅ or ❌
+- [ ] Verify "View backup history" link opens GitHub Actions page
+
+**Other checks:**
+- [ ] Run nightly backup workflow manually to confirm it still works
+- [ ] Verify `git pull` brings down the backup file
+- [ ] Test `npm run dev` auto-restore (requires local PostgreSQL running)
+
+---
+
 ## Sessions
 
 ### 2026-01-22 (Late Night) - Automated Backup System (SHELF-050)
