@@ -33,16 +33,18 @@ export default function AppShell() {
     )
   }
 
+  const isLoginPage = location.pathname === '/login'
+
   return (
     <ThemeProvider>
       <HabitsProvider>
         <EntriesProvider>
           <div className="min-h-screen bg-background text-foreground">
-            <DemoBanner />
+            {!isLoginPage && <DemoBanner />}
             <main className="container mx-auto px-4 py-6 pb-24 max-w-6xl">
               <Outlet />
             </main>
-            <Navigation />
+            {!isLoginPage && <Navigation />}
           </div>
         </EntriesProvider>
       </HabitsProvider>

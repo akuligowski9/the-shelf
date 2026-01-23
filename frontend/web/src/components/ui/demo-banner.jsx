@@ -25,12 +25,11 @@ export default function DemoBanner() {
     }
   }
 
-  // Don't show banner if dismissed, or if authenticated in non-demo mode
-  if (dismissed || (!isDemoMode && isAuthenticated)) {
+  // Only show banner in demo mode
+  if (!isDemoMode || dismissed) {
     return null
   }
 
-  // Show banner in demo mode OR when not authenticated in personal mode
   return (
     <div className="bg-amber-500/90 dark:bg-amber-600/90 text-amber-950 px-4 py-2 flex items-center justify-between gap-4">
       <div className="flex items-center gap-2">
