@@ -42,6 +42,7 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Automated backup $(date +%Y-%m-%d)"
+            git pull --rebase
             git push
           fi
         env:
