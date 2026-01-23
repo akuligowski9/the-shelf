@@ -31,18 +31,18 @@ async function backup() {
       fs.mkdirSync(BACKUP_DIR, { recursive: true })
     }
 
-    // Export all tables
+    // Export all tables (with their sort columns)
     const tables = [
-      'habits',
-      'practices',
-      'actions',
-      'targets',
-      'entries',
-      'preparations',
-      'closures',
-      'reflections',
-      'habit_transitions',
-      'settings'
+      { name: 'habits', orderBy: 'id' },
+      { name: 'practices', orderBy: 'id' },
+      { name: 'actions', orderBy: 'id' },
+      { name: 'targets', orderBy: 'id' },
+      { name: 'entries', orderBy: 'id' },
+      { name: 'preparations', orderBy: 'id' },
+      { name: 'closures', orderBy: 'id' },
+      { name: 'reflections', orderBy: 'id' },
+      { name: 'habit_transitions', orderBy: 'id' },
+      { name: 'settings', orderBy: 'key' }
     ]
 
     const data = {
@@ -51,9 +51,9 @@ async function backup() {
     }
 
     for (const table of tables) {
-      const result = await client.query(`SELECT * FROM ${table} ORDER BY id`)
-      data[table] = result.rows
-      console.log(`  ${table}: ${result.rows.length} rows`)
+      const result = await client.query(`SELECT * FROM ${table.name} ORDER BY ${table.orderBy}`)
+      data[table.name] = result.rows
+      console.log(`  ${table.name}: ${result.rows.length} rows`)
     }
 
     // Write backup file
