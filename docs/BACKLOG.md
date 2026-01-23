@@ -665,15 +665,15 @@ Manual database management led to data loss when the local database was reset wi
 - [ ] Production: Document Neon backup/restore procedure in OPS.md
 - [x] Local: Script to backup local PostgreSQL to file (`npm run backup` → backup.js)
 - [x] Local: Script to restore local PostgreSQL from backup file (`npm run restore` → restore.js)
-- [x] Nightly GitHub Action backs up production to `data/backups/` and commits to repo
+- [x] Nightly GitHub Action backs up production to `data/backups/` and commits to repo (using stefanzweifel/git-auto-commit-action)
 - [x] Auto-restore on `npm run dev` (syncs local from latest backup automatically)
 - [x] Retention policy: 30 days (implemented in backup.js)
 - [ ] Test restore procedure and document in OPS.md
-- [ ] Consider Cloud Storage bucket for off-site backups (optional - GitHub repo now serves this purpose)
+- [x] Off-site backups: GitHub repo serves this purpose (no separate cloud storage needed)
 
 ### Metadata
 
-- **Status:** In Progress
+- **Status:** Done
 - **Priority:** High
 - **Type:** Maintenance
 - **Version:** v1.0
