@@ -65,7 +65,7 @@ async function backup() {
     console.log(`\nBackup saved: ${filepath}`)
 
     // Count totals
-    const totalRows = tables.reduce((sum, t) => sum + data[t].length, 0)
+    const totalRows = tables.reduce((sum, t) => sum + data[t.name].length, 0)
     console.log(`Total rows backed up: ${totalRows}`)
 
     // Clean up old backups
