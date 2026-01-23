@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ChevronDown, Info, Download, Upload, Loader2 } from 'lucide-react'
+import { ChevronDown, Info, Download, Upload, Loader2, CheckCircle2, XCircle, ExternalLink, RefreshCw } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -72,6 +72,8 @@ export default function SettingsView() {
   const [fileImportResults, setFileImportResults] = useState(null)
   const [previewData, setPreviewData] = useState(null)
   const [previewLoading, setPreviewLoading] = useState(null)
+  const [backupStatus, setBackupStatus] = useState(null)
+  const [backupLoading, setBackupLoading] = useState(false)
 
   // Load settings from API on mount
   useEffect(() => {
@@ -97,6 +99,26 @@ export default function SettingsView() {
 
   useEffect(() => {
     loadPendingFiles()
+  }, [])
+
+  // Load backup status
+  const loadBackupStatus = async () => {
+    setBackupLoading(true)
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+      const response = await fetch(`${API_URL}/backup-status`)
+      const data = await response.json()
+      setBackupStatus(data)
+    } catch (err) {
+      console.error('Failed to load backup status:', err)
+      setBackupStatus({ status: 'unknown', message: 'Could not fetch status' })
+    } finally {
+      setBackupLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadBackupStatus()
   }, [])
 
   const setTimezone = (tz) => {
@@ -836,6 +858,74 @@ export default function SettingsView() {
                 </div>
               </div>
             </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Backup Status */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Backup Status</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={loadBackupStatus}
+              disabled={backupLoading}
+            >
+              <RefreshCw className={`h-4 w-4 ${backupLoading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {backupStatus ? (
+            <>
+              <div className="flex items-center gap-2">
+                {backupStatus.status === 'success' ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                ) : backupStatus.status === 'failure' ? (
+                  <XCircle className="h-5 w-5 text-red-500" />
+                ) : backupStatus.status === 'in_progress' ? (
+                  <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                ) : (
+                  <Info className="h-5 w-5 text-muted-foreground" />
+                )}
+                <span className="font-medium">
+                  {backupStatus.status === 'success' && 'Last backup succeeded'}
+                  {backupStatus.status === 'failure' && 'Last backup failed'}
+                  {backupStatus.status === 'in_progress' && 'Backup in progress'}
+                  {backupStatus.status === 'none' && 'No backups yet'}
+                  {backupStatus.status === 'unknown' && 'Status unknown'}
+                </span>
+              </div>
+              {backupStatus.created_at && (
+                <div className="text-sm text-muted-foreground">
+                  {new Date(backupStatus.created_at).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  })}
+                </div>
+              )}
+              {backupStatus.message && (
+                <div className="text-sm text-muted-foreground">{backupStatus.message}</div>
+              )}
+              <div className="pt-2">
+                <a
+                  href={backupStatus.actions_url || 'https://github.com/akuligowski9/the-shelf/actions/workflows/nightly-backup.yml'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  View backup history
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-muted-foreground">Loading...</div>
           )}
         </CardContent>
       </Card>
