@@ -25,10 +25,8 @@ Planned → In Progress → Done
 ## High
 
 > **Active Work (In Progress):**
-> - SHELF-046: OAuth Authentication - needs prod testing (Terminal B)
-> - SHELF-047: Demo Data Separation - demo DB seeded, needs deployment (Terminal B)
-> - SHELF-049: Mutation Logging - needs backend deploy (Terminal B)
-> - SHELF-048: Data Recovery - needs to run recovery SQL (Terminal B)
+> - SHELF-047: Demo Data Separation - code ready, needs deployment and verification
+> - SHELF-050: Automated Database Backup - verify scheduled runs after Jan 27
 
 ## SHELF-001: Mobile Phase 7: Polish
 
@@ -709,6 +707,7 @@ Manual database management led to data loss when the local database was reset wi
 - [x] Local: Script to backup local PostgreSQL to file (`npm run backup` → backup.js)
 - [x] Local: Script to restore local PostgreSQL from backup file (`npm run restore` → restore.js)
 - [x] Nightly GitHub Action backs up production to `data/backups/` and commits to repo (using stefanzweifel/git-auto-commit-action)
+- [ ] **Verify GitHub Actions scheduled runs are working automatically** (check after Jan 27, 2026 - workflow created Jan 22, GitHub can take 3-7 days to activate new schedules)
 - [x] Auto-restore on `npm run dev` (syncs local from latest backup automatically)
 - [x] Retention policy: 30 days (implemented in backup.js)
 - [ ] Test restore procedure and document in OPS.md
@@ -716,7 +715,7 @@ Manual database management led to data loss when the local database was reset wi
 
 ### Metadata
 
-- **Status:** Done
+- **Status:** In Progress (waiting to verify scheduled runs)
 - **Priority:** High
 - **Type:** Maintenance
 - **Version:** v1.0
