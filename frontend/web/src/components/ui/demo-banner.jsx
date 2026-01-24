@@ -38,7 +38,7 @@ export default function DemoBanner() {
           {isDemoMode
             ? isAuthenticated
               ? `Demo Mode — Signed in as ${user?.name || user?.email}`
-              : 'Demo Mode — Try it out, changes reset on refresh'
+              : 'Demo Mode — Try it out, use Reset button to restore'
             : isAuthenticated
             ? `Signed in as ${user?.name || user?.email}`
             : 'Please sign in to continue'}
