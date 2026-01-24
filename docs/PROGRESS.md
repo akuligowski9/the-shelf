@@ -20,6 +20,22 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 ---
 
+## Time Tracking (Week of Jan 16-20)
+
+Reconstructed from git commit windows:
+
+| Date | Time Window | Hours | Summary |
+|------|-------------|-------|---------|
+| Jan 16 | 12:12am - 3:21am | 3 hrs | Caution behaviors, Shelf redesign, bug fixes, Playwright tests, Review view metrics |
+| Jan 16 | 10:45pm | 0.5 hr | Fix rest day timezone issue in Review view |
+| Jan 17 | 2:45am - 3:14am | 0.5 hr | Rich text notes for targets, removed mock data, fixed rest day count |
+| Jan 18 | — | 0 hr | No commits |
+| Jan 19 | 2:37pm - 8:38pm | 6 hrs | Documentation overhaul, React Native mobile app, fixed stale date bug |
+| Jan 20 | 11:58am - 2:20pm | 2.5 hrs | Unit tests, GitHub issues link, demo mode, OAuth, deployed to Cloud Run + Neon + Vercel |
+| **Total** | | **12.5 hrs** | |
+
+---
+
 ## Pending Deployment (2026-01-23)
 
 Vercel rate-limited until ~11am EST. After deployment, verify:
