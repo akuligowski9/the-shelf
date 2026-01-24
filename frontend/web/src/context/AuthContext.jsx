@@ -4,10 +4,28 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const AuthContext = createContext(null)
 
+function detectDemoModeFromHostname() {
+  const hostname = window.location.hostname.toLowerCase()
+
+  // Explicit demo detection
+  if (hostname.includes('demo')) return true
+
+  // Explicit production detection
+  if (hostname.includes('amk')) return false
+
+  // Localhost fallback to env var
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return import.meta.env.VITE_DEMO_MODE === 'true'
+  }
+
+  // Default to production (safe)
+  return false
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isDemoMode, setIsDemoMode] = useState(false)
+  const [isDemoMode, setIsDemoMode] = useState(() => detectDemoModeFromHostname())
   const [isReadOnly, setIsReadOnly] = useState(false)
   const [loading, setLoading] = useState(true)
 
