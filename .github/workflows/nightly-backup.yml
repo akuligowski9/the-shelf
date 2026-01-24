@@ -2,6 +2,7 @@ name: Nightly Production Backup
 
 on:
   schedule:
+    # Runs at 5:00 AM UTC (midnight EST) every day
     - cron: '0 5 * * *'
   workflow_dispatch:
 
