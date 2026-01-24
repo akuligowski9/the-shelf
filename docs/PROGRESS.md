@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-01-23
+Last updated: 2026-01-24
 
 ---
 
@@ -58,6 +58,84 @@ Vercel rate-limited until ~11am EST. After deployment, verify:
 ---
 
 ## Sessions
+
+### 2026-01-24 (Afternoon) - Deployment Architecture Simplification
+
+**Summary:**
+- Simplified deployment from 2 Vercel projects to 1 project serving both demo and production domains
+- Fixed hostname detection to route demo and production domains to correct backends
+- Restored production database with 140 entries from backup-2026-01-23.json
+- Improved login screen with demo mode access and error messaging
+- Completed OAuth, Data Recovery, and Mutation Logging backlog items
+
+**Architecture Changes:**
+- Consolidated Vercel projects: deleted demo-the-shelf project, kept the-shelf project
+- Configured the-shelf Vercel project to serve both domains:
+  - `demo-the-shelf.vercel.app` → routes to demo backend (shelf-api-demo)
+  - `the-shelf-amk.vercel.app` → routes to production backend (shelf-api)
+- Added hostname-based detection for automatic backend routing
+- Created `vercel.json` at repo root to fix build directory issues
+
+**Database Restoration:**
+- Created `backend/api/restore-to-production.js` script
+- Restored backup-2026-01-23.json to production Neon database (140 entries)
+- Fixed JSON serialization for JSONB columns during restore
+- Created safety backup before restoration (backup-prod-before-restore-2026-01-24.json)
+
+**Frontend Code Changes:**
+- Added `detectDemoModeFromHostname()` to AuthContext.jsx for client-side demo detection
+- Modified api.js to detect API URL at runtime instead of build time:
+  - Added SSR/build-time guard for Vercel builds
+  - Implemented lazy getter for API_BASE evaluated in browser
+  - Added console logging for debugging hostname detection
+- Updated LoginView.jsx:
+  - Added "Enter Demo Mode" button to redirect to demo domain
+  - Added portfolio contact link (https://akuligowski-portfolio.vercel.app/) to error messages
+  - Improved error message layout with dividers
+
+**Deployment Process:**
+- Fixed Vercel Root Directory setting to `frontend/web`
+- Added vercel.json with explicit build/install/output paths
+- Tested build locally with `vercel build` before deploying
+- Successfully deployed to Vercel (29s build time)
+
+**Backlog Items Completed:**
+- ✅ SHELF-046: OAuth Authentication - tested and working in production
+- ✅ SHELF-048: Data Recovery - restored 140 entries to production database
+- ✅ SHELF-049: Mutation Logging - already deployed on both backends
+- 🔄 SHELF-047: Demo Data Separation - code ready, pending final deployment
+
+**Files Created:**
+- `backend/api/restore-to-production.js` - Production database restore script
+- `vercel.json` - Vercel configuration at repo root
+- `data/backups/backup-prod-before-restore-2026-01-24.json` - Safety backup
+
+**Files Modified:**
+- `frontend/web/src/context/AuthContext.jsx` - Hostname-based demo detection
+- `frontend/web/src/api.js` - Runtime API URL detection with SSR guard
+- `frontend/web/src/views/LoginView.jsx` - Demo mode button and error improvements
+
+**Environment Variables Set (Vercel Production):**
+- `VITE_API_URL`: `https://shelf-api-785607788916.us-east1.run.app`
+- `VITE_DEMO_API_URL`: `https://shelf-api-demo-785607788916.us-east1.run.app`
+
+**Cloud Run Backends Verified:**
+- Production (shelf-api): DEMO_MODE=false, FRONTEND_URL=https://the-shelf-amk.vercel.app
+- Demo (shelf-api-demo): DEMO_MODE=true, FRONTEND_URL=https://demo-the-shelf.vercel.app
+
+**Decisions:**
+- Single Vercel project is simpler and more maintainable for personal project
+- Backend/database separation (2 backends, 2 databases) maintained for proper data isolation
+- Hostname detection preferred over environment variables for demo mode detection
+- Runtime API URL selection required due to Vercel build process limitations
+
+**What's Next:**
+- Deploy final changes (hostname detection + login improvements) to Vercel
+- Verify demo-the-shelf.vercel.app shows demo data without authentication
+- Verify the-shelf-amk.vercel.app requires login and shows 140 production entries
+- Mark SHELF-047 complete after verification
+
+---
 
 ### 2026-01-23 (Late Night) - Data Recovery & Organization
 
