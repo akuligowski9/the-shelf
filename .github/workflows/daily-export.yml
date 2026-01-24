@@ -1,0 +1,45 @@
+name: Daily Entry Export
+
+on:
+  schedule:
+    # Run at 4:59 AM UTC (11:59 PM Eastern Standard Time)
+    # Note: During EDT (daylight saving), this runs at 12:59 AM Eastern
+    - cron: '59 4 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date to export (YYYY-MM-DD), defaults to today'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: backend/api
+        run: npm install
+
+      - name: Export daily entries
+        working-directory: backend/api
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: node export-daily.js ${{ inputs.date }}
+
+      - name: Commit and push if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Daily export ${{ inputs.date || 'auto' }}"
+          file_pattern: 'data/daily/*.json'

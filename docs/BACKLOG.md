@@ -25,7 +25,6 @@ Planned → In Progress → Done
 ## High
 
 > **Active Work (In Progress):**
-> - SHELF-047: Demo Data Separation - code ready, needs deployment and verification
 > - SHELF-050: Automated Database Backup - verify scheduled runs after Jan 27
 
 ## SHELF-001: Mobile Phase 7: Polish
@@ -503,13 +502,12 @@ The current PWA setup caches static assets and API responses, allowing the app s
 
 ### Acceptance Criteria
 
-- [ ] IndexedDB stores habits, entries, and other data locally
-- [ ] Mutation queue persists offline creates/edits/deletes
-- [ ] Automatic sync when connectivity restored
-- [ ] Conflict resolution strategy (last-write-wins or user prompt)
-- [ ] Offline indicator visible in UI when network unavailable
-- [ ] Queued changes indicator shows pending sync count
-- [ ] Works on both web PWA and mobile app
+- [x] Mobile app has full offline support (SHELF-001)
+- [ ] Web PWA has offline mutation queue (SHELF-052, SHELF-053)
+- [ ] Web PWA has local data cache for offline reads (SHELF-054)
+- [ ] Web PWA has offline UI indicators (SHELF-055)
+- [ ] Conflict resolution strategy (last-write-wins)
+- [ ] Unit tests for web offline modules (SHELF-056)
 
 ### Metadata
 
@@ -519,6 +517,15 @@ The current PWA setup caches static assets and API responses, allowing the app s
 - **Version:** Unassigned
 - **Assignee:** Unassigned
 - **GitHub Issue:** No
+
+### Notes
+
+Broken down into sub-items for web implementation:
+- SHELF-052: Core Infrastructure (errors, queue store, network hook, sync manager)
+- SHELF-053: Offline API Layer (wrap mutations, integrate contexts)
+- SHELF-054: Local Data Cache (IndexedDB for offline reads)
+- SHELF-055: UI Indicators (NetworkStatus banner)
+- SHELF-056: Unit Tests
 
 ---
 
@@ -540,15 +547,15 @@ The app needs authentication to protect personal data while allowing demo visito
 - [x] GitHub OAuth credentials configured in Cloud Run
 - [x] Frontend auth integration (api.js credentials, AppShell redirect to /login)
 - [x] Local dev OAuth configured (.env with all credentials)
-- [ ] End-to-end login flow tested in production
+- [x] End-to-end login flow tested in production
 
 ### Metadata
 
-- **Status:** In Progress
+- **Status:** Done
 - **Priority:** High
 - **Type:** Feature
 - **Version:** v1.0
-- **Assignee:** Alex (Terminal A)
+- **Assignee:** Alex
 - **GitHub Issue:** No
 
 ### Notes
@@ -629,14 +636,14 @@ User data was lost when the local database was reset. Recovery data exists in JS
 - [x] Create new targets and practices (The Shelf, Spousal Visa, Abstractly, GreenRoom, Symmetrical Upper Body, Neutral Shoulders, Recovery)
 - [x] Sync all daily logs to local database
 - [x] Create production-ready backup (backup-2026-01-23.json)
-- [ ] Deploy backup to production database
-- [ ] Verify restored data appears correctly in production UI
+- [x] Deploy backup to production database
+- [x] Verify restored data appears correctly in production UI
 - [x] Automated nightly backups implemented (GitHub Actions)
-- [ ] Document backup/restore procedure in OPS.md
+- [x] Document backup/restore procedure in OPS.md
 
 ### Metadata
 
-- **Status:** In Progress
+- **Status:** Done
 - **Priority:** High
 - **Type:** Maintenance
 - **Version:** v1.0
@@ -644,6 +651,8 @@ User data was lost when the local database was reset. Recovery data exists in JS
 - **GitHub Issue:** No
 
 ### Notes
+
+2026-01-24: Data recovery complete - backup deployed to production, verified in UI.
 
 2026-01-23: Data recovery and organization complete
 - Reorganized data directory structure (data/daily/, data/demo/)
@@ -752,6 +761,236 @@ The mobile app's offline queue system has unit tests but needs manual testing on
 
 Split from SHELF-001. Unit tests (83 tests) cover the logic; this covers real-world device behavior.
 Related: SHELF-045 (Full Offline Support) covers conflict resolution.
+
+---
+
+## SHELF-052: Web Offline Core Infrastructure
+
+### Description
+
+Create the foundational modules for web offline support: error classes, offline queue store, network detection hook, and sync manager. This mirrors the mobile app's offline infrastructure but uses web-native APIs (IndexedDB, navigator.onLine) instead of React Native libraries.
+
+### Acceptance Criteria
+
+- [ ] Create error classes (NetworkError, ServerError, ValidationError, QueueError) in `lib/errors.js`
+- [ ] Create Zustand store for offline queue with IndexedDB persistence via `idb-keyval`
+- [ ] Create `useNetwork` hook using `navigator.onLine` and online/offline events
+- [ ] Create sync manager with sequential queue processing and retry logic (max 3 retries)
+- [ ] Add `idb-keyval` and `zustand` dependencies
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+### Notes
+
+Reference implementation: `frontend/mobile/src/stores/offlineQueueStore.ts`, `frontend/mobile/src/utils/syncManager.ts`
+
+---
+
+## SHELF-053: Web Offline API Layer
+
+### Description
+
+Create an offline-aware API wrapper that intercepts mutations and queues them when offline. Integrate with existing HabitsContext and EntriesContext to handle NetworkError gracefully (keep optimistic updates instead of reverting).
+
+### Acceptance Criteria
+
+- [ ] Create `lib/offlineApi.js` that wraps shared API functions
+- [ ] Intercept POST/PUT/PATCH/DELETE and queue when offline
+- [ ] Update HabitsContext to use offlineApi and handle NetworkError
+- [ ] Update EntriesContext to use offlineApi and handle NetworkError
+- [ ] Optimistic updates persist on NetworkError (queued for sync)
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+### Notes
+
+Depends on SHELF-052. Reference: `frontend/mobile/src/api/offlineApi.ts`
+
+---
+
+## SHELF-054: Web Local Data Cache
+
+### Description
+
+Add IndexedDB-based local storage for habits, entries, and other data to enable offline reads. On load, serve cached data immediately while fetching fresh data in background. Persist fetched data to cache for offline access.
+
+### Acceptance Criteria
+
+- [ ] Create `lib/localDataStore.js` with IndexedDB storage for habits/entries/practices/targets
+- [ ] Update HabitsContext to load from cache first, then fetch and update cache
+- [ ] Update EntriesContext to load from cache first, then fetch and update cache
+- [ ] Handle cache invalidation on logout or demo mode switch
+- [ ] Cached data serves when fully offline
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+### Notes
+
+Depends on SHELF-053. Enables true offline reads, not just mutation queueing.
+
+---
+
+## SHELF-055: Web Offline UI Indicators
+
+### Description
+
+Add visual feedback for offline state, syncing status, and pending changes count. Users should know when they're offline and when their changes are queued vs synced.
+
+### Acceptance Criteria
+
+- [ ] Create NetworkStatus component (banner showing offline/syncing/pending state)
+- [ ] Add NetworkStatus to AppShell layout
+- [ ] Color coding: red (offline), blue (syncing), amber (pending changes)
+- [ ] Show pending change count when queued mutations exist
+- [ ] Initialize sync manager on app mount
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+### Notes
+
+Depends on SHELF-052. Reference: `frontend/mobile/src/components/ui/NetworkStatus.tsx`
+
+---
+
+## SHELF-057: Voice Journal Entry
+
+### Description
+
+Add voice journaling to quickly log multiple entries from natural speech. User records a summary of their day, reviews the transcript, copies a pre-formatted prompt to Claude/ChatGPT (using existing subscription), pastes the JSON response back, and reviews proposed entries before bulk creation. This leverages existing LLM subscriptions without API costs.
+
+### Acceptance Criteria
+
+- [ ] Voice record button in Today view (new "Journal" or "Voice" section)
+- [ ] Web Speech API transcribes voice to text in real-time
+- [ ] Show live transcript while recording
+- [ ] Editable transcript after recording stops
+- [ ] Generate prompt with transcript + list of user's habits/practices/targets
+- [ ] "Copy prompt" button copies to clipboard
+- [ ] Paste area for JSON response from Claude/ChatGPT
+- [ ] Parse JSON response into proposed entries
+- [ ] Review UI showing proposed entries with edit/remove options
+- [ ] "Create All" button batch-creates confirmed entries
+- [ ] Graceful fallback if Speech API unavailable
+- [ ] Works on desktop and mobile web browsers
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+### Notes
+
+**Flow:**
+1. Tap record → speak about your day (1-5 mins)
+2. Review/edit transcript
+3. Copy prompt (includes transcript + your habits/practices/targets)
+4. Paste into Claude/ChatGPT web (free with existing subscription)
+5. Copy JSON response back
+6. Review proposed entries, adjust if needed
+7. Confirm → entries created
+
+**Prompt format:**
+```
+Given this voice transcript and the user's habits/practices/targets, extract entries.
+Return JSON array of { habit, practice, target, duration_minutes, note }.
+
+Transcript: "..."
+
+Habits: [...]
+Practices: [...]
+Targets: [...]
+```
+
+No API costs - uses existing Claude/ChatGPT subscription.
+
+---
+
+## SHELF-058: Automated Daily Log Export
+
+### Description
+
+Automatically export each day's entries to `data/daily/YYYY-MM-DD.json` at the end of each day. Uses GitHub Actions cron job (similar to nightly backup) to fetch entries from production, format as human-readable JSON with both IDs and names, and commit to repo.
+
+### Acceptance Criteria
+
+- [x] Create `backend/api/export-daily.js` script
+- [x] Script fetches entries for a specific date from database
+- [x] Output format matches existing daily logs (hybrid IDs + names)
+- [x] GitHub Actions workflow runs at 11:59 PM Eastern daily
+- [x] Commits to `data/daily/YYYY-MM-DD.json`
+- [x] Skips if no entries for that day (no empty files)
+- [x] Uses PROD_DATABASE_URL secret
+- [ ] Test workflow manually via workflow_dispatch
+
+### Metadata
+
+- **Status:** In Progress
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** v1.0
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
+## SHELF-056: Web Offline Unit Tests
+
+### Description
+
+Add unit test coverage for the web offline support modules: error classes, queue store, sync manager, and network hook.
+
+### Acceptance Criteria
+
+- [ ] Tests for error classes and helper functions
+- [ ] Tests for offline queue store operations (enqueue, dequeue, retry, persistence)
+- [ ] Tests for sync manager (queue processing, retry logic, network detection)
+- [ ] Tests for useNetwork hook state changes
+- [ ] All tests passing with mocked IndexedDB and network state
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Maintenance
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+### Notes
+
+Can be done incrementally as each component from SHELF-052 through SHELF-055 is built.
 
 ---
 
