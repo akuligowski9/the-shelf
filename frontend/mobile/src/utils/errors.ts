@@ -35,7 +35,7 @@ export class QueueError extends Error {
  */
 export function getUserFriendlyErrorMessage(error: unknown): string {
   if (error instanceof NetworkError) {
-    return 'No internet connection. Your changes will sync when you're back online.'
+    return "No internet connection. Your changes will sync when you're back online."
   }
 
   if (error instanceof ValidationError) {
@@ -49,7 +49,7 @@ export function getUserFriendlyErrorMessage(error: unknown): string {
       return 'The requested item was not found.'
     }
     if (error.statusCode === 403 || error.statusCode === 401) {
-      return 'You don't have permission to perform this action.'
+      return "You don't have permission to perform this action."
     }
     if (error.statusCode && error.statusCode >= 500) {
       return 'Server error. Please try again later.'
