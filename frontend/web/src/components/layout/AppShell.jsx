@@ -40,7 +40,7 @@ export default function AppShell() {
       <HabitsProvider>
         <EntriesProvider>
           <div className="min-h-screen bg-background text-foreground">
-            {!isLoginPage && <DemoBanner />}
+            {!isLoginPage && isDemoMode && <DemoBanner />}
             <main className="container mx-auto px-4 py-6 pb-24 max-w-6xl">
               <Outlet />
             </main>

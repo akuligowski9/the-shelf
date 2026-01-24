@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ChevronDown, Info, Download, Upload, Loader2, CheckCircle2, XCircle, ExternalLink, RefreshCw } from 'lucide-react'
+import { ChevronDown, Info, Download, Upload, Loader2, CheckCircle2, XCircle, ExternalLink, RefreshCw, LogOut } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -24,6 +24,7 @@ import {
 import { useTheme } from '@/context/ThemeContext'
 import { useEntries } from '@/context/EntriesContext'
 import { useHabits } from '@/context/HabitsContext'
+import { useAuth } from '@/context/AuthContext'
 import { getSettings, setSetting, exportData, importData, getPendingImports, importFile, previewFile } from '@/lib/api'
 
 // Common timezones grouped by region
@@ -59,6 +60,7 @@ export default function SettingsView() {
   const { theme, setTheme } = useTheme()
   const { habits, habitTransitions } = useHabits()
   const { entries } = useEntries()
+  const { user, isAuthenticated, isDemoMode, logout } = useAuth()
   const [timezone, setTimezoneState] = useState(getDefaultTimezone)
   const [shelfSort, setShelfSortState] = useState('priority')
   const [settingsLoaded, setSettingsLoaded] = useState(false)
@@ -929,6 +931,31 @@ export default function SettingsView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Account - only show in non-demo mode (demo has banner logout) */}
+      {isAuthenticated && !isDemoMode && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Account</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm font-medium mb-1">Signed in as</p>
+              <p className="text-sm text-muted-foreground">
+                {user?.name || user?.email || 'User'}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={logout}
+              className="w-full"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* About */}
       <Card>

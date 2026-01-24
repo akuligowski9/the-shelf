@@ -129,10 +129,37 @@ Vercel rate-limited until ~11am EST. After deployment, verify:
 - Hostname detection preferred over environment variables for demo mode detection
 - Runtime API URL selection required due to Vercel build process limitations
 
+**Login UX Improvements:**
+- Updated LoginView to show different options based on environment:
+  - Localhost: "Demo" and "Production" navigation buttons
+  - Demo site: "Browse Demo Without Signing In" button to exit login and browse
+  - Production: Standard Google/GitHub login only
+- Removed book icon from demo button per user feedback
+
+**Settings Logout:**
+- Added Account section to SettingsView with user info and logout button
+- Only shows in production (not demo - demo uses banner logout)
+- Imports useAuth to access user, isAuthenticated, isDemoMode, logout
+
+**Banner Visibility Fixed:**
+- Demo banner now only shows when `isDemoMode === true`
+- Fixed AppShell to conditionally render: `{!isLoginPage && isDemoMode && <DemoBanner />}`
+- Production will have no orange banner
+- Localhost has no orange banner
+
+**Testing Completed:**
+- Local build successful (vercel build passed)
+- OAuth login flow tested locally
+- Logout from Settings tested
+- Navigation between localhost/demo/production tested
+- Hard refresh required to see changes due to browser caching
+
 **What's Next:**
-- Deploy final changes (hostname detection + login improvements) to Vercel
+- Deploy to Vercel (push commits)
 - Verify demo-the-shelf.vercel.app shows demo data without authentication
+- Verify demo login page has "Browse Demo Without Signing In" button
 - Verify the-shelf-amk.vercel.app requires login and shows 140 production entries
+- Verify production has logout in Settings, no demo banner
 - Mark SHELF-047 complete after verification
 
 ---

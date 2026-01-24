@@ -101,30 +101,52 @@ export default function LoginView() {
             Continue with GitHub
           </Button>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
+          {/* Only show deployment links on localhost (not production) */}
+          {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+            <>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or navigate to</span>
+                </div>
+              </div>
 
-          <Button
-            variant="secondary"
-            className="w-full h-12 text-base"
-            onClick={() => window.location.href = 'https://demo-the-shelf.vercel.app'}
-          >
-            <BookOpen className="w-5 h-5 mr-3" />
-            Enter Demo Mode
-          </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  className="flex-1 h-12 text-base"
+                  onClick={() => window.location.href = 'https://demo-the-shelf.vercel.app'}
+                >
+                  Demo
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="flex-1 h-12 text-base"
+                  onClick={() => window.location.href = 'https://the-shelf-amk.vercel.app/login'}
+                >
+                  Production
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
       {isDemoMode && (
-        <p className="text-sm text-muted-foreground text-center max-w-md">
-          This is a demo instance. You can browse without signing in, but changes require authentication.
-        </p>
+        <>
+          <p className="text-sm text-muted-foreground text-center max-w-md">
+            This is a demo instance. You can browse without signing in, but changes require authentication.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="mt-2"
+          >
+            Browse Demo Without Signing In
+          </Button>
+        </>
       )}
     </div>
   )
