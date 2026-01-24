@@ -36,25 +36,18 @@ function requireAuth(req, res, next) {
     return next();
   }
 
-  // In demo mode, allow read-only access without auth
-  if (isDemoMode && req.method === 'GET') {
-    req.isReadOnly = true;
+  // In demo mode, allow all operations without auth (read and write)
+  if (isDemoMode) {
+    req.isReadOnly = false; // Demo mode allows edits
     return next();
   }
 
-  // Block unauthenticated write operations
+  // Block unauthenticated write operations (non-demo mode)
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
-    // Special case: allow demo reset even when not authenticated
-    if (isDemoMode && req.path === '/reset' && req.baseUrl === '/demo') {
-      return next();
-    }
-
     return res.status(401).json({
       ok: false,
       error: 'Authentication required',
-      message: isDemoMode
-        ? 'This is a demo. Sign in to make changes.'
-        : 'Please sign in to continue.'
+      message: 'Please sign in to continue.'
     });
   }
 

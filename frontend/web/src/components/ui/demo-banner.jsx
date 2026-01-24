@@ -37,8 +37,8 @@ export default function DemoBanner() {
         <span className="text-sm font-medium">
           {isDemoMode
             ? isAuthenticated
-              ? `Signed in as ${user?.name || user?.email}`
-              : 'Demo Mode — Sign in to make changes'
+              ? `Demo Mode — Signed in as ${user?.name || user?.email}`
+              : 'Demo Mode — Try it out, changes reset on refresh'
             : isAuthenticated
             ? `Signed in as ${user?.name || user?.email}`
             : 'Please sign in to continue'}
