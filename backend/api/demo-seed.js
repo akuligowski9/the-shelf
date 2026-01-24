@@ -201,7 +201,7 @@ async function demoSeed() {
     await client.query('DELETE FROM habits')
 
     // ===== 2. Load demo-habits.json (fictional data) =====
-    const habitsPath = path.join(__dirname, '..', '..', 'data', 'demo-habits.json')
+    const habitsPath = path.join(__dirname, '..', '..', 'data', 'demo', 'demo-habits.json')
     const habitsData = JSON.parse(fs.readFileSync(habitsPath, 'utf8'))
 
     console.log('\nSeeding habits, practices, and actions...')
@@ -286,7 +286,7 @@ async function demoSeed() {
     }
 
     // ===== 4. Load demo log files =====
-    const demoLogsPath = path.join(__dirname, '..', '..', 'data', 'logs', 'demo')
+    const demoLogsPath = path.join(__dirname, '..', '..', 'data', 'demo')
     const logFiles = fs.readdirSync(demoLogsPath).filter(f => f.endsWith('.json')).sort()
 
     console.log(`\nSeeding entries from ${logFiles.length} demo log files...`)

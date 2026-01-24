@@ -1,7 +1,7 @@
 # Project Orientation & AI Collaboration Contract
 
-**Version:** 1.0
-**Last Updated:** 2026-01-19
+**Version:** 1.1
+**Last Updated:** 2026-01-22
 
 ---
 
@@ -291,21 +291,69 @@ Keep it brief — a few sentences per item is sufficient. Link to BACKLOG.md so 
 This file customizes behavior for Claude models only.
 Claude must still follow all rules in INSTRUCTIONS.md.
 
-Preferences:
+---
+
+## Preferences
 
 - Be verbose rather than concise.
 - Ask clarifying questions instead of assuming.
 - Surface inconsistencies explicitly.
 - Prefer structured markdown.
-- Pause every ~90 minutes to ask about a documentation sync.
 - If the user says "muffins", immediately stop and summarize state.
 
-Tone:
+---
+
+## Tone
 
 - Direct
 - Thoughtful
 - Systems-oriented
 - Not overly enthusiastic
+
+---
+
+## Hard Stops (Non-Negotiable)
+
+NEVER do the following without explicit user confirmation (user must type "yes", "proceed", or "confirm"):
+
+- Delete files or data (rm, DROP, DELETE, truncate)
+- Overwrite existing files with Write tool
+- Force push or destructive git operations (reset --hard, clean -f, push --force)
+- Run database migrations
+- Modify production environment or data
+- Make assumptions when multiple valid interpretations exist
+
+ALWAYS do the following before destructive or risky actions:
+
+1. State exactly what will be affected (list files, tables, records)
+2. Explain what could go wrong
+3. Describe how to undo it (or state if it cannot be undone)
+4. Wait for explicit confirmation — do NOT proceed on silence or ambiguity
+
+---
+
+## Action-Based Check-ins
+
+Trigger a documentation sync prompt when ANY of these occur:
+
+- 5 backlog items completed since last sync
+- Before ending any session (non-negotiable)
+- User says "muffins" (immediate stop and state summary)
+
+When triggered, ask: "Do you want to run a documentation sync?"
+
+---
+
+## Task Scoping
+
+When breaking down work:
+
+- Maximum 3 file modifications per step before pausing to summarize
+- One backlog item at a time unless explicitly told to batch
+- After completing each step, state what changed and ask to proceed
+- If a task needs more than 5 steps, present the plan and ask for confirmation before starting
+
+---
 
 If Claude behavior conflicts with INSTRUCTIONS.md, INSTRUCTIONS.md always wins.
 ```
@@ -402,6 +450,41 @@ Before taking action, ask clarifying questions if:
 
 ---
 
+## Task Scoping Rule
+
+When breaking down work:
+
+- Maximum 3 file modifications per step before pausing to summarize
+- One backlog item at a time unless explicitly told to batch
+- After completing each step, state what changed and ask to proceed
+- If a task needs more than 5 steps, present the plan and ask for confirmation before starting
+
+This prevents drift and ensures the user stays informed of progress.
+
+---
+
+## Destructive Action Protocol
+
+Before ANY of the following operations, Claude must:
+
+1. State the exact command/action
+2. List affected files/data
+3. Explain the risk
+4. Describe the undo path (or state if irreversible)
+5. Wait for user to type "yes", "proceed", or "confirm"
+
+**Operations requiring this protocol:**
+
+- File deletion (rm, unlink)
+- Database modifications (INSERT, UPDATE, DELETE, DROP, migrations)
+- Git destructive operations (reset --hard, clean -f, push --force, branch -D)
+- Overwriting existing files
+- Any action that cannot be undone
+
+> Do NOT proceed on silence or ambiguity. Explicit confirmation required.
+
+---
+
 ## Documentation Minimalism Principle
 
 Documentation should:
@@ -433,11 +516,16 @@ If the user says **"muffins"** at any time, immediately do the following:
 
 ---
 
-## 90-Minute Documentation Sync (Mandatory Check-In)
+## Action-Based Documentation Sync (Mandatory Check-In)
 
-Approximately every 90 minutes of work time — or after a major scope change — ask:
+Trigger a documentation sync prompt when ANY of these occur:
 
-> "Do you want to run a documentation sync?"
+- 5 backlog items completed since last sync
+- Before ending any session (non-negotiable)
+- After a major scope change
+- User says "muffins" (immediate stop and state summary)
+
+When triggered, ask: "Do you want to run a documentation sync?"
 
 If yes:
 

@@ -128,63 +128,63 @@ async function restore() {
     // Practices
     for (const row of data.practices || []) {
       await client.query(
-        `INSERT INTO practices (id, habit_id, name, active, sort_order, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [row.id, row.habit_id, row.name, row.active, row.sort_order, row.created_at, row.updated_at]
+        `INSERT INTO practices (id, habit_id, name, active, details, sort_order, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [row.id, row.habit_id, row.name, row.active, row.details, row.sort_order, row.created_at, row.updated_at]
       )
     }
 
     // Actions
     for (const row of data.actions || []) {
       await client.query(
-        `INSERT INTO actions (id, practice_id, name, active, sort_order, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [row.id, row.practice_id, row.name, row.active, row.sort_order, row.created_at, row.updated_at]
+        `INSERT INTO actions (id, practice_id, name, active, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [row.id, row.practice_id, row.name, row.active, row.created_at, row.updated_at]
       )
     }
 
     // Targets
     for (const row of data.targets || []) {
       await client.query(
-        `INSERT INTO targets (id, name, status, habit_id, start_date, end_date, planned_duration, notes, github_issue_url, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-        [row.id, row.name, row.status, row.habit_id, row.start_date, row.end_date, row.planned_duration, row.notes, row.github_issue_url, row.created_at, row.updated_at]
+        `INSERT INTO targets (id, type, name, description, notes, status, habit_id, start_date, end_date, planned_duration, done_at, sort_order, github_issue_url, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+        [row.id, row.type, row.name, row.description, row.notes, row.status, row.habit_id, row.start_date, row.end_date, row.planned_duration, row.done_at, row.sort_order, row.github_issue_url, row.created_at, row.updated_at]
       )
     }
 
     // Entries
     for (const row of data.entries || []) {
       await client.query(
-        `INSERT INTO entries (id, type, occurred_at, habit_id, practice_id, action_id, target_id, duration_minutes, note, source, is_highlight, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-        [row.id, row.type, row.occurred_at, row.habit_id, row.practice_id, row.action_id, row.target_id, row.duration_minutes, row.note, row.source, row.is_highlight, row.created_at, row.updated_at]
+        `INSERT INTO entries (id, type, occurred_at, habit_id, practice_id, target_id, duration_minutes, note, actions, is_highlight, source, warm_up_note, cool_down_note, archived_at, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+        [row.id, row.type, row.occurred_at, row.habit_id, row.practice_id, row.target_id, row.duration_minutes, row.note, row.actions ? JSON.stringify(row.actions) : null, row.is_highlight, row.source, row.warm_up_note, row.cool_down_note, row.archived_at, row.created_at, row.updated_at]
       )
     }
 
     // Preparations
     for (const row of data.preparations || []) {
       await client.query(
-        `INSERT INTO preparations (id, period_type, period_start, note, rest_day, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [row.id, row.period_type, row.period_start, row.note, row.rest_day, row.created_at, row.updated_at]
+        `INSERT INTO preparations (id, period_type, period_start, note, habit_id, target_id, rest_day, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [row.id, row.period_type, row.period_start, row.note, row.habit_id, row.target_id, row.rest_day, row.created_at, row.updated_at]
       )
     }
 
     // Closures
     for (const row of data.closures || []) {
       await client.query(
-        `INSERT INTO closures (id, scope, occurred_at, note, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [row.id, row.scope, row.occurred_at, row.note, row.created_at, row.updated_at]
+        `INSERT INTO closures (id, scope, occurred_at, habit_id, practice_id, note, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [row.id, row.scope, row.occurred_at, row.habit_id, row.practice_id, row.note, row.created_at, row.updated_at]
       )
     }
 
     // Reflections
     for (const row of data.reflections || []) {
       await client.query(
-        `INSERT INTO reflections (id, reflection_type, period_start, period_end, note, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [row.id, row.reflection_type, row.period_start, row.period_end, row.note, row.created_at, row.updated_at]
+        `INSERT INTO reflections (id, reflection_type, period_start, period_end, habit_id, target_id, entry_id, note, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [row.id, row.reflection_type, row.period_start, row.period_end, row.habit_id, row.target_id, row.entry_id, row.note, row.created_at, row.updated_at]
       )
     }
 
@@ -200,9 +200,9 @@ async function restore() {
     // Settings
     for (const row of data.settings || []) {
       await client.query(
-        `INSERT INTO settings (id, key, value, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [row.id, row.key, row.value, row.created_at, row.updated_at]
+        `INSERT INTO settings (key, value, updated_at)
+         VALUES ($1, $2, $3)`,
+        [row.key, row.value, row.updated_at]
       )
     }
 
@@ -216,7 +216,6 @@ async function restore() {
     await client.query(`SELECT setval('closures_id_seq', COALESCE((SELECT MAX(id) FROM closures), 1))`)
     await client.query(`SELECT setval('reflections_id_seq', COALESCE((SELECT MAX(id) FROM reflections), 1))`)
     await client.query(`SELECT setval('habit_transitions_id_seq', COALESCE((SELECT MAX(id) FROM habit_transitions), 1))`)
-    await client.query(`SELECT setval('settings_id_seq', COALESCE((SELECT MAX(id) FROM settings), 1))`)
 
     await client.query('COMMIT')
 

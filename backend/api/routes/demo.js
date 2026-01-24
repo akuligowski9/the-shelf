@@ -122,9 +122,9 @@ router.post('/reset', async (req, res) => {
 
     // Load demo-habits.json (fictional data)
     // Check multiple paths for dev vs production
-    let habitsPath = path.join(__dirname, '..', 'data', 'demo-habits.json');
+    let habitsPath = path.join(__dirname, '..', 'data', 'demo', 'demo-habits.json');
     if (!fs.existsSync(habitsPath)) {
-      habitsPath = path.join(__dirname, '..', '..', '..', 'data', 'demo-habits.json');
+      habitsPath = path.join(__dirname, '..', '..', '..', 'data', 'demo', 'demo-habits.json');
     }
     const habitsData = JSON.parse(fs.readFileSync(habitsPath, 'utf8'));
 
@@ -189,9 +189,9 @@ router.post('/reset', async (req, res) => {
     }
 
     // Load demo log files
-    let demoLogsPath = path.join(__dirname, '..', 'data', 'logs', 'demo');
+    let demoLogsPath = path.join(__dirname, '..', 'data', 'demo');
     if (!fs.existsSync(demoLogsPath)) {
-      demoLogsPath = path.join(__dirname, '..', '..', '..', 'data', 'logs', 'demo');
+      demoLogsPath = path.join(__dirname, '..', '..', '..', 'data', 'demo');
     }
     const logFiles = fs.readdirSync(demoLogsPath).filter(f => f.endsWith('.json')).sort();
 

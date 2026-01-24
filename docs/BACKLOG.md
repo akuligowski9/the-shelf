@@ -617,20 +617,42 @@ Connection strings:
 
 ### Description
 
-User data was lost when the local database was reset. Recovery data exists in JSON log files at `data/logs/*.json` and in `data/habits.json`. A recovery SQL file (`data-recovery.sql`) was generated from these sources containing habits, practices, entries, and targets from Jan 1-15, 2026. This task tracks running the recovery and implementing automated backups to prevent future data loss.
+User data was lost when the local database was reset. Recovery data exists in JSON log files at `data/daily/*.json` and in `data/daily/habits.json`. All daily logs have been organized, filled in for Jan 16-23, and synced to the local database. A production-ready backup has been created for deployment.
 
 ### Acceptance Criteria
 
 - [x] Run `data-recovery.sql` against production database to restore data
 - [x] Run `data-recovery-user.sql` to add conversation-based updates
 - [x] Create backup before recovery (data/backups/backup-prod-pre-recovery-2026-01-22.json)
-- [ ] Verify restored data appears correctly in UI (blocked by OAuth login issues)
+- [x] Organize data directory: daily logs to data/daily/, demo to data/demo/
+- [x] Fill in historical entries for Jan 16-23
+- [x] Create new targets and practices (The Shelf, Spousal Visa, Abstractly, GreenRoom, Symmetrical Upper Body, Neutral Shoulders, Recovery)
+- [x] Sync all daily logs to local database
+- [x] Create production-ready backup (backup-2026-01-23.json)
+- [ ] Deploy backup to production database
+- [ ] Verify restored data appears correctly in production UI
 - [x] Automated nightly backups implemented (GitHub Actions)
 - [ ] Document backup/restore procedure in OPS.md
 
 ### Metadata
 
+- **Status:** In Progress
+- **Priority:** High
+- **Type:** Maintenance
+- **Version:** v1.0
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
 ### Notes
+
+2026-01-23: Data recovery and organization complete
+- Reorganized data directory structure (data/daily/, data/demo/)
+- Updated all 23 daily log files to hybrid format (names + IDs)
+- Filled Jan 16-23 with detailed entries: software work, exercise, relationships, dog training, caution behaviors
+- Created 5 new targets and 3 new practices
+- Synced to local database: 140 entries, 53 practices, 13 targets, 2 rest days
+- Created backup-2026-01-23.json (307 rows) ready for production deployment
+- Remaining: deploy to production and verify in UI
 
 2026-01-22 (Terminal A): Executed data recovery against shelf-prod
 - Created pre-recovery backup: backup-prod-pre-recovery-2026-01-22.json
@@ -639,13 +661,6 @@ User data was lost when the local database was reset. Recovery data exists in JS
 - Recovered data from data/logs/*.json (Jan 1-15, 2026) via data-recovery.sql
 - Recovered additional entries/targets from conversation logs via data-recovery-user.sql
 - UI verification blocked by OAuth authentication issues (being resolved in SHELF-046)
-
-- **Status:** Planned
-- **Priority:** High
-- **Type:** Maintenance
-- **Version:** v1.0
-- **Assignee:** Alex
-- **GitHub Issue:** No
 
 ---
 

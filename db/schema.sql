@@ -235,3 +235,19 @@ CREATE TABLE IF NOT EXISTS settings (
   value JSONB NOT NULL DEFAULT '{}'::jsonb,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- =========================
+-- mutation_logs (audit trail for data recovery)
+-- =========================
+CREATE TABLE IF NOT EXISTS mutation_logs (
+  id SERIAL PRIMARY KEY,
+  method TEXT NOT NULL,
+  path TEXT NOT NULL,
+  status INT NOT NULL,
+  duration_ms INT,
+  body JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_mutation_logs_created_at ON mutation_logs (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_mutation_logs_path ON mutation_logs (path);

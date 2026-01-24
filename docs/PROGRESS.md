@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-01-22
+Last updated: 2026-01-23
 
 ---
 
@@ -42,6 +42,93 @@ Vercel rate-limited until ~11am EST. After deployment, verify:
 ---
 
 ## Sessions
+
+### 2026-01-23 (Late Night) - Data Recovery & Organization
+
+**Summary:**
+- Organized data directory structure: daily logs to data/daily/, demo files to data/demo/
+- Updated habits.json to include complete structure (habits, practices, actions, targets)
+- Filled in historical daily log entries for Jan 16-23 with detailed habit tracking data
+- Created new targets and practices for exercise and relationships recovery work
+- Synced all daily logs to local database (58 new entries added)
+- Created production-ready backup for deployment
+
+**Data Directory Reorganization:**
+- Moved all daily logs to `data/daily/` directory
+- Moved demo files to `data/demo/` directory
+- Updated demo environment source code to reference new data/demo/ location
+- Created missing daily log files for Jan 13, 16-23
+
+**Daily Log Schema Updates:**
+- Updated all daily log files to hybrid format (both names and IDs)
+- All entries now have: type, occurred_at, habit/habit_id, practice/practice_id, target_id, duration_minutes, note, actions, is_highlight, source, warm_up_note, cool_down_note
+- Consistent structure across all 23 daily log files
+
+**New Targets Created:**
+- The Shelf (id: 31) - software project, status: active
+- Spousal Visa (id: 32) - relationships project, status: active
+- Abstractly (id: 33) - software research funnel tool, status: planned
+- GreenRoom (id: 34) - software creator tool for comedians, status: planned
+- Symmetrical Upper Body (id: 35) - exercise target, status: active
+
+**New Practices Created:**
+- PMO+ (id: 71) - caution behavior practice
+- Neutral Shoulders (id: 72) - exercise practice for shoulder work
+- Recovery (id: 73) - relationships practice for addiction recovery work
+
+**Data Recovery & Entry Creation:**
+- Filled Jan 16-23 with extensive entries:
+  - Software work: The Shelf development, ChiriBudget development, planning sessions
+  - Exercise: Walking, Core, Legs, Upper, Neutral Shoulders, Physical Therapy
+  - Relationships: Marriage (Emotional Iron Man target), Family, Friends
+  - Dog Training: Drills and Socialization (USA Travel Preparation target)
+  - Caution behaviors: PMO entries on multiple days
+  - Life events: Grocery shopping, coordinating insurance
+- Associated all "The Shelf" mentions with target_id 31
+- Associated all Dog Training entries with USA Travel Preparation target (id: 22)
+- Added rest days to preparations table (Jan 13 and Jan 19)
+
+**Recovery Warm-Up Routine:**
+- Created comprehensive warm-up routine script for Recovery practice
+- Includes grounding techniques: textured stone, tea tree oil scent, hip stretches, breathing
+- Step-by-step approach for managing triggered moments
+- Text ready to use as warm_up_note for Recovery entries
+
+**Database Sync:**
+- Created sync-daily-logs-to-db.js script
+- Added new practices and targets to database (Neutral Shoulders, Recovery, Symmetrical Upper Body)
+- Synced all daily logs to database without duplicates (58 new entries inserted, 75 skipped)
+- Total database state: 140 entries, 53 practices, 13 targets, 2 rest days
+
+**Backup:**
+- Created backup-2026-01-23.json (307 rows total)
+- Includes all new data ready for production deployment
+- Cleaned up: deleted data-recovery.sql and data-recovery-user.sql files
+
+**Files Created:**
+- `backend/api/sync-daily-logs-to-db.js` - Database sync script
+- `data/daily/2026-01-13.json` through `2026-01-23.json` - Missing daily log files
+- `data/backups/backup-2026-01-23.json` - Production-ready backup
+
+**Files Modified:**
+- `data/daily/habits.json` - Added Neutral Shoulders, Recovery, Symmetrical Upper Body
+- All daily log files (2026-01-01.json through 2026-01-23.json) - Updated to hybrid format
+- `backend/api/demo-seed.js` - Updated paths to data/demo/
+- `backend/api/routes/demo.js` - Updated paths to data/demo/
+
+**Decisions:**
+- Rest days stored in preparations table (not entries)
+- Recovery practice for relationships habit to track addiction recovery work
+- Neutral Shoulders practice specific to Symmetrical Upper Body target
+- Dog training every other day pattern (16th, 18th, 20th, 22nd)
+- Upper body workout was on Friday (16th), not Saturday (17th)
+
+**What's Next:**
+- Deploy backup-2026-01-23.json to production database
+- Verify all data appears correctly in production UI
+- Continue with mobile app polish (SHELF-001) or other backlog items
+
+---
 
 ### 2026-01-22 (Late Night) - Automated Backup System (SHELF-050)
 
