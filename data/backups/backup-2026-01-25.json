@@ -1,5 +1,5 @@
 {
-  "exported_at": "2026-01-25T04:10:19.785Z",
+  "exported_at": "2026-01-25T04:59:00.403Z",
   "version": "1.0",
   "habits": [
     {
@@ -4152,5 +4152,27 @@
     }
   ],
   "settings": [],
-  "schema_migrations": []
+  "schema_migrations": [
+    {
+      "id": 1,
+      "version": "20260124000000_initial_schema",
+      "applied_at": "2026-01-25T02:35:49.060Z",
+      "execution_time_ms": 12,
+      "rolled_back_at": null
+    },
+    {
+      "id": 2,
+      "version": "20260125023705_add_habit_prompts_table",
+      "applied_at": "2026-01-25T02:40:46.656Z",
+      "execution_time_ms": 13,
+      "rolled_back_at": null
+    },
+    {
+      "id": 5,
+      "version": "20260125040215_add_missing_habit_prompts_columns",
+      "applied_at": "2026-01-25T04:02:59.057Z",
+      "execution_time_ms": 9,
+      "rolled_back_at": null
+    }
+  ]
 }

@@ -69,6 +69,12 @@ router.patch('/:id', async (req, res, next) => {
     const params = [id];
     let paramCount = 2;
 
+    // Automatically set done_at when status changes to completed (unless explicitly provided)
+    let autoDoneAt = null;
+    if (status === 'completed' && req.body.done_at === undefined) {
+      autoDoneAt = new Date().toISOString().split('T')[0]; // Set to today if not provided
+    }
+
     if (status !== undefined) {
       updates.push(`status = $${paramCount++}`);
       params.push(status);
@@ -112,6 +118,12 @@ router.patch('/:id', async (req, res, next) => {
     if (github_issue_url !== undefined) {
       updates.push(`github_issue_url = $${paramCount++}`);
       params.push(github_issue_url || null);
+    }
+
+    // Add auto done_at if status was set to completed
+    if (autoDoneAt !== null) {
+      updates.push(`done_at = $${paramCount++}::date`);
+      params.push(autoDoneAt);
     }
 
     if (updates.length === 0) {

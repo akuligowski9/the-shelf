@@ -469,9 +469,16 @@ export default function ProgressView() {
     const prepRate = totalDaysInRange > 0 ? Math.round((prepsInRange / totalDaysInRange) * 100) : 0
     const closureRate = totalDaysInRange > 0 ? Math.round((closuresInRange / totalDaysInRange) * 100) : 0
 
-    // Session rituals - not available from server metrics, would need entries
-    const warmUpRate = 0
-    const coolDownRate = 0
+    // Session rituals - calculate from entries in range
+    const habitEntriesInRange = entries.filter(e => {
+      if (e.type !== 'habit') return false
+      const entryDate = e.occurred_at?.split('T')[0]
+      return entryDate && datesInRange.has(entryDate)
+    })
+    const entriesWithWarmUp = habitEntriesInRange.filter(e => e.warm_up_note && e.warm_up_note.trim() !== '').length
+    const entriesWithCoolDown = habitEntriesInRange.filter(e => e.cool_down_note && e.cool_down_note.trim() !== '').length
+    const warmUpRate = habitEntriesInRange.length > 0 ? Math.round((entriesWithWarmUp / habitEntriesInRange.length) * 100) : 0
+    const coolDownRate = habitEntriesInRange.length > 0 ? Math.round((entriesWithCoolDown / habitEntriesInRange.length) * 100) : 0
 
     // Highlights from server
     const highlights = totals.highlights?.total || 0
@@ -479,7 +486,8 @@ export default function ProgressView() {
     // Completed targets in range
     const completedTargetsInRange = targets.filter(t => {
       if (t.status !== 'completed' || !t.done_at) return false
-      return dateRange.includes(t.done_at)
+      const doneDate = t.done_at.split('T')[0] // Normalize to YYYY-MM-DD
+      return datesInRange.has(doneDate)
     }).length
 
     // Total completed targets (all time)
