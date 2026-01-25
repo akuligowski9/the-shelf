@@ -334,4 +334,95 @@ This provides a friendly redirect instead of an error message.
 
 ## Backup & Recovery
 
-*To be documented when backup strategy is established.*
+### Automated Nightly Backups
+
+Production database is backed up nightly via GitHub Actions:
+
+- **Workflow:** `.github/workflows/nightly-backup.yml`
+- **Schedule:** 5:00 AM UTC (midnight EST)
+- **Output:** `data/backups/backup-YYYY-MM-DD.json`
+- **Retention:** 30 days (older files automatically deleted)
+- **Secret:** `PROD_DATABASE_URL` in GitHub repository secrets
+
+Backups are committed to the repo, providing:
+- Version control history of all backups
+- Off-site storage (GitHub)
+- Easy access for restore operations
+
+### Automated Daily Log Export
+
+Daily entries are exported to JSON logs via GitHub Actions:
+
+- **Workflow:** `.github/workflows/daily-export.yml`
+- **Schedule:** 4:59 AM UTC (11:59 PM Eastern)
+- **Output:** `data/daily/YYYY-MM-DD.json`
+- **Format:** Human-readable with both IDs and names for habits/practices
+- **Secret:** `PROD_DATABASE_URL` in GitHub repository secrets
+
+Daily logs provide a human-readable archive of each day's entries.
+
+### Manual Backup
+
+To create a backup manually:
+
+```bash
+cd backend/api
+DATABASE_URL=<connection-string> npm run backup
+```
+
+This creates `data/backups/backup-YYYY-MM-DD.json`.
+
+### Restore from Backup
+
+To restore a backup to local development database:
+
+```bash
+cd backend/api
+npm run restore
+# Restores from latest backup in data/backups/
+```
+
+**Safety:** The restore script refuses to run against Neon databases (prevents accidental production overwrites).
+
+### Auto-Restore on Dev Start
+
+When you run `npm run dev`, the dev-start script automatically:
+1. Finds the latest backup in `data/backups/`
+2. Restores it to your local PostgreSQL
+3. Starts the development server
+
+To skip auto-restore: `npm run dev:skip-restore`
+
+### Manual Export of Daily Log
+
+To export a specific day's entries:
+
+```bash
+cd backend/api
+DATABASE_URL=<connection-string> node export-daily.js 2026-01-24
+```
+
+### Neon Point-in-Time Recovery
+
+Neon provides built-in point-in-time recovery for paid plans. On the free tier:
+- Use the GitHub-committed backups for recovery
+- Daily backups provide 30-day recovery window
+- Backup files can be imported via the Settings → Import feature in the app
+
+### Recovery Procedure
+
+1. **From JSON backup:**
+   - Download the backup file from `data/backups/`
+   - Go to Settings → Import in the app
+   - Upload the backup file
+   - Review preview and confirm import
+
+2. **From daily logs:**
+   - Daily logs at `data/daily/YYYY-MM-DD.json` can be imported individually
+   - Useful for recovering specific days
+
+3. **Full database restore (local):**
+   ```bash
+   cd backend/api
+   npm run restore
+   ```

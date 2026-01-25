@@ -14,9 +14,14 @@ All six views are fully implemented and functional.
 **Backend API: Complete**
 Full REST API with all endpoints, PostgreSQL database, import/export with preview.
 
-**React Native Mobile App: Core Complete**
-- SHELF-001 (Mobile Polish) - offline queue and error handling complete, loading skeletons complete (SHELF-038)
-- Testing and edge case handling remain
+**React Native Mobile App: Complete**
+- SHELF-001 (Mobile Polish) - Done: offline queue, error handling, loading skeletons, 83 unit tests
+- Manual edge case testing deferred to SHELF-051
+
+**Automated Operations:**
+- Nightly database backups via GitHub Actions (SHELF-050)
+- Daily log exports via GitHub Actions (SHELF-058)
+- Auto-restore on local dev start
 
 ---
 
@@ -36,28 +41,70 @@ Reconstructed from git commit windows:
 
 ---
 
-## Pending Deployment (2026-01-23)
+## Pending Verification
 
-Vercel rate-limited until ~11am EST. After deployment, verify:
+**Automated Workflows (verify after Jan 27):**
+- [ ] Nightly backup workflow runs on schedule (SHELF-050)
+- [ ] Daily export workflow runs on schedule (SHELF-058)
 
-**Backend (Cloud Run):**
-- [ ] Deploy backend: `gcloud run deploy shelf-api --source backend/api --region us-east1 --allow-unauthenticated --max-instances=2`
-- [ ] Deploy demo backend: `gcloud run deploy shelf-api-demo --source backend/api --region us-east1 --allow-unauthenticated --max-instances=2`
-- [ ] Verify `/backup-status` endpoint returns GitHub Actions status
-- [ ] Verify portfolio redirect works for unauthorized login on demo
-
-**Frontend (Vercel):**
-- [ ] Verify Settings → Backup Status shows last backup with ✅ or ❌
-- [ ] Verify "View backup history" link opens GitHub Actions page
-
-**Other checks:**
-- [ ] Run nightly backup workflow manually to confirm it still works
-- [ ] Verify `git pull` brings down the backup file
-- [ ] Test `npm run dev` auto-restore (requires local PostgreSQL running)
+**SHELF-049 Mutation Logging:**
+- [ ] Deploy backend with LOG_MUTATIONS=true to Cloud Run
+- [ ] Verify mutation_logs table receives entries
+- [ ] Document log format in OPS.md
 
 ---
 
 ## Sessions
+
+### 2026-01-24 (Evening) - Mobile Unit Tests & Daily Export Automation
+
+**Summary:**
+- Completed SHELF-001: Mobile Phase 7 Polish - added 83 unit tests for offline utilities
+- Created SHELF-058: Automated Daily Log Export - entries exported to JSON at end of each day
+- Updated documentation for backup/recovery procedures in OPS.md
+- Created backlog items SHELF-052-056 for future web offline support
+
+**SHELF-001 Completion:**
+- Configured Jest for React Native with TypeScript
+- Created mocks for AsyncStorage and NetInfo in jest.setup.js
+- Wrote 83 unit tests across 3 files:
+  - `errors.test.ts` - 35 tests for error classes and helpers
+  - `offlineQueueStore.test.ts` - 30 tests for queue operations
+  - `syncManager.test.ts` - 18 tests for sync flow
+- Fixed smart quotes bug in errors.ts (curly apostrophes breaking TypeScript)
+- Deferred manual edge case testing to SHELF-051
+
+**SHELF-058 Implementation:**
+- Created `backend/api/export-daily.js` script
+- Created `.github/workflows/daily-export.yml` (runs 11:59 PM Eastern)
+- Added `npm run export-daily` script
+- Output format matches existing daily logs (hybrid IDs + names)
+
+**Documentation Updates:**
+- OPS.md: Added complete Backup & Recovery section with procedures for:
+  - Nightly backups via GitHub Actions
+  - Daily log exports
+  - Manual backup/restore commands
+  - Auto-restore on dev start
+  - Recovery procedures
+
+**Backlog Updates:**
+- Created SHELF-052 through SHELF-056 for web offline support (deferred)
+- Created SHELF-057 for voice journal entry (deferred)
+- Created SHELF-058 for daily export automation
+- Marked SHELF-001 as Done
+
+**Decisions:**
+- Web offline support (SHELF-045) deferred - mobile has offline, web typically used with stable internet
+- Voice journal uses copy-paste to Claude/ChatGPT (no API costs) - deferred to future
+
+**What's Next:**
+- Push commits to deploy SHELF-058 workflow
+- Test daily export workflow manually via workflow_dispatch
+- Verify SHELF-049 mutation logging deployment
+- Check SHELF-050 scheduled backups after Jan 27
+
+---
 
 ### 2026-01-24 (Afternoon) - Deployment Architecture Simplification
 
