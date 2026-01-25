@@ -101,36 +101,50 @@ export default function LoginView() {
             Continue with GitHub
           </Button>
 
-          {/* Only show deployment links on localhost (not production) */}
-          {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
-            <>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or navigate to</span>
-                </div>
-              </div>
+          {/* Deployment navigation links */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or navigate to</span>
+            </div>
+          </div>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="secondary"
-                  className="flex-1 h-12 text-base"
-                  onClick={() => window.location.href = 'https://demo-the-shelf.vercel.app'}
-                >
-                  Demo
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="flex-1 h-12 text-base"
-                  onClick={() => window.location.href = 'https://the-shelf-amk.vercel.app/login'}
-                >
-                  Production
-                </Button>
-              </div>
-            </>
-          )}
+          <div className="flex gap-2">
+            {/* Show Demo button on production and local */}
+            {window.location.hostname !== 'demo-the-shelf.vercel.app' && (
+              <Button
+                variant="secondary"
+                className="flex-1 h-12 text-base"
+                onClick={() => window.location.href = 'https://demo-the-shelf.vercel.app'}
+              >
+                Demo
+              </Button>
+            )}
+
+            {/* Show Local button on deployed environments */}
+            {(window.location.hostname === 'the-shelf-amk.vercel.app' || window.location.hostname === 'demo-the-shelf.vercel.app') && (
+              <Button
+                variant="secondary"
+                className="flex-1 h-12 text-base"
+                onClick={() => window.location.href = 'http://localhost:5173'}
+              >
+                Local
+              </Button>
+            )}
+
+            {/* Show Production button only on local/demo */}
+            {window.location.hostname !== 'the-shelf-amk.vercel.app' && (
+              <Button
+                variant="secondary"
+                className="flex-1 h-12 text-base"
+                onClick={() => window.location.href = 'https://the-shelf-amk.vercel.app'}
+              >
+                Production
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
