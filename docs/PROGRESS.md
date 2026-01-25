@@ -56,6 +56,44 @@ Reconstructed from git commit windows:
 
 ## Sessions
 
+### 2026-01-25 (Evening) - Pattern Metrics Bug Fixes
+
+**Summary:**
+- Fixed "Targets Done" showing 0 despite completed targets
+- Fixed warm-up/cool-down percentages hardcoded to 0
+- Deployed backend fixes to both production and demo Cloud Run
+
+**Issues Fixed:**
+
+**1. Targets Done Showing 0:**
+- Problem: Portfolio target had `status='completed'` but `done_at=null`
+- Root cause: Backend auto-set logic wasn't deployed to Cloud Run
+- Fixes:
+  - Backend `routes/targets.js`: Auto-set `done_at` when marking targets as completed
+  - Backend `index.js`: Added startup backfill for legacy completed targets
+  - Frontend `ProgressView.jsx`: Changed `dateRange.includes()` to `datesInRange.has()`
+  - Deployed both backends to Cloud Run
+
+**2. Warm-up/Cool-down Percentages:**
+- Problem: Hardcoded to 0 with comment "not available from server metrics"
+- Fix: Implemented calculation from entries with `warm_up_note` and `cool_down_note`
+- Result: Currently 0% (correct - no entries have these notes)
+
+**3. Reflections:**
+- Status: No bug - production has 0 reflections (verified correct)
+
+**Deployments:**
+- Backend Production: `shelf-api-00021-vhj`
+- Backend Demo: `shelf-api-demo-00010-h7r`
+- Frontend: Auto-deployed via Vercel
+
+**Git Commits:**
+- `067dd00` Fix pattern metrics calculations in Progress view
+- `57a9b66` Add startup backfill for completed targets missing done_at
+- `ea4e78c` Revert "Add debug logging for targets filtering"
+
+---
+
 ### 2026-01-24 (Evening) - Mobile Unit Tests & Daily Export Automation
 
 **Summary:**
