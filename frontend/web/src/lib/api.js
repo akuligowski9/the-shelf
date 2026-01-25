@@ -2,10 +2,10 @@
  * API client for The Shelf backend
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+import { getApiBase } from '@/utils/api-url'
 
 async function fetchJson(endpoint, options = {}) {
-  const url = `${API_BASE}${endpoint}`
+  const url = `${getApiBase()}${endpoint}`
   const res = await fetch(url, {
     credentials: 'include', // Send cookies for auth
     headers: {

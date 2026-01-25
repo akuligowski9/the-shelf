@@ -107,8 +107,8 @@ export default function SettingsView() {
   const loadBackupStatus = async () => {
     setBackupLoading(true)
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-      const response = await fetch(`${API_URL}/backup-status`)
+      const { getApiUrl } = await import('@/utils/api-url')
+      const response = await fetch(`${getApiUrl()}/backup-status`)
       const data = await response.json()
       setBackupStatus(data)
     } catch (err) {

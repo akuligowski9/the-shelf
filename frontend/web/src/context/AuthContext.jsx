@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+import { getApiUrl } from '@/utils/api-url'
 
 const AuthContext = createContext(null)
 
@@ -31,7 +30,7 @@ export function AuthProvider({ children }) {
 
   const checkAuth = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/auth/status`, {
+      const res = await fetch(`${getApiUrl()}/auth/status`, {
         credentials: 'include',
       })
       const data = await res.json()
@@ -54,12 +53,12 @@ export function AuthProvider({ children }) {
   }, [checkAuth])
 
   const login = (provider) => {
-    window.location.href = `${API_URL}/auth/${provider}`
+    window.location.href = `${getApiUrl()}/auth/${provider}`
   }
 
   const logout = async () => {
     try {
-      await fetch(`${API_URL}/auth/logout`, {
+      await fetch(`${getApiUrl()}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       })
