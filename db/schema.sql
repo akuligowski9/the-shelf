@@ -1,6 +1,14 @@
 -- db/schema.sql
 -- The Shelf (single-user) - Postgres schema
 -- Matches frontend data model from mockData.js and data-model.md
+--
+-- IMPORTANT: This file is documentation only.
+-- Schema changes are managed through the migration system.
+-- See: docs/MIGRATIONS.md
+-- Run: npm run migrate:create -- migration_name
+--
+-- To apply migrations: npm run migrate
+-- To check status: npm run migrate:status
 
 -- Enable UUID generation
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -35,6 +43,21 @@ CREATE TRIGGER trg_habits_updated_at
 BEFORE UPDATE ON habits
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
+
+-- =========================
+-- habit_prompts (warmup/cooldown prompts for habits)
+-- =========================
+CREATE TABLE IF NOT EXISTS habit_prompts (
+  id SERIAL PRIMARY KEY,
+  habit_id INT NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('warmup', 'cooldown')),
+  name TEXT NOT NULL,
+  content TEXT NOT NULL,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_habit_prompts_habit_id ON habit_prompts (habit_id);
 
 -- =========================
 -- practices (ways to express a habit)
@@ -251,3 +274,14 @@ CREATE TABLE IF NOT EXISTS mutation_logs (
 
 CREATE INDEX IF NOT EXISTS idx_mutation_logs_created_at ON mutation_logs (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_mutation_logs_path ON mutation_logs (path);
+
+-- =========================
+-- schema_migrations (migration tracking)
+-- =========================
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  id SERIAL PRIMARY KEY,
+  version TEXT NOT NULL UNIQUE,
+  applied_at TIMESTAMPTZ DEFAULT NOW(),
+  execution_time_ms INT,
+  rolled_back_at TIMESTAMPTZ
+);

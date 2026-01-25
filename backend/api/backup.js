@@ -42,7 +42,8 @@ async function backup() {
       { name: 'closures', orderBy: 'id' },
       { name: 'reflections', orderBy: 'id' },
       { name: 'habit_transitions', orderBy: 'id' },
-      { name: 'settings', orderBy: 'key' }
+      { name: 'settings', orderBy: 'key' },
+      { name: 'schema_migrations', orderBy: 'version' }
     ]
 
     const data = {
@@ -51,6 +52,21 @@ async function backup() {
     }
 
     for (const table of tables) {
+      // Check if table exists (schema_migrations may not exist yet)
+      const tableExists = await client.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_schema = 'public'
+          AND table_name = $1
+        ) as exists
+      `, [table.name])
+
+      if (!tableExists.rows[0].exists) {
+        console.log(`  ${table.name}: skipped (table does not exist)`)
+        data[table.name] = []
+        continue
+      }
+
       const result = await client.query(`SELECT * FROM ${table.name} ORDER BY ${table.orderBy}`)
       data[table.name] = result.rows
       console.log(`  ${table.name}: ${result.rows.length} rows`)

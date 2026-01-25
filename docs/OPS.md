@@ -332,6 +332,67 @@ This provides a friendly redirect instead of an error message.
 
 ---
 
+## Database Migrations
+
+The Shelf uses a migration system for versioned schema changes. See [MIGRATIONS.md](./MIGRATIONS.md) for complete documentation.
+
+### Quick Reference
+
+```bash
+cd backend/api
+
+# Check migration status
+npm run migrate:status
+
+# Create new migration
+npm run migrate:create -- add_new_column
+
+# Run pending migrations (development)
+npm run migrate
+
+# Run pending migrations (production)
+DATABASE_URL=$PROD_URL RUN_MIGRATIONS_ON_PRODUCTION=yes npm run migrate
+```
+
+### Production Migration Workflow
+
+**CRITICAL: Always backup before production migrations!**
+
+```bash
+# Step 1: Test on demo database first
+DATABASE_URL=$DEMO_URL npm run backup
+DATABASE_URL=$DEMO_URL npm run migrate
+# Verify demo site still works
+
+# Step 2: Backup production
+DATABASE_URL=$PROD_URL npm run backup
+
+# Step 3: Run migrations (with confirmation)
+DATABASE_URL=$PROD_URL RUN_MIGRATIONS_ON_PRODUCTION=yes npm run migrate
+# Type 'y' when prompted
+
+# Step 4: Verify production site
+# Check the-shelf-amk.vercel.app
+
+# Step 5: Verify migration status
+DATABASE_URL=$PROD_URL npm run migrate:status
+```
+
+### Safety Features
+
+- **Production guard:** Requires `RUN_MIGRATIONS_ON_PRODUCTION=yes` environment variable
+- **Interactive confirmation:** Must type 'y' at prompt for production
+- **Transaction wrapping:** Auto-rollback on any error
+- **Existing table detection:** Initial migration safely skips if schema exists
+
+See [MIGRATIONS.md](./MIGRATIONS.md) for:
+- Creating migrations
+- Best practices
+- Rollback procedures
+- Troubleshooting
+
+---
+
 ## Backup & Recovery
 
 ### Automated Nightly Backups
@@ -348,6 +409,11 @@ Backups are committed to the repo, providing:
 - Version control history of all backups
 - Off-site storage (GitHub)
 - Easy access for restore operations
+
+**Backup contents:**
+- All user data tables (habits, practices, actions, targets, entries, etc.)
+- Migration history (schema_migrations table)
+- Settings and mutation logs
 
 ### Automated Daily Log Export
 

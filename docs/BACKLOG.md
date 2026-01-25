@@ -220,24 +220,71 @@ The Shelf tracks "transitions" (when users switch between habits during a sessio
 
 ### Description
 
-Database schema changes are currently applied via direct SQL edits to schema.sql, which doesn't track migration history or support rollbacks. As the project grows and potentially has multiple contributors, a formal migration system is needed. This feature implements versioned migration files with up/down support, a migrations table to track applied changes, and a CLI command to run pending migrations. This enables safe, reproducible schema evolution.
+Database schema changes are now managed through a versioned migration system with transaction-wrapped execution, rollback support, and multi-layer production safety guards. The system includes JavaScript-based migration files, a CLI tool for running migrations, and a schema_migrations table for tracking state.
 
 ### Acceptance Criteria
 
-- [ ] Migration files track schema changes
-- [ ] Up migrations apply changes
-- [ ] Down migrations revert changes
-- [ ] Migration state tracked in database
-- [ ] CLI command to run migrations
+- [x] Migration files track schema changes (timestamp-based naming)
+- [x] Up migrations apply changes (with transaction wrapping)
+- [x] Down migrations revert changes (with confirmation)
+- [x] Migration state tracked in database (schema_migrations table)
+- [x] CLI commands to run migrations (run, status, rollback, create)
+- [x] Production safety guards (env var + interactive confirmation)
+- [x] Initial schema migration (with existing table detection)
+- [x] habit_prompts table migration
+- [x] Backup integration (schema_migrations included in backups)
+- [x] Documentation (MIGRATIONS.md, OPS.md updates)
+- [x] Demo database migrated successfully
+- [x] Production database migrated successfully
 
 ### Metadata
 
-- **Status:** Planned
-- **Priority:** Low
+- **Status:** Done
+- **Priority:** High (was Low - elevated during implementation)
 - **Type:** Maintenance
-- **Version:** Unassigned
-- **Assignee:** Unassigned
+- **Version:** v1.0
+- **Assignee:** Alex
 - **GitHub Issue:** No
+
+### Implementation Notes
+
+**Completed:** 2026-01-25
+
+**Files Created:**
+- `backend/api/migrate.js` - Migration CLI (420 lines)
+- `db/migrations/20260124000000_initial_schema.js` - Initial schema
+- `db/migrations/20260125023705_add_habit_prompts_table.js` - habit_prompts table
+- `db/migrations/20260125040215_add_missing_habit_prompts_columns.js` - Missing columns fix
+- `docs/MIGRATIONS.md` - Comprehensive migration guide (500+ lines)
+- `docs/MIGRATION_IMPLEMENTATION_STATUS.md` - Implementation summary
+
+**Files Modified:**
+- `backend/api/package.json` - Added migration npm scripts
+- `backend/api/backup.js` - Include schema_migrations in backups
+- `db/schema.sql` - Added migration notices and new tables
+- `docs/OPS.md` - Added migration workflow section
+
+**Safety Features:**
+- Multi-layer protection: env var guard + interactive confirmation + transactions + skip detection
+- Production requires `RUN_MIGRATIONS_ON_PRODUCTION=yes` environment variable
+- Interactive "Type 'y' to proceed" prompt for production
+- Transaction wrapping with auto-rollback on errors
+- Initial migration detects existing tables (no DROP, no TRUNCATE)
+
+**Migration Results:**
+- Demo database: 3 migrations applied successfully (data preserved)
+- Production database: 3 migrations applied successfully (140 entries preserved)
+- habit_prompts table created with all required columns
+- schema_migrations table tracking all migrations
+
+**Commands:**
+```bash
+npm run migrate              # Run pending migrations
+npm run migrate:status       # Show migration state
+npm run migrate:rollback     # Rollback last migration
+npm run migrate:create NAME  # Create new migration file
+npm run migrate -- --dry-run # Preview without executing
+```
 
 ---
 

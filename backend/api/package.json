@@ -12,6 +12,10 @@
     "backup": "node backup.js",
     "restore": "node restore.js",
     "export-daily": "node export-daily.js",
+    "migrate": "node migrate.js run",
+    "migrate:status": "node migrate.js status",
+    "migrate:rollback": "node migrate.js rollback",
+    "migrate:create": "node migrate.js create",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
