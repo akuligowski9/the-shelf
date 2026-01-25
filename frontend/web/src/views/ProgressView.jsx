@@ -485,23 +485,9 @@ export default function ProgressView() {
 
     // Completed targets in range
     const completedTargetsInRange = targets.filter(t => {
-      if (t.status !== 'completed' || !t.done_at) {
-        if (t.name === 'Portfolio') console.log('[DEBUG] Portfolio filtered out:', { status: t.status, done_at: t.done_at })
-        return false
-      }
+      if (t.status !== 'completed' || !t.done_at) return false
       const doneDate = t.done_at.split('T')[0] // Normalize to YYYY-MM-DD
-      const inRange = datesInRange.has(doneDate)
-      if (t.name === 'Portfolio') {
-        console.log('[DEBUG] Portfolio check:', {
-          done_at: t.done_at,
-          doneDate,
-          inRange,
-          dateRangeSize: datesInRange.size,
-          dateRangeFirst: dateRange[0],
-          dateRangeLast: dateRange[dateRange.length - 1]
-        })
-      }
-      return inRange
+      return datesInRange.has(doneDate)
     }).length
 
     // Total completed targets (all time)
