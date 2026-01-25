@@ -358,6 +358,10 @@ router.get('/prompts', async (_req, res, next) => {
     );
     res.json({ ok: true, prompts: r.rows });
   } catch (err) {
+    // If table doesn't exist (demo mode), return empty array
+    if (err.code === '42P01') {
+      return res.json({ ok: true, prompts: [] });
+    }
     next(err);
   }
 });
@@ -372,6 +376,10 @@ router.get('/:habitId/prompts', async (req, res, next) => {
     );
     res.json({ ok: true, prompts: r.rows });
   } catch (err) {
+    // If table doesn't exist (demo mode), return empty array
+    if (err.code === '42P01') {
+      return res.json({ ok: true, prompts: [] });
+    }
     next(err);
   }
 });
