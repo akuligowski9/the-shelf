@@ -1,5 +1,5 @@
 {
-  "exported_at": "2026-01-27T04:03:13.297Z",
+  "exported_at": "2026-01-27T05:19:47.301Z",
   "version": "1.0",
   "habits": [
     {
@@ -33,10 +33,10 @@
       "active": true,
       "target_minutes": 60,
       "color": "forest",
-      "track_actions": false,
+      "track_actions": true,
       "sort_order": 3,
       "created_at": "2026-01-22T21:09:54.834Z",
-      "updated_at": "2026-01-23T00:00:50.990Z"
+      "updated_at": "2026-01-27T05:02:56.822Z"
     },
     {
       "id": 4,
@@ -45,10 +45,10 @@
       "active": true,
       "target_minutes": 60,
       "color": "lavender",
-      "track_actions": false,
+      "track_actions": true,
       "sort_order": 4,
       "created_at": "2026-01-22T21:09:54.834Z",
-      "updated_at": "2026-01-23T00:00:50.990Z"
+      "updated_at": "2026-01-27T05:03:01.930Z"
     },
     {
       "id": 5,
@@ -482,11 +482,11 @@
       "id": 43,
       "habit_id": 7,
       "name": "Working through lunch / no breaks",
-      "active": true,
+      "active": false,
       "details": null,
       "sort_order": 13,
       "created_at": "2026-01-22T21:09:54.834Z",
-      "updated_at": "2026-01-23T00:00:50.990Z"
+      "updated_at": "2026-01-27T05:03:42.625Z"
     },
     {
       "id": 44,
@@ -617,6 +617,16 @@
       "sort_order": null,
       "created_at": "2026-01-23T07:24:35.079Z",
       "updated_at": "2026-01-23T07:24:35.079Z"
+    },
+    {
+      "id": 80,
+      "habit_id": 7,
+      "name": "Binge gaming",
+      "active": true,
+      "details": null,
+      "sort_order": null,
+      "created_at": "2026-01-27T05:03:54.583Z",
+      "updated_at": "2026-01-27T05:03:54.583Z"
     }
   ],
   "actions": [
@@ -4366,9 +4376,164 @@
       "archived_at": null,
       "created_at": "2026-01-25T05:03:50.043Z",
       "updated_at": "2026-01-25T05:03:50.043Z"
+    },
+    {
+      "id": 232,
+      "type": "caution",
+      "occurred_at": "2026-01-25T04:54:42.742Z",
+      "habit_id": null,
+      "practice_id": 71,
+      "target_id": null,
+      "duration_minutes": null,
+      "note": null,
+      "actions": null,
+      "is_highlight": false,
+      "source": "manual",
+      "warm_up_note": null,
+      "cool_down_note": null,
+      "archived_at": null,
+      "created_at": "2026-01-27T04:54:43.608Z",
+      "updated_at": "2026-01-27T04:54:43.608Z"
+    },
+    {
+      "id": 233,
+      "type": "habit",
+      "occurred_at": "2026-01-26T04:55:08.979Z",
+      "habit_id": 4,
+      "practice_id": 12,
+      "target_id": 22,
+      "duration_minutes": 30,
+      "note": null,
+      "actions": null,
+      "is_highlight": false,
+      "source": "manual",
+      "warm_up_note": null,
+      "cool_down_note": null,
+      "archived_at": null,
+      "created_at": "2026-01-27T04:55:09.832Z",
+      "updated_at": "2026-01-27T04:55:09.832Z"
+    },
+    {
+      "id": 234,
+      "type": "habit",
+      "occurred_at": "2026-01-26T04:56:24.433Z",
+      "habit_id": 3,
+      "practice_id": 5,
+      "target_id": null,
+      "duration_minutes": 60,
+      "note": null,
+      "actions": null,
+      "is_highlight": false,
+      "source": "manual",
+      "warm_up_note": null,
+      "cool_down_note": null,
+      "archived_at": null,
+      "created_at": "2026-01-27T04:56:25.446Z",
+      "updated_at": "2026-01-27T04:56:25.446Z"
+    },
+    {
+      "id": 235,
+      "type": "caution",
+      "occurred_at": "2026-01-26T04:56:53.315Z",
+      "habit_id": null,
+      "practice_id": 51,
+      "target_id": null,
+      "duration_minutes": null,
+      "note": null,
+      "actions": null,
+      "is_highlight": false,
+      "source": "manual",
+      "warm_up_note": null,
+      "cool_down_note": null,
+      "archived_at": null,
+      "created_at": "2026-01-27T04:56:54.187Z",
+      "updated_at": "2026-01-27T04:56:54.187Z"
+    },
+    {
+      "id": 236,
+      "type": "habit",
+      "occurred_at": "2026-01-26T04:58:52.126Z",
+      "habit_id": 1,
+      "practice_id": 56,
+      "target_id": 16,
+      "duration_minutes": 60,
+      "note": null,
+      "actions": null,
+      "is_highlight": false,
+      "source": "manual",
+      "warm_up_note": null,
+      "cool_down_note": null,
+      "archived_at": null,
+      "created_at": "2026-01-27T04:58:53.119Z",
+      "updated_at": "2026-01-27T04:58:53.119Z"
+    },
+    {
+      "id": 237,
+      "type": "life",
+      "occurred_at": "2026-01-26T04:59:01.468Z",
+      "habit_id": null,
+      "practice_id": null,
+      "target_id": null,
+      "duration_minutes": 30,
+      "note": "Unemployment",
+      "actions": null,
+      "is_highlight": false,
+      "source": "manual",
+      "warm_up_note": null,
+      "cool_down_note": null,
+      "archived_at": null,
+      "created_at": "2026-01-27T04:59:02.233Z",
+      "updated_at": "2026-01-27T04:59:02.233Z"
+    },
+    {
+      "id": 238,
+      "type": "habit",
+      "occurred_at": "2026-01-26T04:59:23.570Z",
+      "habit_id": 6,
+      "practice_id": 21,
+      "target_id": null,
+      "duration_minutes": 30,
+      "note": "Catching up with Mads",
+      "actions": null,
+      "is_highlight": false,
+      "source": "manual",
+      "warm_up_note": null,
+      "cool_down_note": null,
+      "archived_at": null,
+      "created_at": "2026-01-27T04:59:24.475Z",
+      "updated_at": "2026-01-27T04:59:24.475Z"
+    },
+    {
+      "id": 239,
+      "type": "caution",
+      "occurred_at": "2026-01-26T05:04:31.818Z",
+      "habit_id": null,
+      "practice_id": 80,
+      "target_id": null,
+      "duration_minutes": 240,
+      "note": null,
+      "actions": null,
+      "is_highlight": false,
+      "source": "manual",
+      "warm_up_note": null,
+      "cool_down_note": null,
+      "archived_at": null,
+      "created_at": "2026-01-27T05:04:32.715Z",
+      "updated_at": "2026-01-27T05:04:32.715Z"
     }
   ],
   "preparations": [
+    {
+      "id": 1,
+      "period_type": "day",
+      "period_start": "2026-01-25T00:00:00.000Z",
+      "note": "Sick - Break from screens",
+      "habit_id": null,
+      "target_id": null,
+      "rest_day": true,
+      "created_at": "2026-01-27T04:54:32.326Z",
+      "updated_at": "2026-01-27T04:54:32.326Z"
+    },
     {
       "id": 2,
       "period_type": "day",
