@@ -1812,3 +1812,36 @@ Mobile testing revealed UI issues with cramped x-axis labels on charts and overl
 Implementation (2026-01-28):
 - `ProgressView.jsx`: Changed Balance chart XAxis interval from `timeRange === 'year' ? 3 : 0` to `timeRange === 'year' ? 3 : timeRange === 'month' ? 2 : 0`
 - `AttentionView.jsx`: Made KanbanCard responsive with Tailwind breakpoints (md:)
+
+---
+
+## SHELF-063: Version Endpoint and Display
+
+### Description
+
+Add a version endpoint to the backend (`GET /version`) and display the deployed version in the Settings view. This allows visual confirmation of what version is deployed without checking deployment logs.
+
+### Acceptance Criteria
+
+- [x] Backend has `GET /version` endpoint returning `{ version: "x.y.z" }`
+- [x] Version read from package.json (single source of truth)
+- [x] Settings view displays current version
+- [x] Version shown subtly (footer or metadata section)
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+### Notes
+
+Requested during v1.2.0 release discussion. Helps confirm deployment state visually.
+
+Implementation (2026-01-28):
+- Backend `app.js`: Added `GET /version` endpoint reading from package.json
+- Backend `package.json`: Updated version to 1.2.0
+- Frontend `SettingsView.jsx`: Fetches version from API, displays in About section

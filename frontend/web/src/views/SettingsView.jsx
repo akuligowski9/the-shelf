@@ -76,6 +76,7 @@ export default function SettingsView() {
   const [previewLoading, setPreviewLoading] = useState(null)
   const [backupStatus, setBackupStatus] = useState(null)
   const [backupLoading, setBackupLoading] = useState(false)
+  const [apiVersion, setApiVersion] = useState(null)
 
   // Load settings from API on mount
   useEffect(() => {
@@ -121,6 +122,21 @@ export default function SettingsView() {
 
   useEffect(() => {
     loadBackupStatus()
+  }, [])
+
+  // Load API version
+  useEffect(() => {
+    const loadVersion = async () => {
+      try {
+        const { getApiUrl } = await import('@/utils/api-url')
+        const response = await fetch(`${getApiUrl()}/version`)
+        const data = await response.json()
+        setApiVersion(data.version)
+      } catch (err) {
+        console.error('Failed to load version:', err)
+      }
+    }
+    loadVersion()
   }, [])
 
   const setTimezone = (tz) => {
@@ -968,7 +984,7 @@ export default function SettingsView() {
             long-term memory of effort. It is designed to be used for years.
           </p>
           <p className="text-xs text-muted-foreground/60 mt-3">
-            Version 0.1.0
+            Version {apiVersion || '...'}
           </p>
         </CardContent>
       </Card>

@@ -59,6 +59,12 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true });
 });
 
+// version - no auth needed
+const packageJson = require('./package.json');
+app.get('/version', (_req, res) => {
+  res.json({ version: packageJson.version });
+});
+
 // backup status - no auth needed (public GitHub data)
 app.get('/backup-status', async (_req, res) => {
   try {

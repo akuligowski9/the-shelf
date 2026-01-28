@@ -29,6 +29,7 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v1.3.0 | 2026-01-28 | Version endpoint and display in Settings |
 | v1.2.0 | 2026-01-28 | Mobile UI polish: chart spacing, compact cards, PWA icon fix |
 | v1.1.0 | 2026-01-28 | Mobile OAuth fix, demo auth error handling, login UX improvements |
 | v1.0.0 | 2026-01-20 | Initial release - web app, mobile app, full API, demo mode |
@@ -220,6 +221,27 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 **Files Modified:**
 - `frontend/web/src/views/ProgressView.jsx`
 - `frontend/web/src/views/AttentionView.jsx`
+
+---
+
+### 2026-01-28 (Night) - Version Endpoint (SHELF-063)
+
+**Summary:**
+- Added `GET /version` endpoint to backend
+- Settings view now displays deployed version dynamically
+
+**Backend (`app.js`):**
+- Added `/version` endpoint that reads from package.json
+- Returns `{ version: "x.y.z" }`
+
+**Frontend (`SettingsView.jsx`):**
+- Added `apiVersion` state and fetch on mount
+- About section now shows dynamic version instead of hardcoded "0.1.0"
+
+**Files Modified:**
+- `backend/api/app.js` - Added version endpoint
+- `backend/api/package.json` - Updated version to 1.3.0
+- `frontend/web/src/views/SettingsView.jsx` - Fetch and display version
 
 ---
 
