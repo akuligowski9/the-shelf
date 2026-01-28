@@ -25,6 +25,17 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 ---
 
+## Release History
+
+| Version | Date | Highlights |
+|---------|------|------------|
+| v1.1.0 | 2026-01-28 | Mobile OAuth fix, demo auth error handling, login UX improvements |
+| v1.0.0 | 2026-01-20 | Initial release - web app, mobile app, full API, demo mode |
+
+**Versioning:** Semantic versioning (`major.minor.patch`). Tags in git.
+
+---
+
 ## Time Tracking (Week of Jan 16-20)
 
 Reconstructed from git commit windows:
