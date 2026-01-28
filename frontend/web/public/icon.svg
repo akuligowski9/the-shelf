@@ -5,8 +5,8 @@
       <stop offset="100%" style="stop-color:#4a5568;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <!-- Background circle -->
-  <circle cx="256" cy="256" r="256" fill="url(#shelfGrad)"/>
+  <!-- Square background (fills entire canvas for proper iOS masking) -->
+  <rect width="512" height="512" fill="url(#shelfGrad)"/>
   <!-- Shelf icon - three horizontal bars representing a shelf -->
   <g fill="#faf8f5">
     <!-- Top shelf -->

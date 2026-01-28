@@ -163,6 +163,36 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 
 ---
 
+### 2026-01-28 (Late Evening) - PWA Icon Fix
+
+**Summary:**
+- Fixed PWA icon displaying as circle instead of proper square on iOS home screen
+- Root cause: SVG used `<circle>` background which iOS cropped into a rounded square
+- Changed icon.svg to use `<rect>` background that fills full canvas
+- Regenerated all PNG icons (512x512, 192x192, 180x180)
+
+**Technical Details:**
+- iOS applies its own rounded-rectangle mask to all app icons
+- Original icon: circular design → circle inside rounded square (looked odd)
+- Fixed icon: square design → iOS mask shapes it correctly
+
+**Files Modified:**
+- `frontend/web/public/icon.svg` - Changed `<circle>` to `<rect>` background
+- `frontend/web/public/pwa-512x512.png` - Regenerated from SVG
+- `frontend/web/public/pwa-192x192.png` - Regenerated from SVG
+- `frontend/web/public/apple-touch-icon.png` - Regenerated from SVG
+
+**Tools Used:**
+- `qlmanage` (macOS) - Rendered SVG to PNG
+- `sips` (macOS) - Resized PNG to required dimensions
+
+**To Apply:**
+- Deploy to Vercel
+- Delete "Shelf" from home screen
+- Re-add via Safari "Add to Home Screen"
+
+---
+
 ### 2026-01-28 (Evening) - Demo Auth Error Handling (SHELF-061)
 
 **Summary:**
