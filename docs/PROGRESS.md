@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-01-24
+Last updated: 2026-01-28
 
 ---
 
@@ -43,18 +43,172 @@ Reconstructed from git commit windows:
 
 ## Pending Verification
 
-**Automated Workflows (verify after Jan 27):**
-- [ ] Nightly backup workflow runs on schedule (SHELF-050)
-- [ ] Daily export workflow runs on schedule (SHELF-058)
+**Automated Workflows:** ✅ Verified 2026-01-28
+- [x] Nightly backup workflow runs on schedule (SHELF-050) - backups exist for Jan 23, 25, 27
+- [x] Daily export workflow runs on schedule (SHELF-058) - 2 successful runs (Jan 27, 28)
 
-**SHELF-049 Mutation Logging:**
-- [ ] Deploy backend with LOG_MUTATIONS=true to Cloud Run
-- [ ] Verify mutation_logs table receives entries
-- [ ] Document log format in OPS.md
+**SHELF-049 Mutation Logging:** ✅ Complete
+- [x] Deploy backend with LOG_MUTATIONS=true to Cloud Run (verified 2026-01-28)
+- [x] Verify mutation_logs table receives entries (verified 2026-01-28: 20+ rows, data since Jan 20, 0 failed requests)
+- [x] Document log format in OPS.md (added 2026-01-28)
 
 ---
 
 ## Sessions
+
+### 2026-01-28 - Mobile OAuth Fix & Login UX Improvements
+
+**Summary:**
+- Fixed OAuth authentication failing on mobile (iOS Safari, Android Chrome)
+- Root cause: Cross-site cookies blocked by mobile browsers
+- Implemented token-based auth via URL parameter as fallback
+- Added mobile detection to hide "Local" button on phones
+- Added localhost availability check with helpful setup message
+
+**OAuth Mobile Fix:**
+
+Problem: OAuth flow completed successfully but mobile browsers blocked the `auth_token` cookie because API (`shelf-api-xxx.run.app`) and frontend (`the-shelf-amk.vercel.app`) are on different domains. Mobile browsers aggressively block third-party cookies even with `sameSite: 'none'`.
+
+Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in localStorage, send via `Authorization: Bearer` header on all API requests.
+
+**Backend Changes:**
+- `middleware/auth.js`: Added `extractToken()` to check Authorization header first, then cookie
+- `routes/auth.js`: OAuth callback now redirects with `?token=xxx` in URL
+- `routes/auth.js`: Added `extractToken()` helper for `/auth/me` and `/auth/status` endpoints
+- Cookie still set for desktop browsers that support it
+
+**Frontend Changes:**
+- `context/AuthContext.jsx`:
+  - Added `getAuthToken()`, `setAuthToken()`, `clearAuthToken()` for localStorage management
+  - On mount: extracts token from URL, stores in localStorage, cleans URL
+  - `checkAuth()` and `logout()` now send Authorization header
+- `api.js` and `lib/api.js`: Include `Authorization: Bearer xxx` header from localStorage on all requests
+
+**Login UX Improvements:**
+- `views/LoginView.jsx`:
+  - Added `isMobileDevice()` detection via user agent
+  - "Local" button hidden on mobile devices (localhost won't be running)
+  - Desktop: "Local" button checks localhost availability before navigating
+  - Shows helpful message with Docker setup link if localhost unreachable
+
+**Cleanup:**
+- Deleted `render.yaml` - was unused/vestigial config file causing confusion
+- Actual deployment uses Vercel + Google Cloud Run + Neon (documented in OPS.md)
+
+**Production Environment Verified:**
+- Frontend: https://the-shelf-amk.vercel.app (Vercel)
+- API: https://shelf-api-785607788916.us-east1.run.app (Cloud Run)
+- Database: Neon PostgreSQL
+- `LOG_MUTATIONS=true` confirmed enabled in production
+
+**Files Modified:**
+- `backend/api/middleware/auth.js`
+- `backend/api/routes/auth.js`
+- `frontend/web/src/context/AuthContext.jsx`
+- `frontend/web/src/api.js`
+- `frontend/web/src/lib/api.js`
+- `frontend/web/src/views/LoginView.jsx`
+
+**Files Deleted:**
+- `render.yaml`
+
+**What's Next:**
+- Deploy changes to production (backend to Cloud Run, frontend auto-deploys via Vercel)
+- Test OAuth flow on mobile device
+
+---
+
+### 2026-01-28 (Afternoon) - Production Ops & Daily Backfill
+
+**Summary:**
+- Verified mutation logging working in production
+- Documented mutation logging in OPS.md (SHELF-049 complete)
+- Created combined daily backfill script with database and backup modes
+- Backfilled missing daily files (Jan 25-26)
+
+**Mutation Logging Verified:**
+- Confirmed `LOG_MUTATIONS=true` in Cloud Run production
+- Queried `mutation_logs` table - data since Jan 20, 0 failed requests
+- Added full documentation to OPS.md (schema, queries, recovery use case)
+- Marked SHELF-049 as complete
+
+**Daily Backfill Script:**
+- Created `backfill-daily.js` - combined script with two modes:
+  - Default: queries database directly (requires DATABASE_URL)
+  - `--from-backup`: parses backup JSON files (offline use)
+- Updated `daily-export.yml` workflow with backfill checkbox option
+- Added npm scripts: `backfill-daily`, `backfill-daily:from-backup`
+- Ran backfill: created 2026-01-25.json (6 entries), 2026-01-26.json (1 entry)
+
+**Files Created:**
+- `backend/api/backfill-daily.js`
+- `data/daily/2026-01-25.json`
+- `data/daily/2026-01-26.json`
+
+**Files Modified:**
+- `docs/OPS.md` - Added Mutation Logging section
+- `.github/workflows/daily-export.yml` - Added backfill option
+- `backend/api/package.json` - Added backfill scripts
+
+---
+
+### 2026-01-28 (Evening) - Demo Auth Error Handling (SHELF-061)
+
+**Summary:**
+- Fixed raw JSON error when attempting OAuth on demo site
+- Added graceful error handling for unconfigured OAuth
+- Updated error messages to be friendly and conversational
+- Added backend auth tests
+
+**Bug Found:**
+On the demo site, clicking "Continue with Google" returned raw JSON:
+```json
+{"ok": false, "error": "Unknown authentication strategy \"google\""}
+```
+
+This happened because the demo backend doesn't have OAuth credentials configured.
+
+**Backend Fix (`routes/auth.js`):**
+- Added `isOAuthConfigured(provider)` helper to check if credentials are set
+- Added `requireOAuthConfigured(provider)` middleware that redirects to `/login?error=auth_unavailable` if OAuth isn't configured
+- Applied middleware to all 4 OAuth routes: `/auth/google`, `/auth/google/callback`, `/auth/github`, `/auth/github/callback`
+- Changed unauthorized user redirect from direct `PORTFOLIO_URL` to `/login?error=unauthorized`
+
+**Frontend Fix (`views/LoginView.jsx`):**
+- Changed error styling from red to amber (friendlier, less alarming)
+- Added handling for three error types:
+  - `auth_unavailable`: "Sign-in isn't available here. This demo instance is for browsing only..."
+  - `unauthorized`: "Thanks for your interest! This is a personal app, so sign-in is restricted..."
+  - `failed`: "Something went wrong. Sign-in failed unexpectedly..."
+- Added catch-all for unknown error types
+- All errors include portfolio link for contact
+
+**Tests Added (`__tests__/auth.test.js`):**
+- 8 new tests for auth endpoints
+- Tests for `/auth/status`, `/auth/me`, `/auth/logout`
+- Tests for OAuth configuration detection logic
+
+**Test Results:**
+- Backend: 30 tests passing (was 22, now 30)
+- Frontend: 37 tests passing (unchanged)
+
+**Files Modified:**
+- `backend/api/routes/auth.js`
+- `frontend/web/src/views/LoginView.jsx`
+
+**Files Created:**
+- `backend/api/__tests__/auth.test.js`
+
+**Cleanup:**
+- Deleted `backup-prod-before-restore-2026-01-24.json` (79KB) - one-time safety backup before restore operation
+- Deleted `backup-prod-pre-recovery-2026-01-22.json` (61KB) - one-time safety backup before data recovery
+- These were superseded by nightly backups which contain more complete data
+
+**What's Next:**
+- Deploy backend to demo Cloud Run
+- Verify error handling works on demo site
+
+---
 
 ### 2026-01-25 (Evening) - Pattern Metrics Bug Fixes
 

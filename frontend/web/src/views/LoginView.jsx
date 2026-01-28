@@ -1,15 +1,23 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, BookOpen } from 'lucide-react'
+import { AlertCircle, BookOpen, Laptop } from 'lucide-react'
+
+// Simple mobile detection via user agent
+function isMobileDevice() {
+  if (typeof navigator === 'undefined') return false
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
 
 export default function LoginView() {
   const { isAuthenticated, isDemoMode, login, loading } = useAuth()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const error = searchParams.get('error')
+  const [localCheckState, setLocalCheckState] = useState(null) // null | 'checking' | 'unavailable'
+  const isMobile = isMobileDevice()
 
   useEffect(() => {
     // If already authenticated, redirect to home
@@ -17,6 +25,26 @@ export default function LoginView() {
       navigate('/')
     }
   }, [isAuthenticated, loading, navigate])
+
+  // Handle Local button click - check if localhost is reachable first
+  const handleLocalClick = async () => {
+    setLocalCheckState('checking')
+    try {
+      // Try to reach the local health endpoint with a short timeout
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 2000)
+      await fetch('http://localhost:3001/health', {
+        signal: controller.signal,
+        mode: 'no-cors' // Avoid CORS issues for the check
+      })
+      clearTimeout(timeout)
+      // If we get here, localhost is likely running
+      window.location.href = 'http://localhost:5173'
+    } catch (err) {
+      // Localhost not reachable
+      setLocalCheckState('unavailable')
+    }
+  }
 
   if (loading) {
     return (
@@ -42,25 +70,44 @@ export default function LoginView() {
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="flex flex-col gap-2 p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/50 dark:text-red-400 rounded-md">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                {error === 'unauthorized'
-                  ? 'Your account is not authorized to access this app.'
-                  : 'Sign in failed. Please try again.'}
+            <div className="flex flex-col gap-3 p-4 text-sm bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200 rounded-md border border-amber-200 dark:border-amber-800">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <div>
+                  {error === 'unauthorized' && (
+                    <>
+                      <p className="font-medium">Thanks for your interest!</p>
+                      <p className="mt-1">This is a personal app, so sign-in is restricted. But I'd love to hear from you if you're interested in collaborating or have questions about the project.</p>
+                    </>
+                  )}
+                  {error === 'auth_unavailable' && (
+                    <>
+                      <p className="font-medium">Sign-in isn't available here</p>
+                      <p className="mt-1">This demo instance is for browsing only. Feel free to explore without signing in, or reach out if you'd like to discuss the project.</p>
+                    </>
+                  )}
+                  {error === 'failed' && (
+                    <>
+                      <p className="font-medium">Something went wrong</p>
+                      <p className="mt-1">Sign-in failed unexpectedly. Please try again, or reach out if the problem persists.</p>
+                    </>
+                  )}
+                  {!['unauthorized', 'auth_unavailable', 'failed'].includes(error) && (
+                    <>
+                      <p className="font-medium">Oops!</p>
+                      <p className="mt-1">Something unexpected happened. Please try again or reach out for help.</p>
+                    </>
+                  )}
+                </div>
               </div>
-              <p className="text-xs ml-6">
-                For access requests, please contact me via{' '}
-                <a
-                  href="https://akuligowski-portfolio.vercel.app/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:text-red-700 dark:hover:text-red-300"
-                >
-                  my portfolio
-                </a>
-                .
-              </p>
+              <a
+                href="https://akuligowski-portfolio.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm font-medium text-amber-700 dark:text-amber-300 hover:underline ml-6"
+              >
+                Visit my portfolio →
+              </a>
             </div>
           )}
 
@@ -123,14 +170,16 @@ export default function LoginView() {
               </Button>
             )}
 
-            {/* Show Local button on deployed environments */}
-            {(window.location.hostname === 'the-shelf-amk.vercel.app' || window.location.hostname === 'demo-the-shelf.vercel.app') && (
+            {/* Show Local button on deployed environments, but not on mobile */}
+            {!isMobile && (window.location.hostname === 'the-shelf-amk.vercel.app' || window.location.hostname === 'demo-the-shelf.vercel.app') && (
               <Button
                 variant="secondary"
                 className="flex-1 h-12 text-base"
-                onClick={() => window.location.href = 'http://localhost:5173'}
+                onClick={handleLocalClick}
+                disabled={localCheckState === 'checking'}
               >
-                Local
+                <Laptop className="w-4 h-4 mr-2" />
+                {localCheckState === 'checking' ? 'Checking...' : 'Local'}
               </Button>
             )}
 
@@ -145,6 +194,27 @@ export default function LoginView() {
               </Button>
             )}
           </div>
+
+          {/* Local development unavailable message */}
+          {localCheckState === 'unavailable' && (
+            <div className="flex flex-col gap-3 p-4 text-sm bg-sky-50 dark:bg-sky-950/50 text-sky-800 dark:text-sky-200 rounded-md border border-sky-200 dark:border-sky-800">
+              <div className="flex items-start gap-2">
+                <Laptop className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium">Local server not running</p>
+                  <p className="mt-1">It looks like you're trying to run The Shelf locally. You'll need Docker to set up the development environment.</p>
+                </div>
+              </div>
+              <a
+                href="https://github.com/akuligowski9/the-shelf#local-development"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm font-medium text-sky-700 dark:text-sky-300 hover:underline ml-6"
+              >
+                View local setup instructions →
+              </a>
+            </div>
+          )}
         </CardContent>
       </Card>
 

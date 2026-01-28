@@ -12,6 +12,8 @@
     "backup": "node backup.js",
     "restore": "node restore.js",
     "export-daily": "node export-daily.js",
+    "backfill-daily": "node backfill-daily.js",
+    "backfill-daily:from-backup": "node backfill-daily.js --from-backup",
     "migrate": "node migrate.js run",
     "migrate:status": "node migrate.js status",
     "migrate:rollback": "node migrate.js rollback",

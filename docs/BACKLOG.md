@@ -1676,3 +1676,107 @@ Derive simple balance signals (not scores) from entries and habits. Metrics expl
 - **Version:** v1
 - **Assignee:** Alex
 - **GitHub Issue:** No
+
+---
+
+## SHELF-059: Mobile OAuth Authentication Fix
+
+### Description
+
+OAuth authentication was failing silently on mobile devices (iOS Safari, Android Chrome). Users would complete the OAuth flow with Google or GitHub, but upon redirect back to the app, they remained logged out. The root cause was cross-site cookie blocking - mobile browsers aggressively block third-party cookies even with `sameSite: 'none'`, and the API domain (`shelf-api-xxx.run.app`) differs from the frontend domain (`the-shelf-amk.vercel.app`). The fix implements token-based auth via URL parameter as a fallback to cookies, storing the JWT in localStorage and sending it via Authorization header on all API requests.
+
+### Acceptance Criteria
+
+- [x] OAuth callback passes token in URL parameter
+- [x] Frontend extracts token from URL and stores in localStorage
+- [x] Token cleaned from URL after extraction
+- [x] All API requests include Authorization header from localStorage
+- [x] Backend auth middleware checks Authorization header before cookies
+- [x] Cookie-based auth still works for desktop browsers
+- [x] Logout clears localStorage token
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Bug
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+### Notes
+
+Implementation (2026-01-28):
+- Backend `middleware/auth.js`: Added `extractToken()` to check Authorization header first
+- Backend `routes/auth.js`: OAuth callback redirects with `?token=xxx` in URL
+- Frontend `AuthContext.jsx`: Extracts token from URL, stores in localStorage, cleans URL
+- Frontend `api.js` and `lib/api.js`: Include Authorization header on all requests
+
+---
+
+## SHELF-060: Login Page UX Improvements
+
+### Description
+
+The Login page showed a "Local" navigation button on deployed environments to help developers switch to localhost. However, this button appeared on mobile devices where localhost would never be running, and clicking it caused Safari to show "can't connect to server" errors. This fix hides the Local button on mobile devices entirely, and for desktop users, checks if localhost is actually reachable before navigating. If localhost is unavailable, it shows a helpful message explaining Docker setup with a link to the README.
+
+### Acceptance Criteria
+
+- [x] Local button hidden on mobile devices (user agent detection)
+- [x] Desktop: Local button checks localhost availability before navigating
+- [x] Shows "Checking..." state during availability check
+- [x] If localhost unreachable, shows helpful setup message
+- [x] Setup message links to GitHub README local development section
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Low
+- **Type:** Feature
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+### Notes
+
+Implementation (2026-01-28):
+- Added `isMobileDevice()` function using user agent detection
+- Added `handleLocalClick()` that fetches localhost:3001/health with 2s timeout
+- Success → navigate to localhost:5173
+- Failure → show sky-blue info box with Docker setup guidance
+
+---
+
+## SHELF-061: Demo Auth Error Handling
+
+### Description
+
+When users attempt OAuth login on the demo site (where OAuth credentials aren't configured), they received a raw JSON error: `{"ok": false, "error": "Unknown authentication strategy \"google\""}`. This needed to be caught gracefully and redirect to a friendly error page explaining that sign-in isn't available on demo and inviting users to reach out via the portfolio for collaboration.
+
+### Acceptance Criteria
+
+- [x] Backend middleware checks if OAuth is configured before attempting authentication
+- [x] Unconfigured OAuth redirects to `/login?error=auth_unavailable`
+- [x] Unauthorized users (wrong email) redirect to `/login?error=unauthorized` instead of portfolio
+- [x] Frontend LoginView handles `auth_unavailable`, `unauthorized`, and `failed` error types
+- [x] Error messages are friendly and conversational (amber styling, not alarming red)
+- [x] All error states include portfolio link for contact
+- [x] Backend auth tests added (8 tests)
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Bug
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+### Notes
+
+Implementation (2026-01-28):
+- Backend `routes/auth.js`: Added `isOAuthConfigured()` helper and `requireOAuthConfigured()` middleware
+- Middleware applied to all 4 OAuth routes (google, google/callback, github, github/callback)
+- Changed unauthorized user redirect from direct portfolio URL to `/login?error=unauthorized`
+- Frontend `LoginView.jsx`: Rewrote error handling with friendly messages and amber styling
+- Created `backend/api/__tests__/auth.test.js` with 8 tests for auth endpoints

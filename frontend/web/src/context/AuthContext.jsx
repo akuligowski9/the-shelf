@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { getApiUrl } from '@/utils/api-url'
 
 const AuthContext = createContext(null)
+const TOKEN_KEY = 'shelf_auth_token'
 
 function detectDemoModeFromHostname() {
   const hostname = window.location.hostname.toLowerCase()
@@ -21,6 +22,19 @@ function detectDemoModeFromHostname() {
   return false
 }
 
+// Token management for mobile-friendly auth
+export function getAuthToken() {
+  return localStorage.getItem(TOKEN_KEY)
+}
+
+export function setAuthToken(token) {
+  localStorage.setItem(TOKEN_KEY, token)
+}
+
+export function clearAuthToken() {
+  localStorage.removeItem(TOKEN_KEY)
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -28,10 +42,30 @@ export function AuthProvider({ children }) {
   const [isReadOnly, setIsReadOnly] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  // Check for token in URL (from OAuth callback) and store it
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('token')
+    if (token) {
+      setAuthToken(token)
+      // Clean up URL without reload
+      const url = new URL(window.location.href)
+      url.searchParams.delete('token')
+      window.history.replaceState({}, '', url.pathname + url.search)
+    }
+  }, [])
+
   const checkAuth = useCallback(async () => {
     try {
+      const token = getAuthToken()
+      const headers = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const res = await fetch(`${getApiUrl()}/auth/status`, {
         credentials: 'include',
+        headers,
       })
       const data = await res.json()
 
@@ -58,10 +92,18 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
+      const token = getAuthToken()
+      const headers = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       await fetch(`${getApiUrl()}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
+        headers,
       })
+      clearAuthToken()
       setUser(null)
       setIsAuthenticated(false)
       setIsReadOnly(isDemoMode)

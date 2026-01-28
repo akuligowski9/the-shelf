@@ -3,15 +3,24 @@
  */
 
 import { getApiBase } from '@/utils/api-url'
+import { getAuthToken } from '@/context/AuthContext'
 
 async function fetchJson(endpoint, options = {}) {
   const url = `${getApiBase()}${endpoint}`
+
+  // Build headers with auth token if available
+  const token = getAuthToken()
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   const res = await fetch(url, {
-    credentials: 'include', // Send cookies for auth
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    credentials: 'include', // Also send cookies for desktop
+    headers,
     ...options,
   })
 

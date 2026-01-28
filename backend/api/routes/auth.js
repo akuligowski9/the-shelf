@@ -77,40 +77,82 @@ function handleOAuthCallback(req, res) {
   const user = req.user;
 
   if (!isAllowedUser(user.email)) {
-    // Redirect unauthorized users to portfolio contact page
-    return res.redirect(PORTFOLIO_URL);
+    // Redirect unauthorized users to login with friendly error
+    return res.redirect(`${FRONTEND_URL}/login?error=unauthorized`);
   }
 
   const token = createToken(user);
+
+  // Set cookie for desktop browsers that support it
   res.cookie('auth_token', token, COOKIE_OPTIONS);
-  res.redirect(`${FRONTEND_URL}`);
+
+  // Also pass token in URL for mobile browsers that block third-party cookies
+  res.redirect(`${FRONTEND_URL}?token=${encodeURIComponent(token)}`);
+}
+
+// Helper to check if OAuth is configured for a provider
+function isOAuthConfigured(provider) {
+  if (provider === 'google') {
+    return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+  }
+  if (provider === 'github') {
+    return !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET);
+  }
+  return false;
+}
+
+// Middleware to check OAuth availability before attempting auth
+function requireOAuthConfigured(provider) {
+  return (req, res, next) => {
+    if (!isOAuthConfigured(provider)) {
+      return res.redirect(`${FRONTEND_URL}/login?error=auth_unavailable`);
+    }
+    next();
+  };
 }
 
 // Google OAuth routes
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email'],
-  session: false
-}));
+router.get('/google',
+  requireOAuthConfigured('google'),
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false
+  })
+);
 
 router.get('/google/callback',
+  requireOAuthConfigured('google'),
   passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login?error=failed`, session: false }),
   handleOAuthCallback
 );
 
 // GitHub OAuth routes
-router.get('/github', passport.authenticate('github', {
-  scope: ['user:email'],
-  session: false
-}));
+router.get('/github',
+  requireOAuthConfigured('github'),
+  passport.authenticate('github', {
+    scope: ['user:email'],
+    session: false
+  })
+);
 
 router.get('/github/callback',
+  requireOAuthConfigured('github'),
   passport.authenticate('github', { failureRedirect: `${FRONTEND_URL}/login?error=failed`, session: false }),
   handleOAuthCallback
 );
 
+// Helper to extract token from request (header or cookie)
+function extractToken(req) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+  return req.cookies?.auth_token;
+}
+
 // Get current user
 router.get('/me', (req, res) => {
-  const token = req.cookies?.auth_token;
+  const token = extractToken(req);
 
   if (!token) {
     return res.json({ ok: true, user: null, authenticated: false });
@@ -132,7 +174,7 @@ router.post('/logout', (req, res) => {
 
 // Auth status for demo mode
 router.get('/status', (req, res) => {
-  const token = req.cookies?.auth_token;
+  const token = extractToken(req);
   const isDemoMode = process.env.DEMO_MODE === 'true';
 
   let authenticated = false;

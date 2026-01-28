@@ -393,6 +393,85 @@ See [MIGRATIONS.md](./MIGRATIONS.md) for:
 
 ---
 
+## Mutation Logging
+
+All write operations (POST, PUT, PATCH, DELETE) are logged to the `mutation_logs` table for audit and data recovery purposes.
+
+### Configuration
+
+Enabled via environment variable in Cloud Run:
+```
+LOG_MUTATIONS=true
+```
+
+### Log Schema
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | SERIAL | Primary key |
+| `method` | TEXT | HTTP method (POST, PUT, PATCH, DELETE) |
+| `path` | TEXT | Request path (e.g., `/entries`, `/habits/3`) |
+| `status` | INT | HTTP response status code |
+| `duration_ms` | INT | Request duration in milliseconds |
+| `body` | JSONB | Full request body (for data recovery) |
+| `created_at` | TIMESTAMP | When the request was made |
+
+### Useful Queries
+
+**Recent mutations:**
+```sql
+SELECT method, path, status, duration_ms, created_at
+FROM mutation_logs
+ORDER BY created_at DESC
+LIMIT 20;
+```
+
+**Top endpoints by usage (last 7 days):**
+```sql
+SELECT path, method, COUNT(*) as count, AVG(duration_ms)::int as avg_ms
+FROM mutation_logs
+WHERE created_at > NOW() - INTERVAL '7 days'
+GROUP BY path, method
+ORDER BY count DESC;
+```
+
+**Failed requests (for debugging):**
+```sql
+SELECT method, path, status, body, created_at
+FROM mutation_logs
+WHERE status >= 400
+ORDER BY created_at DESC
+LIMIT 10;
+```
+
+**Recover data from a specific request:**
+```sql
+SELECT body, created_at
+FROM mutation_logs
+WHERE path = '/entries' AND method = 'POST'
+ORDER BY created_at DESC
+LIMIT 5;
+```
+
+### Data Recovery Use Case
+
+If entries are accidentally deleted or corrupted, the `body` column contains the full request payload. You can reconstruct the data by:
+
+1. Query the relevant mutations
+2. Extract the JSON body
+3. Re-insert via API or direct SQL
+
+### Retention
+
+Mutation logs are included in nightly backups. Consider periodic cleanup for very old logs:
+
+```sql
+-- Delete logs older than 90 days (run manually, with caution)
+DELETE FROM mutation_logs WHERE created_at < NOW() - INTERVAL '90 days';
+```
+
+---
+
 ## Backup & Recovery
 
 ### Automated Nightly Backups

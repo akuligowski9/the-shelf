@@ -11,6 +11,11 @@ on:
         description: 'Date to export (YYYY-MM-DD), defaults to today'
         required: false
         type: string
+      backfill:
+        description: 'Backfill all missing dates from database'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -33,13 +38,21 @@ jobs:
         run: npm install
 
       - name: Export daily entries
+        if: ${{ !inputs.backfill }}
         working-directory: backend/api
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
         run: node export-daily.js ${{ inputs.date }}
 
+      - name: Backfill missing daily files
+        if: ${{ inputs.backfill }}
+        working-directory: backend/api
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: node backfill-daily.js
+
       - name: Commit and push if changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Daily export ${{ inputs.date || 'auto' }}"
+          commit_message: "${{ inputs.backfill && 'Backfill daily exports' || format('Daily export {0}', inputs.date || 'auto') }}"
           file_pattern: 'data/daily/*.json'

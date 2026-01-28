@@ -1,15 +1,24 @@
 import { getApiBase, getApiUrl } from './utils/api-url'
+import { getAuthToken } from '@/context/AuthContext'
 
 // Re-export for backwards compatibility
 export { getApiBase, getApiUrl }
 export const API_BASE = getApiBase();
 
 export async function apiFetch(path, options = {}) {
+  // Build headers with auth token if available
+  const token = getAuthToken()
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   const res = await fetch(`${getApiBase()}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', // Include cookies for auth
+    headers,
+    credentials: 'include', // Also include cookies for desktop
     ...options,
   });
 

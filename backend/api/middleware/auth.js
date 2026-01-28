@@ -4,6 +4,21 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const ALLOWED_EMAIL = process.env.ALLOWED_EMAIL;
 
 /**
+ * Extract token from request - checks Authorization header first, then cookie.
+ * This supports both mobile (header-based) and desktop (cookie-based) auth.
+ */
+function extractToken(req) {
+  // Check Authorization header first (mobile-friendly)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+
+  // Fall back to cookie (desktop)
+  return req.cookies?.auth_token;
+}
+
+/**
  * Middleware to require authentication for write operations.
  * In demo mode:
  *   - Unauthenticated users get read-only access (GET requests allowed)
@@ -13,7 +28,7 @@ const ALLOWED_EMAIL = process.env.ALLOWED_EMAIL;
  */
 function requireAuth(req, res, next) {
   const isDemoMode = process.env.DEMO_MODE === 'true';
-  const token = req.cookies?.auth_token;
+  const token = extractToken(req);
 
   // Try to verify token
   let user = null;
@@ -67,7 +82,7 @@ function requireAuth(req, res, next) {
  * Optional auth - attaches user to request if authenticated, but doesn't block
  */
 function optionalAuth(req, res, next) {
-  const token = req.cookies?.auth_token;
+  const token = extractToken(req);
 
   if (token) {
     try {
