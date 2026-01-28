@@ -875,7 +875,7 @@ export default function ProgressView() {
                     dataKey="dateLabel"
                     tick={{ fontSize: 11 }}
                     className="text-muted-foreground"
-                    interval={timeRange === 'year' ? 3 : 0}
+                    interval={timeRange === 'year' ? 3 : timeRange === 'month' ? 2 : 0}
                     label={{ value: timeRange === 'year' ? 'Week' : 'Day', position: 'insideBottom', offset: -10, fontSize: 12 }}
                   />
                   <YAxis

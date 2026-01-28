@@ -137,12 +137,12 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-card border-2 border-border/60 rounded-lg p-3 mb-2 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? 'shadow-lg' : ''}`}
+      className={`bg-card border-2 border-border/60 rounded-lg p-2 md:p-3 mb-2 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? 'shadow-lg' : ''}`}
       {...attributes}
       {...listeners}
     >
-      <div className="flex items-start justify-between gap-2">
-        <span className={`text-sm font-medium ${isCompleted ? 'text-muted-foreground line-through' : ''}`}>
+      <div className="flex items-start justify-between gap-1 md:gap-2">
+        <span className={`text-xs md:text-sm font-medium ${isCompleted ? 'text-muted-foreground line-through' : ''}`}>
           {target.name}
         </span>
         <button
@@ -155,14 +155,15 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
           <MoreHorizontal className="h-4 w-4" />
         </button>
       </div>
-      <div className="flex items-center gap-2 mt-2 flex-wrap">
+      <div className="flex items-center gap-2 mt-1.5 md:mt-2 flex-wrap">
         {habitName && (
           <Badge variant="outline" className={`text-xs ${habitColorClasses} ${isCompleted ? 'opacity-50' : ''}`}>
             {habitName}
           </Badge>
         )}
+        {/* Hide date/duration/github on mobile, show on md+ */}
         {hasDate && (
-          <span className={`text-xs text-muted-foreground flex items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}>
+          <span className={`hidden md:flex text-xs text-muted-foreground items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}>
             <Calendar className="h-3 w-3" />
             {target.start_date && target.end_date
               ? `${formatDate(target.start_date)} - ${formatDate(target.end_date)}`
@@ -172,7 +173,7 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
           </span>
         )}
         {!hasDate && hasDuration && (
-          <span className={`text-xs text-muted-foreground flex items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}>
+          <span className={`hidden md:flex text-xs text-muted-foreground items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}>
             <Clock className="h-3 w-3" />
             ~{target.planned_duration}
           </span>
@@ -183,7 +184,7 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className={`text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}
+            className={`hidden md:flex text-xs text-muted-foreground hover:text-foreground items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}
             title="View GitHub Issue"
           >
             <ExternalLink className="h-3 w-3" />

@@ -1780,3 +1780,35 @@ Implementation (2026-01-28):
 - Changed unauthorized user redirect from direct portfolio URL to `/login?error=unauthorized`
 - Frontend `LoginView.jsx`: Rewrote error handling with friendly messages and amber styling
 - Created `backend/api/__tests__/auth.test.js` with 8 tests for auth endpoints
+
+---
+
+## SHELF-062: Mobile UI Polish
+
+### Description
+
+Mobile testing revealed UI issues with cramped x-axis labels on charts and overlapping content in Kanban cards. Fixed chart spacing to match Patterns view and made Kanban cards responsive with smaller padding/text and hidden secondary info on mobile.
+
+### Acceptance Criteria
+
+- [x] Balance chart x-axis uses same interval logic as Patterns chart
+- [x] Month view shows every 3rd day label instead of all 31
+- [x] Kanban cards have smaller padding on mobile (p-2 vs p-3)
+- [x] Kanban card text smaller on mobile (text-xs vs text-sm)
+- [x] Date/duration/GitHub link hidden on mobile, visible on md+
+- [x] Mobile cards show only target name + habit badge
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Low
+- **Type:** Bug
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+### Notes
+
+Implementation (2026-01-28):
+- `ProgressView.jsx`: Changed Balance chart XAxis interval from `timeRange === 'year' ? 3 : 0` to `timeRange === 'year' ? 3 : timeRange === 'month' ? 2 : 0`
+- `AttentionView.jsx`: Made KanbanCard responsive with Tailwind breakpoints (md:)

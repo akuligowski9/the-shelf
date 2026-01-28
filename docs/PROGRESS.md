@@ -29,6 +29,7 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v1.2.0 | 2026-01-28 | Mobile UI polish: chart spacing, compact cards, PWA icon fix |
 | v1.1.0 | 2026-01-28 | Mobile OAuth fix, demo auth error handling, login UX improvements |
 | v1.0.0 | 2026-01-20 | Initial release - web app, mobile app, full API, demo mode |
 
@@ -190,6 +191,35 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 - Deploy to Vercel
 - Delete "Shelf" from home screen
 - Re-add via Safari "Add to Home Screen"
+
+---
+
+### 2026-01-28 (Late Evening) - Mobile UI Polish (SHELF-062)
+
+**Summary:**
+- Fixed x-axis label cramming on Balance chart (Month/Year views)
+- Made Kanban cards more compact on mobile with hidden secondary info
+
+**Balance Chart X-Axis Fix (`ProgressView.jsx`):**
+- Problem: Month view showed all 31 day labels crammed together
+- Fix: Applied same interval logic as Patterns chart
+- Before: `interval={timeRange === 'year' ? 3 : 0}`
+- After: `interval={timeRange === 'year' ? 3 : timeRange === 'month' ? 2 : 0}`
+- Now shows every 3rd label (1, 4, 7, 10...) on month view
+
+**Kanban Card Mobile Optimization (`AttentionView.jsx`):**
+- Smaller padding: `p-2 md:p-3`
+- Smaller text: `text-xs md:text-sm` for target names
+- Reduced gaps: `gap-1 md:gap-2`, `mt-1.5 md:mt-2`
+- Hidden on mobile (visible on md+):
+  - Date/calendar info
+  - Duration info
+  - GitHub issue link
+- Mobile cards show only: target name + habit badge
+
+**Files Modified:**
+- `frontend/web/src/views/ProgressView.jsx`
+- `frontend/web/src/views/AttentionView.jsx`
 
 ---
 
