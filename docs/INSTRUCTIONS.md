@@ -557,6 +557,11 @@ Before ending a session:
    - What was accomplished
    - What remains open
    - Where to resume next time
+5. If deployable changes were made, ask whether to tag a release:
+   - Use semantic versioning: `vMAJOR.MINOR.PATCH`
+   - Create annotated tag: `git tag -a v1.2.0 -m "Brief description"`
+   - Update Release History section in `PROGRESS.md`
+   - Push tags with code: `git push origin main --tags`
 
 > This cool-down ensures the project is safe to pause and easy to resume.
 
