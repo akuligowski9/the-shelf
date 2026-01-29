@@ -165,36 +165,6 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 
 ---
 
-### 2026-01-28 (Late Evening) - PWA Icon Fix
-
-**Summary:**
-- Fixed PWA icon displaying as circle instead of proper square on iOS home screen
-- Root cause: SVG used `<circle>` background which iOS cropped into a rounded square
-- Changed icon.svg to use `<rect>` background that fills full canvas
-- Regenerated all PNG icons (512x512, 192x192, 180x180)
-
-**Technical Details:**
-- iOS applies its own rounded-rectangle mask to all app icons
-- Original icon: circular design → circle inside rounded square (looked odd)
-- Fixed icon: square design → iOS mask shapes it correctly
-
-**Files Modified:**
-- `frontend/web/public/icon.svg` - Changed `<circle>` to `<rect>` background
-- `frontend/web/public/pwa-512x512.png` - Regenerated from SVG
-- `frontend/web/public/pwa-192x192.png` - Regenerated from SVG
-- `frontend/web/public/apple-touch-icon.png` - Regenerated from SVG
-
-**Tools Used:**
-- `qlmanage` (macOS) - Rendered SVG to PNG
-- `sips` (macOS) - Resized PNG to required dimensions
-
-**To Apply:**
-- Deploy to Vercel
-- Delete "Shelf" from home screen
-- Re-add via Safari "Add to Home Screen"
-
----
-
 ### 2026-01-28 (Late Evening) - Mobile UI Polish (SHELF-062)
 
 **Summary:**
@@ -245,14 +215,23 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 
 ---
 
-### 2026-01-28 (Night) - Delete & Reorder for Practices/Actions
+### 2026-01-28 (Night) - Delete, Reorder & Inactive Sorting
+
+**Session Time:** ~5.5 hours (5:04 PM - 10:31 PM)
 
 **Summary:**
+- Fixed PWA icon for iOS home screen (circle → square background)
 - Added delete button to Practice Edit dialog (with confirmation)
 - Added delete button to Caution Behavior edit dialog
 - Implemented drag-drop reordering for practices within habits
 - Implemented drag-drop reordering for actions within practices
 - Implemented drag-drop reordering for caution behaviors
+- Auto-sort inactive items to bottom of all lists
+
+**PWA Icon Fix:**
+- Changed `icon.svg` from `<circle>` to `<rect>` background
+- Regenerated PNG icons (512x512, 192x192, 180x180)
+- iOS now masks the icon properly as rounded square
 
 **Database Changes:**
 - Migration: Added `sort_order` column to `actions` table
@@ -279,12 +258,16 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 - Wrapped practice lists in `DndContext` + `SortableContext`
 - Wrapped action chips in nested `DndContext` + `SortableContext`
 - Added drag handles (GripVertical icon) to all sortable items
+- Added `sortByActiveAndOrder` helper - active items first, then by sort_order
+- Applied inactive-to-bottom sorting to habits, practices, actions, caution behaviors
 
 **Frontend UI (`PracticeEditDialog.jsx`):**
 - Added `onDelete` prop
 - Added delete button with confirmation flow (matches ActionEditDialog pattern)
 
 **Files Modified:**
+- `frontend/web/public/icon.svg` - Square background
+- `frontend/web/public/pwa-*.png` - Regenerated icons
 - `db/migrations/20260128214256_add_actions_sort_order.js` (new)
 - `backend/api/routes/habits.js`
 - `frontend/web/src/lib/api.js`
@@ -292,9 +275,7 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 - `frontend/web/src/views/AttentionView.jsx`
 - `frontend/web/src/components/attention/PracticeEditDialog.jsx`
 
-**To Apply:**
-- Run migration on production: `RUN_MIGRATIONS_ON_PRODUCTION=yes npm run migrate`
-- Deploy backend and frontend
+**Deployed:** ✅ Migration run on production, backend redeployed to Cloud Run, frontend auto-deployed via Vercel
 
 ---
 
