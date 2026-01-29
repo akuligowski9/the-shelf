@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const pool = require('../db/pool');
+const { resetAllSequences } = require('../db/resetSequences');
 
 const router = express.Router();
 
@@ -419,6 +420,9 @@ router.post('/import', async (req, res, next) => {
       }
     }
 
+    // Reset sequences to prevent "duplicate key" errors on next insert
+    await resetAllSequences();
+
     res.json({ ok: true, results });
   } catch (err) {
     next(err);
@@ -830,6 +834,9 @@ router.post('/import-file', async (req, res, next) => {
         results.reflections.inserted++;
       }
     }
+
+    // Reset sequences to prevent "duplicate key" errors on next insert
+    await resetAllSequences();
 
     // Move file to logs/
     await fs.rename(sourcePath, destPath);

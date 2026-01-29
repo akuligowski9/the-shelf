@@ -25,7 +25,7 @@ import { useTheme } from '@/context/ThemeContext'
 import { useEntries } from '@/context/EntriesContext'
 import { useHabits } from '@/context/HabitsContext'
 import { useAuth } from '@/context/AuthContext'
-import { getSettings, setSetting, exportData, importData, getPendingImports, importFile, previewFile } from '@/lib/api'
+import { getSettings, setSetting, exportData, importData, getPendingImports, importFile, previewFile, resetSequences } from '@/lib/api'
 
 // Common timezones grouped by region
 const TIMEZONES = [
@@ -77,6 +77,8 @@ export default function SettingsView() {
   const [backupStatus, setBackupStatus] = useState(null)
   const [backupLoading, setBackupLoading] = useState(false)
   const [apiVersion, setApiVersion] = useState(null)
+  const [sequenceFixing, setSequenceFixing] = useState(false)
+  const [sequenceResult, setSequenceResult] = useState(null)
 
   // Load settings from API on mount
   useEffect(() => {
@@ -765,6 +767,49 @@ export default function SettingsView() {
                 )}
               </span>
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Database Maintenance */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm font-medium">Fix Database Sequences</span>
+                <p className="text-xs text-muted-foreground">
+                  Repairs ID counters after data imports. Use if you see "duplicate key" errors.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  setSequenceFixing(true)
+                  setSequenceResult(null)
+                  try {
+                    const result = await resetSequences()
+                    setSequenceResult({ ok: true, message: result.message })
+                  } catch (err) {
+                    setSequenceResult({ ok: false, message: err.message })
+                  } finally {
+                    setSequenceFixing(false)
+                  }
+                }}
+                disabled={sequenceFixing}
+              >
+                {sequenceFixing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Fix'
+                )}
+              </Button>
+            </div>
+            {sequenceResult && (
+              <div className={`text-xs flex items-center gap-1 ${sequenceResult.ok ? 'text-green-600' : 'text-red-600'}`}>
+                {sequenceResult.ok ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                {sequenceResult.message}
+              </div>
+            )}
           </div>
 
           <Separator />

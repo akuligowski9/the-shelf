@@ -389,6 +389,15 @@ export async function previewFile(filename) {
   return result.preview
 }
 
+// Admin: Reset database sequences
+// Fixes "duplicate key" errors that can occur after data imports
+export async function resetSequences() {
+  const result = await fetchJson('/admin/reset-sequences', {
+    method: 'POST',
+  })
+  return result
+}
+
 // Load all initial data for the app
 export async function loadInitialData() {
   const [habits, practices, actions, targets, prompts] = await Promise.all([

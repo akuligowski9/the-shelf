@@ -3,6 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const pool = require('./db/pool');
+const { resetAllSequences } = require('./db/resetSequences');
 
 const entriesRouter = require('./routes/entries');
 const habitsRouter = require('./routes/habits');
@@ -94,6 +95,27 @@ app.get('/backup-status', async (_req, res) => {
     });
   } catch (err) {
     res.json({ ok: true, status: 'unknown', message: err.message });
+  }
+});
+
+// admin: reset sequences - fixes "duplicate key" errors after data imports
+// This is safe to call anytime - it just syncs sequences to match max IDs
+app.post('/admin/reset-sequences', requireAuth, async (req, res) => {
+  try {
+    const results = await resetAllSequences();
+    const outOfSync = Object.entries(results)
+      .filter(([_, v]) => v.was_out_of_sync)
+      .map(([table]) => table);
+
+    res.json({
+      ok: true,
+      message: outOfSync.length > 0
+        ? `Fixed ${outOfSync.length} out-of-sync sequences: ${outOfSync.join(', ')}`
+        : 'All sequences were already in sync',
+      details: results,
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
