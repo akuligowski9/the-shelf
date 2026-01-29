@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-01-28
+Last updated: 2026-01-29
 
 ---
 
@@ -276,6 +276,25 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 - `frontend/web/src/components/attention/PracticeEditDialog.jsx`
 
 **Deployed:** ✅ Migration run on production, backend redeployed to Cloud Run, frontend auto-deployed via Vercel
+
+---
+
+### 2026-01-29 (Early AM) - Entry Form Sort Order Sync
+
+**Summary:**
+- Applied sort_order sorting to Entry form dialog to match Attention view ordering
+
+**Problem:**
+Entry form showed habits, practices, actions, and caution behaviors in default order, but Attention view now shows them sorted by `sort_order`. User expected consistent ordering.
+
+**Fix (`EntryFormDialog.jsx`):**
+- Added `sortByOrder` helper function
+- Created `sortedActiveHabits` memo that sorts by sort_order
+- Updated `practices`, `actions`, and `cautionBehaviors` memos to sort by sort_order
+- Changed all references from `activeHabits` to `sortedActiveHabits`
+
+**Files Modified:**
+- `frontend/web/src/components/today/EntryFormDialog.jsx`
 
 ---
 
