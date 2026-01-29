@@ -245,6 +245,50 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 
 ---
 
+### 2026-01-29 (Early AM) - Habit Consolidation: Mental
+
+**Summary:**
+- Consolidated Reading and Spanish habits into new "Mental" habit
+- Allows flexibility: any mental exercise counts toward daily goal
+- Data migration only (no code changes, no deployment needed)
+
+**Motivation:**
+Reading, Writing, and Spanish are all forms of mental stimulation. Having them separate created friction - felt like failure if only one was done. New structure lets any brain exercise count while still tracking specifics.
+
+**New Structure:**
+```
+Mental (color: ocean, track_actions: true)
+├── Reading
+│   ├── Articles
+│   ├── Audiobooks
+│   ├── Books
+│   └── Podcasts
+├── Spanish
+│   ├── Conversation
+│   ├── Media
+│   ├── Textbook Learning
+│   └── Writing
+└── Writing (empty - ready for actions)
+```
+
+**Migration Details:**
+- Created new "Mental" habit with `track_actions: true`
+- Old Reading practices → actions under Mental→Reading
+- Old Spanish practices → actions under Mental→Spanish
+- Added empty Writing practice for future use
+- Updated 6 entries to point to Mental
+- Updated 3 targets to point to Mental
+- Archived old Reading and Spanish habits (not deleted)
+- Created transition record with note
+
+**Backup:**
+- `data/backups/backup-2026-01-29.json` created before migration
+
+**Transition Recorded:**
+> "Consolidated Reading and Spanish into new Mental habit for daily brain exercise flexibility"
+
+---
+
 ### 2026-01-28 (Evening) - Demo Auth Error Handling (SHELF-061)
 
 **Summary:**
