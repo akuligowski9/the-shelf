@@ -584,6 +584,12 @@ export default function AttentionView() {
     cancelTransition,
   } = useHabits()
 
+  // Sort helper: active items first, then by sort_order
+  const sortByActiveAndOrder = (a, b) => {
+    if (a.active !== b.active) return b.active - a.active // active first
+    return (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)
+  }
+
   // Track which habit is showing the add practice input
   const [addingPracticeFor, setAddingPracticeFor] = useState(null)
   const [newPracticeName, setNewPracticeName] = useState('')
@@ -1378,7 +1384,7 @@ export default function AttentionView() {
         </CardHeader>
         <CardContent>
           <div className="space-y-0.5">
-            {habits.filter(h => h.type !== 'caution').map(habit => {
+            {[...habits].filter(h => h.type !== 'caution').sort(sortByActiveAndOrder).map(habit => {
               const habitColor = colorPalette[habit.color] || colorPalette.forest
               const practices = getPracticesForHabit(habit.id)
               const allActions = habit.track_actions ? practices.flatMap(p => getActionsForPractice(p.id)) : []
@@ -1421,7 +1427,7 @@ export default function AttentionView() {
                           onDragEnd={(event) => {
                             const { active, over } = event
                             if (over && active.id !== over.id) {
-                              const sortedPractices = [...practices].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity))
+                              const sortedPractices = [...practices].sort(sortByActiveAndOrder)
                               const oldIndex = sortedPractices.findIndex(p => p.id === active.id)
                               const newIndex = sortedPractices.findIndex(p => p.id === over.id)
                               if (oldIndex !== -1 && newIndex !== -1) {
@@ -1432,11 +1438,11 @@ export default function AttentionView() {
                           }}
                         >
                           <SortableContext
-                            items={[...practices].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)).map(p => p.id)}
+                            items={[...practices].sort(sortByActiveAndOrder).map(p => p.id)}
                             strategy={verticalListSortingStrategy}
                           >
-                            {[...practices].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)).map(practice => {
-                              const actions = habit.track_actions ? getActionsForPractice(practice.id).sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)) : []
+                            {[...practices].sort(sortByActiveAndOrder).map(practice => {
+                              const actions = habit.track_actions ? getActionsForPractice(practice.id).sort(sortByActiveAndOrder) : []
 
                               // If no actions tracking, just show practice as a simple row
                               if (!habit.track_actions) {
@@ -1565,7 +1571,7 @@ export default function AttentionView() {
                 onDragEnd={(event) => {
                   const { active, over } = event
                   if (over && active.id !== over.id) {
-                    const sortedBehaviors = [...cautionBehaviors].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity))
+                    const sortedBehaviors = [...cautionBehaviors].sort(sortByActiveAndOrder)
                     const oldIndex = sortedBehaviors.findIndex(b => b.id === active.id)
                     const newIndex = sortedBehaviors.findIndex(b => b.id === over.id)
                     if (oldIndex !== -1 && newIndex !== -1) {
@@ -1576,12 +1582,12 @@ export default function AttentionView() {
                 }}
               >
                 <SortableContext
-                  items={[...cautionBehaviors].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)).slice(0, showAllBehaviors ? undefined : 10).map(b => b.id)}
+                  items={[...cautionBehaviors].sort(sortByActiveAndOrder).slice(0, showAllBehaviors ? undefined : 10).map(b => b.id)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-0.5">
                     {[...cautionBehaviors]
-                      .sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity))
+                      .sort(sortByActiveAndOrder)
                       .slice(0, showAllBehaviors ? undefined : 10)
                       .map(behavior => (
                       <SortableBehaviorRow
@@ -1703,7 +1709,7 @@ export default function AttentionView() {
           <CardContent className="space-y-4">
             {/* Habit toggles */}
             <div className="space-y-2">
-              {habits.filter(h => h.type !== 'caution').map(habit => {
+              {[...habits].filter(h => h.type !== 'caution').sort(sortByActiveAndOrder).map(habit => {
                 const habitColor = colorPalette[habit.color] || colorPalette.forest
                 const change = transitionChanges.find(c => c.habitId === habit.id)
                 return (
