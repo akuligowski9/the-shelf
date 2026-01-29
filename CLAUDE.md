@@ -10,6 +10,7 @@ Preferences:
 - Prefer structured markdown.
 - Pause every ~60 minutes to ask about a documentation sync.
 - If the user says "muffins", immediately stop and summarize state.
+- NEVER run `git push` without explicit user permission. Always ask first.
 
 Data Protection (CRITICAL):
 - NEVER run destructive database commands (DELETE, DROP, TRUNCATE) without explicit user permission.
