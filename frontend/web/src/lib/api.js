@@ -91,6 +91,14 @@ export async function deletePractice(id) {
   return data.deleted
 }
 
+export async function reorderPractices(practiceIds) {
+  const data = await fetchJson('/habits/practices/reorder', {
+    method: 'PUT',
+    body: JSON.stringify({ practice_ids: practiceIds }),
+  })
+  return data.reordered
+}
+
 // Actions
 export async function getActions() {
   const data = await fetchJson('/habits/actions')
@@ -118,6 +126,14 @@ export async function deleteAction(id) {
     method: 'DELETE',
   })
   return data.deleted
+}
+
+export async function reorderActions(actionIds) {
+  const data = await fetchJson('/habits/actions/reorder', {
+    method: 'PUT',
+    body: JSON.stringify({ action_ids: actionIds }),
+  })
+  return data.reordered
 }
 
 // Targets

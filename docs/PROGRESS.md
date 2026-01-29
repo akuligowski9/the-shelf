@@ -245,6 +245,59 @@ Solution: Pass JWT token in URL parameter on OAuth callback redirect, store in l
 
 ---
 
+### 2026-01-28 (Night) - Delete & Reorder for Practices/Actions
+
+**Summary:**
+- Added delete button to Practice Edit dialog (with confirmation)
+- Added delete button to Caution Behavior edit dialog
+- Implemented drag-drop reordering for practices within habits
+- Implemented drag-drop reordering for actions within practices
+- Implemented drag-drop reordering for caution behaviors
+
+**Database Changes:**
+- Migration: Added `sort_order` column to `actions` table
+- `practices` and `habits` already had `sort_order`
+
+**Backend Changes (`routes/habits.js`):**
+- Added `PUT /habits/practices/reorder` - bulk update sort_order
+- Added `PUT /habits/actions/reorder` - bulk update sort_order
+- Updated `GET /habits/actions` to order by `sort_order`
+
+**Frontend API (`lib/api.js`):**
+- Added `reorderPractices(practiceIds)`
+- Added `reorderActions(actionIds)`
+
+**Frontend Context (`HabitsContext.jsx`):**
+- Added `reorderPractices()` - optimistic update + API call
+- Added `reorderActions()` - optimistic update + API call
+
+**Frontend UI (`AttentionView.jsx`):**
+- Created `SortablePracticeRow` component for simple practices
+- Created `SortableActionChip` component for action chips
+- Created `SortablePracticeWithActions` for expandable practices
+- Created `SortableBehaviorRow` for caution behaviors
+- Wrapped practice lists in `DndContext` + `SortableContext`
+- Wrapped action chips in nested `DndContext` + `SortableContext`
+- Added drag handles (GripVertical icon) to all sortable items
+
+**Frontend UI (`PracticeEditDialog.jsx`):**
+- Added `onDelete` prop
+- Added delete button with confirmation flow (matches ActionEditDialog pattern)
+
+**Files Modified:**
+- `db/migrations/20260128214256_add_actions_sort_order.js` (new)
+- `backend/api/routes/habits.js`
+- `frontend/web/src/lib/api.js`
+- `frontend/web/src/context/HabitsContext.jsx`
+- `frontend/web/src/views/AttentionView.jsx`
+- `frontend/web/src/components/attention/PracticeEditDialog.jsx`
+
+**To Apply:**
+- Run migration on production: `RUN_MIGRATIONS_ON_PRODUCTION=yes npm run migrate`
+- Deploy backend and frontend
+
+---
+
 ### 2026-01-29 (Early AM) - Habit Consolidation: Mental
 
 **Summary:**

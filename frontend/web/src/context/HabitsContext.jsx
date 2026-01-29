@@ -7,9 +7,11 @@ import {
   createPractice as apiCreatePractice,
   updatePractice as apiUpdatePractice,
   deletePractice as apiDeletePractice,
+  reorderPractices as apiReorderPractices,
   createAction as apiCreateAction,
   updateAction as apiUpdateAction,
   deleteAction as apiDeleteAction,
+  reorderActions as apiReorderActions,
   createTarget as apiCreateTarget,
   updateTarget as apiUpdateTarget,
   deleteTarget as apiDeleteTarget,
@@ -252,6 +254,25 @@ export function HabitsProvider({ children }) {
     }
   }
 
+  // Reorder practices within a habit
+  const reorderPractices = async (orderedIds) => {
+    // Optimistic update
+    setPractices(prev =>
+      prev.map(p => {
+        const newOrder = orderedIds.indexOf(p.id)
+        if (newOrder !== -1) {
+          return { ...p, sort_order: newOrder }
+        }
+        return p
+      })
+    )
+    try {
+      await apiReorderPractices(orderedIds)
+    } catch (err) {
+      console.error('Failed to persist practice order:', err)
+    }
+  }
+
   // Get practice by id
   const getPracticeById = (practiceId) => {
     return practices.find(p => p.id === practiceId)
@@ -320,6 +341,25 @@ export function HabitsProvider({ children }) {
       await apiDeleteAction(actionId)
     } catch (err) {
       console.error('Failed to delete action:', err)
+    }
+  }
+
+  // Reorder actions within a practice
+  const reorderActions = async (orderedIds) => {
+    // Optimistic update
+    setActions(prev =>
+      prev.map(a => {
+        const newOrder = orderedIds.indexOf(a.id)
+        if (newOrder !== -1) {
+          return { ...a, sort_order: newOrder }
+        }
+        return a
+      })
+    )
+    try {
+      await apiReorderActions(orderedIds)
+    } catch (err) {
+      console.error('Failed to persist action order:', err)
     }
   }
 
@@ -748,6 +788,7 @@ export function HabitsProvider({ children }) {
     updatePracticeDetails,
     getPracticeById,
     deletePractice,
+    reorderPractices,
     // Actions
     actions,
     getActionsForPractice,
@@ -756,6 +797,7 @@ export function HabitsProvider({ children }) {
     addAction,
     updateActionName,
     deleteAction,
+    reorderActions,
     // Targets
     targets,
     getTargetsByStatus,

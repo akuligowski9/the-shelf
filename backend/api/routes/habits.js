@@ -125,11 +125,43 @@ router.delete('/practices/:id', async (req, res, next) => {
   }
 });
 
+// PUT /habits/practices/reorder - Bulk update sort_order for practices
+router.put('/practices/reorder', async (req, res, next) => {
+  try {
+    const { practice_ids } = req.body || {};
+
+    if (!Array.isArray(practice_ids) || practice_ids.length === 0) {
+      return res.status(400).json({ ok: false, error: 'practice_ids array is required' });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (let i = 0; i < practice_ids.length; i++) {
+        await client.query(
+          'UPDATE practices SET sort_order = $1, updated_at = NOW() WHERE id = $2',
+          [i, practice_ids[i]]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    res.json({ ok: true, reordered: practice_ids.length });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Get all actions
 router.get('/actions', async (_req, res, next) => {
   try {
     const r = await pool.query(
-      'SELECT * FROM actions ORDER BY practice_id, name ASC'
+      'SELECT * FROM actions ORDER BY practice_id, COALESCE(sort_order, 9999), name ASC'
     );
     res.json({ ok: true, actions: r.rows });
   } catch (err) {
@@ -217,6 +249,38 @@ router.delete('/actions/:id', async (req, res, next) => {
     }
 
     res.json({ ok: true, deleted: id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /habits/actions/reorder - Bulk update sort_order for actions
+router.put('/actions/reorder', async (req, res, next) => {
+  try {
+    const { action_ids } = req.body || {};
+
+    if (!Array.isArray(action_ids) || action_ids.length === 0) {
+      return res.status(400).json({ ok: false, error: 'action_ids array is required' });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (let i = 0; i < action_ids.length; i++) {
+        await client.query(
+          'UPDATE actions SET sort_order = $1, updated_at = NOW() WHERE id = $2',
+          [i, action_ids[i]]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    res.json({ ok: true, reordered: action_ids.length });
   } catch (err) {
     next(err);
   }

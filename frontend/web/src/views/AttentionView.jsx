@@ -236,6 +236,264 @@ const columnColors = {
   },
 }
 
+// Sortable practice row component
+function SortablePracticeRow({ practice, habitName, onEdit }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: practice.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center group py-1 ${isDragging ? 'bg-muted/50 rounded' : ''}`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground mr-1 touch-none"
+      >
+        <GripVertical className="h-3 w-3" />
+      </button>
+      <span className={practice.active ? 'text-sm flex-1' : 'text-sm flex-1 text-muted-foreground'}>
+        {practice.name}
+      </span>
+      <button
+        onClick={() => onEdit(practice, habitName)}
+        className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
+      >
+        Edit
+      </button>
+    </div>
+  )
+}
+
+// Sortable action chip component
+function SortableActionChip({ action, practiceName, onEdit }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: action.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center ${isDragging ? 'shadow-md' : ''}`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground touch-none"
+      >
+        <GripVertical className="h-3 w-3" />
+      </button>
+      <button
+        onClick={() => onEdit(action, practiceName)}
+        className={`text-xs px-2 py-0.5 rounded border transition-colors ${
+          action.active
+            ? 'bg-background hover:bg-muted border-border'
+            : 'bg-muted/30 text-muted-foreground hover:bg-muted border-transparent'
+        }`}
+      >
+        {action.name}
+      </button>
+    </div>
+  )
+}
+
+// Sortable practice with actions (expandable)
+function SortablePracticeWithActions({
+  practice,
+  habitName,
+  actions,
+  onEditPractice,
+  onEditAction,
+  addingActionFor,
+  setAddingActionFor,
+  newActionName,
+  setNewActionName,
+  handleAddAction,
+  handleCancelAddAction,
+  reorderActions,
+  sensors,
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: practice.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Collapsible>
+        {/* Practice Level */}
+        <div className={`flex items-center group ${isDragging ? 'bg-muted/50 rounded' : ''}`}>
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground mr-1 touch-none"
+          >
+            <GripVertical className="h-3 w-3" />
+          </button>
+          <CollapsibleTrigger className="flex items-center gap-2 py-1 hover:text-foreground/80 flex-1 [&[data-state=open]>svg]:rotate-90">
+            <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
+            <span className={practice.active ? 'text-sm' : 'text-sm text-muted-foreground'}>
+              {practice.name}
+            </span>
+            {actions.length > 0 && (
+              <span className="text-xs text-muted-foreground">{actions.length}</span>
+            )}
+          </CollapsibleTrigger>
+          <button
+            onClick={() => onEditPractice(practice, habitName)}
+            className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
+          >
+            Edit
+          </button>
+        </div>
+
+        <CollapsibleContent>
+          <div className="ml-3 pl-3 border-l border-border/30 py-1">
+            {/* Actions as sortable chips */}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(event) => {
+                const { active, over } = event
+                if (over && active.id !== over.id) {
+                  const oldIndex = actions.findIndex(a => a.id === active.id)
+                  const newIndex = actions.findIndex(a => a.id === over.id)
+                  if (oldIndex !== -1 && newIndex !== -1) {
+                    const newOrder = arrayMove(actions, oldIndex, newIndex)
+                    reorderActions(newOrder.map(a => a.id))
+                  }
+                }
+              }}
+            >
+              <SortableContext items={actions.map(a => a.id)} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-wrap gap-1 pl-2">
+                  {actions.map(action => (
+                    <SortableActionChip
+                      key={action.id}
+                      action={action}
+                      practiceName={practice.name}
+                      onEdit={onEditAction}
+                    />
+                  ))}
+                  {/* Add Action */}
+                  {addingActionFor === practice.id ? (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        value={newActionName}
+                        onChange={(e) => setNewActionName(e.target.value)}
+                        placeholder="Action"
+                        className="h-5 text-xs w-20 px-1.5"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddAction(practice.id)
+                          if (e.key === 'Escape') handleCancelAddAction()
+                        }}
+                      />
+                      <button
+                        onClick={() => handleAddAction(practice.id)}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        ✓
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setAddingActionFor(practice.id)}
+                      className="text-xs px-1.5 py-0.5 text-muted-foreground hover:text-foreground"
+                    >
+                      +
+                    </button>
+                  )}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  )
+}
+
+// Sortable caution behavior row
+function SortableBehaviorRow({ behavior, onEdit }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: behavior.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center group py-1.5 pl-2 ${isDragging ? 'bg-muted/50 rounded' : ''}`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground mr-1 touch-none"
+      >
+        <GripVertical className="h-3 w-3" />
+      </button>
+      <div className="w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400 mr-3" />
+      <span className={behavior.active ? 'text-sm flex-1' : 'text-sm flex-1 text-muted-foreground'}>
+        {behavior.name}
+      </span>
+      <button
+        onClick={() => onEdit(behavior)}
+        className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
+      >
+        Edit
+      </button>
+    </div>
+  )
+}
+
 // Kanban column component
 function KanbanColumn({ id, title, count, children, className }) {
   const { setNodeRef, isOver } = useDroppable({ id })
@@ -301,6 +559,9 @@ export default function AttentionView() {
     addAction,
     updateActionName,
     deleteAction,
+    deletePractice,
+    reorderPractices,
+    reorderActions,
     addHabit,
     targets,
     getTargetsByStatus,
@@ -1154,100 +1415,63 @@ export default function AttentionView() {
                       {practices.length === 0 ? (
                         <p className="text-xs text-muted-foreground py-1.5 pl-5">No practices</p>
                       ) : (
-                        practices.map(practice => {
-                          const actions = habit.track_actions ? getActionsForPractice(practice.id) : []
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={(event) => {
+                            const { active, over } = event
+                            if (over && active.id !== over.id) {
+                              const sortedPractices = [...practices].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity))
+                              const oldIndex = sortedPractices.findIndex(p => p.id === active.id)
+                              const newIndex = sortedPractices.findIndex(p => p.id === over.id)
+                              if (oldIndex !== -1 && newIndex !== -1) {
+                                const newOrder = arrayMove(sortedPractices, oldIndex, newIndex)
+                                reorderPractices(newOrder.map(p => p.id))
+                              }
+                            }
+                          }}
+                        >
+                          <SortableContext
+                            items={[...practices].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)).map(p => p.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {[...practices].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)).map(practice => {
+                              const actions = habit.track_actions ? getActionsForPractice(practice.id).sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)) : []
 
-                          // If no actions tracking, just show practice as a simple row
-                          if (!habit.track_actions) {
-                            return (
-                              <div key={practice.id} className="flex items-center group py-1 pl-5">
-                                <span className={practice.active ? 'text-sm flex-1' : 'text-sm flex-1 text-muted-foreground'}>
-                                  {practice.name}
-                                </span>
-                                <button
-                                  onClick={() => openPracticeEdit(practice, habit.name)}
-                                  className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
-                                >
-                                  Edit
-                                </button>
-                              </div>
-                            )
-                          }
+                              // If no actions tracking, just show practice as a simple row
+                              if (!habit.track_actions) {
+                                return (
+                                  <SortablePracticeRow
+                                    key={practice.id}
+                                    practice={practice}
+                                    habitName={habit.name}
+                                    onEdit={openPracticeEdit}
+                                  />
+                                )
+                              }
 
-                          // With actions tracking, show expandable practice
-                          return (
-                            <Collapsible key={practice.id}>
-                              {/* Practice Level */}
-                              <div className="flex items-center group">
-                                <CollapsibleTrigger className="flex items-center gap-2 py-1 hover:text-foreground/80 flex-1 [&[data-state=open]>svg]:rotate-90">
-                                  <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
-                                  <span className={practice.active ? 'text-sm' : 'text-sm text-muted-foreground'}>
-                                    {practice.name}
-                                  </span>
-                                  {actions.length > 0 && (
-                                    <span className="text-xs text-muted-foreground">{actions.length}</span>
-                                  )}
-                                </CollapsibleTrigger>
-                                <button
-                                  onClick={() => openPracticeEdit(practice, habit.name)}
-                                  className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
-                                >
-                                  Edit
-                                </button>
-                              </div>
-
-                              <CollapsibleContent>
-                                <div className="ml-3 pl-3 border-l border-border/30 py-1">
-                                  {/* Actions as chips */}
-                                  <div className="flex flex-wrap gap-1 pl-2">
-                                    {actions.map(action => (
-                                      <button
-                                        key={action.id}
-                                        onClick={() => openActionEdit(action, practice.name)}
-                                        className={`text-xs px-2 py-0.5 rounded border transition-colors ${
-                                          action.active
-                                            ? 'bg-background hover:bg-muted border-border'
-                                            : 'bg-muted/30 text-muted-foreground hover:bg-muted border-transparent'
-                                        }`}
-                                      >
-                                        {action.name}
-                                      </button>
-                                    ))}
-                                    {/* Add Action */}
-                                    {addingActionFor === practice.id ? (
-                                      <div className="flex items-center gap-1">
-                                        <Input
-                                          value={newActionName}
-                                          onChange={(e) => setNewActionName(e.target.value)}
-                                          placeholder="Action"
-                                          className="h-5 text-xs w-20 px-1.5"
-                                          autoFocus
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter') handleAddAction(practice.id)
-                                            if (e.key === 'Escape') handleCancelAddAction()
-                                          }}
-                                        />
-                                        <button
-                                          onClick={() => handleAddAction(practice.id)}
-                                          className="text-xs text-muted-foreground hover:text-foreground"
-                                        >
-                                          ✓
-                                        </button>
-                                      </div>
-                                    ) : (
-                                      <button
-                                        onClick={() => setAddingActionFor(practice.id)}
-                                        className="text-xs px-1.5 py-0.5 text-muted-foreground hover:text-foreground"
-                                      >
-                                        +
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              </CollapsibleContent>
-                            </Collapsible>
-                          )
-                        })
+                              // With actions tracking, show expandable practice with drag handle
+                              return (
+                                <SortablePracticeWithActions
+                                  key={practice.id}
+                                  practice={practice}
+                                  habitName={habit.name}
+                                  actions={actions}
+                                  onEditPractice={openPracticeEdit}
+                                  onEditAction={openActionEdit}
+                                  addingActionFor={addingActionFor}
+                                  setAddingActionFor={setAddingActionFor}
+                                  newActionName={newActionName}
+                                  setNewActionName={setNewActionName}
+                                  handleAddAction={handleAddAction}
+                                  handleCancelAddAction={handleCancelAddAction}
+                                  reorderActions={reorderActions}
+                                  sensors={sensors}
+                                />
+                              )
+                            })}
+                          </SortableContext>
+                        </DndContext>
                       )}
 
                       {/* Add Practice */}
@@ -1335,32 +1559,48 @@ export default function AttentionView() {
             {cautionBehaviors.length === 0 ? (
               <p className="text-sm text-muted-foreground">No caution behaviors defined</p>
             ) : (
-              <div className="space-y-0.5">
-                {cautionBehaviors
-                  .slice(0, showAllBehaviors ? undefined : 10)
-                  .map(behavior => (
-                  <div key={behavior.id} className="flex items-center group py-1.5 pl-2">
-                    <div className="w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400 mr-3" />
-                    <span className={behavior.active ? 'text-sm flex-1' : 'text-sm flex-1 text-muted-foreground'}>
-                      {behavior.name}
-                    </span>
-                    <button
-                      onClick={() => setEditingBehavior(behavior)}
-                      className="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity px-2"
-                    >
-                      Edit
-                    </button>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(event) => {
+                  const { active, over } = event
+                  if (over && active.id !== over.id) {
+                    const sortedBehaviors = [...cautionBehaviors].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity))
+                    const oldIndex = sortedBehaviors.findIndex(b => b.id === active.id)
+                    const newIndex = sortedBehaviors.findIndex(b => b.id === over.id)
+                    if (oldIndex !== -1 && newIndex !== -1) {
+                      const newOrder = arrayMove(sortedBehaviors, oldIndex, newIndex)
+                      reorderPractices(newOrder.map(b => b.id))
+                    }
+                  }
+                }}
+              >
+                <SortableContext
+                  items={[...cautionBehaviors].sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)).slice(0, showAllBehaviors ? undefined : 10).map(b => b.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-0.5">
+                    {[...cautionBehaviors]
+                      .sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity))
+                      .slice(0, showAllBehaviors ? undefined : 10)
+                      .map(behavior => (
+                      <SortableBehaviorRow
+                        key={behavior.id}
+                        behavior={behavior}
+                        onEdit={setEditingBehavior}
+                      />
+                    ))}
+                    {cautionBehaviors.length > 10 && (
+                      <button
+                        onClick={() => setShowAllBehaviors(!showAllBehaviors)}
+                        className="text-xs text-muted-foreground hover:text-foreground pt-2 pl-2"
+                      >
+                        {showAllBehaviors ? 'Show less' : `+${cautionBehaviors.length - 10} more → View all`}
+                      </button>
+                    )}
                   </div>
-                ))}
-                {cautionBehaviors.length > 10 && (
-                  <button
-                    onClick={() => setShowAllBehaviors(!showAllBehaviors)}
-                    className="text-xs text-muted-foreground hover:text-foreground pt-2 pl-2"
-                  >
-                    {showAllBehaviors ? 'Show less' : `+${cautionBehaviors.length - 10} more → View all`}
-                  </button>
-                )}
-              </div>
+                </SortableContext>
+              </DndContext>
             )}
           </CardContent>
         </Card>
@@ -1413,6 +1653,19 @@ export default function AttentionView() {
                   }}
                 >
                   Done
+                </Button>
+                <Separator className="my-2" />
+                <Button
+                  variant="ghost"
+                  className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => {
+                    if (confirm('Delete this behavior?')) {
+                      deletePractice(editingBehavior.id)
+                      setEditingBehavior(null)
+                    }
+                  }}
+                >
+                  Delete
                 </Button>
               </DialogFooter>
             </div>
@@ -1545,6 +1798,7 @@ export default function AttentionView() {
         habitName={editingPracticeHabitName}
         onSave={handleSavePractice}
         onToggleActive={() => editingPractice && togglePracticeActive(editingPractice.id)}
+        onDelete={deletePractice}
       />
 
       <ActionEditDialog
