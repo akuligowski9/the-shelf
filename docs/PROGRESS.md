@@ -29,6 +29,7 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v1.3.1 | 2026-01-29 | Database sequence fix, earth tone colors, TargetEditDialog scroll |
 | v1.3.0 | 2026-01-28 | Version endpoint and display in Settings |
 | v1.2.0 | 2026-01-28 | Mobile UI polish: chart spacing, compact cards, PWA icon fix |
 | v1.1.0 | 2026-01-28 | Mobile OAuth fix, demo auth error handling, login UX improvements |
@@ -68,6 +69,78 @@ Reconstructed from git commit windows:
 ---
 
 ## Sessions
+
+### 2026-01-29 (Early AM) - Database Sequence Fix & Earth Tone Colors
+
+**Summary:**
+- Fixed production bug: "duplicate key value violates unique constraint targets_pkey"
+- Created shared utility to reset PostgreSQL sequences after data imports
+- Added admin endpoint and Settings UI button to fix sequences manually
+- Fixed TargetEditDialog scroll issue on mobile
+- Added 9 new earth tone color options (24 total, 2 rows)
+- Added CLAUDE.md rule: never push without explicit permission
+
+**Production Bug Fix - Duplicate Key Error:**
+
+Problem: Users couldn't create new targets in production. Error: "duplicate key value violates unique constraint targets_pkey"
+
+Root cause: PostgreSQL sequences desync when data is imported with explicit IDs. The sequence thinks the next ID is 1, but records already exist with IDs 1-N.
+
+**Solution - Multi-Layer Fix:**
+
+1. **Shared Utility (`db/resetSequences.js`):**
+   - Created `resetAllSequences()` function
+   - Loops through all tables with sequences
+   - Sets each sequence to `MAX(id)` of its table
+   - Returns which sequences were out of sync
+
+2. **Admin Endpoint (`app.js`):**
+   - Added `POST /admin/reset-sequences` (auth required)
+   - Calls `resetAllSequences()` and returns results
+
+3. **Auto-Fix on Import (`routes/data.js`):**
+   - Added `await resetAllSequences()` at end of `/import` handler
+   - Added `await resetAllSequences()` at end of `/import-file` handler
+   - Prevents future sequence desync issues
+
+4. **Settings UI (`SettingsView.jsx`):**
+   - Added "Fix Database Sequences" button in Data Health section
+   - Shows success/error feedback after running
+
+**TargetEditDialog Scroll Fix:**
+
+Problem: Dialog content wouldn't scroll on mobile, cutting off form fields.
+
+Fix: Added `max-h-[90vh] overflow-y-auto` to DialogContent.
+
+**Earth Tone Colors (9 new):**
+
+Added to both `index.css` (CSS variables for light/dark) and `colors.js` (Tailwind classes):
+- olive, moss, clay, rust, umber, ochre, bark, sand, stone
+
+Color picker now shows 24 total colors in 2 rows of 12.
+
+**CLAUDE.md Update:**
+
+Added critical rule: "NEVER run `git push` without explicit user permission. Always ask first."
+
+**Files Created:**
+- `backend/api/db/resetSequences.js`
+
+**Files Modified:**
+- `backend/api/app.js` - Admin endpoint for sequence reset
+- `backend/api/routes/data.js` - Auto-reset sequences after import
+- `backend/api/package.json` - Version bump to 1.3.1
+- `frontend/web/src/lib/api.js` - Added resetSequences function
+- `frontend/web/src/views/SettingsView.jsx` - Fix Sequences button in Data Health
+- `frontend/web/src/components/attention/TargetEditDialog.jsx` - Scroll fix
+- `frontend/web/src/index.css` - 9 new earth tone CSS variables
+- `frontend/web/src/lib/colors.js` - 9 new colors in palette
+- `CLAUDE.md` - Added push permission rule
+
+**Deployed:** ✅ Backend v1.3.1 deployed to Cloud Run, frontend auto-deployed via Vercel
+
+---
 
 ### 2026-01-28 - Mobile OAuth Fix & Login UX Improvements
 
