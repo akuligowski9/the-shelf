@@ -157,7 +157,7 @@ export default function HabitEditDialog({
                         ? 'ring-2 ring-offset-2 ring-primary'
                         : 'hover:ring-2 hover:ring-offset-2 hover:ring-border'
                     }`}
-                    title={colorObj.name}
+                    aria-label={colorObj.name}
                   />
                 ))}
               </div>
@@ -226,6 +226,7 @@ export default function HabitEditDialog({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditTemplate(template, 'warmup')}
+                        aria-label="Edit template"
                       >
                         <Pencil className="h-3 w-3" />
                       </Button>
@@ -289,6 +290,7 @@ export default function HabitEditDialog({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditTemplate(template, 'cooldown')}
+                        aria-label="Edit template"
                       >
                         <Pencil className="h-3 w-3" />
                       </Button>

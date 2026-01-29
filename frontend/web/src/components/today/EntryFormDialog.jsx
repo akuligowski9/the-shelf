@@ -478,6 +478,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
                     variant="outline"
                     className="w-full justify-between"
                     onClick={() => setShowWarmUp(!showWarmUp)}
+                    aria-expanded={showWarmUp}
                   >
                     <span className="flex items-center gap-2">
                       <Sunrise className="h-4 w-4" />

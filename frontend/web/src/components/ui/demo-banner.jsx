@@ -83,6 +83,7 @@ export default function DemoBanner() {
           size="sm"
           className="h-7 w-7 p-0 text-amber-950 hover:bg-amber-600/50 dark:hover:bg-amber-700/50"
           onClick={() => setDismissed(true)}
+          aria-label="Dismiss banner"
         >
           <X className="h-4 w-4" />
         </Button>

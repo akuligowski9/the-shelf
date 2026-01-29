@@ -253,6 +253,17 @@ export default function ReviewView() {
   const reflectionFormRef = useRef(null)
   // selectedTrigger shape: { type: 'prompt'|'accomplishment'|'metric', id, label, value }
 
+  // Accessibility: screen reader announcements
+  const [announcement, setAnnouncement] = useState('')
+
+  // Clear announcement after it's been read
+  useEffect(() => {
+    if (announcement) {
+      const timer = setTimeout(() => setAnnouncement(''), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [announcement])
+
   // Start a reflection from a trigger (prompt, accomplishment, or metric)
   const startReflection = (trigger) => {
     setSelectedTrigger(trigger)
@@ -449,8 +460,10 @@ export default function ReviewView() {
       setReflections(prev => [saved, ...prev])
       setReflectionText('')
       setSelectedTrigger(null)
+      setAnnouncement('Reflection saved')
     } catch (err) {
       console.error('Failed to save reflection:', err)
+      setAnnouncement('Failed to save reflection')
     } finally {
       setIsSavingReflection(false)
     }
@@ -461,8 +474,10 @@ export default function ReviewView() {
     try {
       await deleteReflection(id)
       setReflections(prev => prev.filter(r => r.id !== id))
+      setAnnouncement('Reflection deleted')
     } catch (err) {
       console.error('Failed to delete reflection:', err)
+      setAnnouncement('Failed to delete reflection')
     }
   }
 
@@ -509,7 +524,7 @@ export default function ReviewView() {
                   value: `${currentMetrics.totalHours} hours this period`,
                 })}
                 className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Reflect on this"
+                aria-label="Reflect on this"
               >
                 <PenLine className="h-4 w-4" />
               </button>
@@ -530,7 +545,7 @@ export default function ReviewView() {
                   value: `${currentMetrics.habitEntries} habit entries this period`,
                 })}
                 className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Reflect on this"
+                aria-label="Reflect on this"
               >
                 <PenLine className="h-4 w-4" />
               </button>
@@ -551,7 +566,7 @@ export default function ReviewView() {
                   value: `${currentMetrics.cautionEntries} caution${currentMetrics.cautionEntries !== 1 ? 's' : ''} logged this period`,
                 })}
                 className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Reflect on this"
+                aria-label="Reflect on this"
               >
                 <PenLine className="h-4 w-4" />
               </button>
@@ -572,7 +587,7 @@ export default function ReviewView() {
                   value: `${currentMetrics.lifeEntries} life entr${currentMetrics.lifeEntries !== 1 ? 'ies' : 'y'} this period`,
                 })}
                 className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Reflect on this"
+                aria-label="Reflect on this"
               >
                 <PenLine className="h-4 w-4" />
               </button>
@@ -593,7 +608,7 @@ export default function ReviewView() {
                   value: `${currentMetrics.restDays} rest day${currentMetrics.restDays !== 1 ? 's' : ''} this period`,
                 })}
                 className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Reflect on this"
+                aria-label="Reflect on this"
               >
                 <PenLine className="h-4 w-4" />
               </button>
@@ -646,7 +661,7 @@ export default function ReviewView() {
                               value: `${habitName}: ${timeStr} (${percent}%)`,
                             })}
                             className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Reflect on this"
+                            aria-label="Reflect on this"
                           >
                             <PenLine className="h-4 w-4" />
                           </button>
@@ -683,7 +698,7 @@ export default function ReviewView() {
                             value: `${isUp ? '+' : ''}${percentChange}% vs. previous (${currentMetrics.totalHours}h vs ${previousMetrics.totalHours}h)`,
                           })}
                           className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Reflect on this"
+                          aria-label="Reflect on this"
                         >
                           <PenLine className="h-4 w-4" />
                         </button>
@@ -795,7 +810,7 @@ export default function ReviewView() {
                         value: entry.practice ? `${habitName} · ${entry.practice}` : habitName,
                       })}
                       className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Reflect on this"
+                      aria-label="Reflect on this"
                     >
                       <PenLine className="h-4 w-4" />
                     </button>
@@ -825,7 +840,7 @@ export default function ReviewView() {
                       value: target.name,
                     })}
                     className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Reflect on this"
+                    aria-label="Reflect on this"
                   >
                     <PenLine className="h-4 w-4" />
                   </button>
@@ -864,7 +879,7 @@ export default function ReviewView() {
                     value: prompt.text,
                   })}
                   className="text-muted-foreground hover:text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Reflect on this"
+                  aria-label="Reflect on this"
                 >
                   <PenLine className="h-4 w-4" />
                 </button>
@@ -983,7 +998,7 @@ export default function ReviewView() {
                     <button
                       onClick={() => handleDeleteReflection(reflection.id)}
                       className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                      title="Delete reflection"
+                      aria-label="Delete reflection"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -1051,7 +1066,7 @@ export default function ReviewView() {
                     <button
                       onClick={() => handleDeleteReflection(reflection.id)}
                       className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                      title="Delete reflection"
+                      aria-label="Delete reflection"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -1078,6 +1093,16 @@ export default function ReviewView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Visually hidden live region for screen reader announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
     </div>
   )
 }

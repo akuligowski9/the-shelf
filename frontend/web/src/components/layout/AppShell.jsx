@@ -40,8 +40,14 @@ export default function AppShell() {
       <HabitsProvider>
         <EntriesProvider>
           <div className="min-h-screen bg-background text-foreground">
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+            >
+              Skip to main content
+            </a>
             {!isLoginPage && isDemoMode && <DemoBanner />}
-            <main className="container mx-auto px-4 py-6 pb-24 max-w-6xl">
+            <main id="main-content" className="container mx-auto px-4 py-6 pb-24 max-w-6xl">
               <Outlet />
             </main>
             {!isLoginPage && <Navigation />}

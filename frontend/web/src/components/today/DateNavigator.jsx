@@ -76,6 +76,7 @@ export default function DateNavigator({ selectedDate, onDateChange }) {
         size="icon"
         onClick={goToPreviousDay}
         className="h-8 w-8 bg-card"
+        aria-label="Previous day"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
@@ -132,6 +133,7 @@ export default function DateNavigator({ selectedDate, onDateChange }) {
         onClick={goToNextDay}
         disabled={isToday(selectedDate) || isFuture(selectedDate)}
         className="h-8 w-8 bg-card"
+        aria-label="Next day"
       >
         <ChevronRight className="h-4 w-4" />
       </Button>

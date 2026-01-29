@@ -89,6 +89,7 @@ export default function PeriodSelector({
               size="icon"
               className="h-8 w-8"
               onClick={() => onPeriodOffsetChange(periodOffset - 1)}
+              aria-label="Previous period"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -101,6 +102,7 @@ export default function PeriodSelector({
               className="h-8 w-8"
               onClick={() => onPeriodOffsetChange(Math.min(periodOffset + 1, 0))}
               disabled={periodOffset === 0}
+              aria-label="Next period"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

@@ -792,6 +792,7 @@ export default function ProgressView() {
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => setPeriodOffset(prev => prev - 1)}
+                aria-label="Previous period"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -804,6 +805,7 @@ export default function ProgressView() {
                 className="h-8 w-8"
                 onClick={() => setPeriodOffset(prev => Math.min(prev + 1, 0))}
                 disabled={periodOffset === 0}
+                aria-label="Next period"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>

@@ -51,6 +51,17 @@ export default function TodayView() {
   const [coolDownEntry, setCoolDownEntry] = useState(null)
   const [showArchived, setShowArchived] = useState(false)
 
+  // Accessibility: screen reader announcements
+  const [announcement, setAnnouncement] = useState('')
+
+  // Clear announcement after it's been read
+  useEffect(() => {
+    if (announcement) {
+      const timer = setTimeout(() => setAnnouncement(''), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [announcement])
+
   // Data states - preparations and closures from API
   const [dayPreparation, setDayPreparation] = useState(null)
   const [dayClosure, setDayClosure] = useState(null)
@@ -134,14 +145,18 @@ export default function TodayView() {
     if (isEdit) {
       try {
         await updateEntry(entry.id, entry)
+        setAnnouncement('Entry updated')
       } catch (err) {
         console.error('Failed to update entry:', err)
+        setAnnouncement('Failed to update entry')
       }
     } else {
       try {
         await createEntry(entry)
+        setAnnouncement('Entry added')
       } catch (err) {
         console.error('Failed to create entry:', err)
+        setAnnouncement('Failed to add entry')
       }
     }
     setEditingEntry(null)
@@ -155,16 +170,20 @@ export default function TodayView() {
   const handleArchiveEntry = async (entryId) => {
     try {
       await updateEntry(entryId, { archived_at: new Date().toISOString() })
+      setAnnouncement('Entry archived')
     } catch (err) {
       console.error('Failed to archive entry:', err)
+      setAnnouncement('Failed to archive entry')
     }
   }
 
   const handleUnarchiveEntry = async (entryId) => {
     try {
       await updateEntry(entryId, { archived_at: null })
+      setAnnouncement('Entry restored')
     } catch (err) {
       console.error('Failed to unarchive entry:', err)
+      setAnnouncement('Failed to restore entry')
     }
   }
 
@@ -180,8 +199,10 @@ export default function TodayView() {
     if (!entry) return
     try {
       await updateEntry(entryId, { is_highlight: !entry.is_highlight })
+      setAnnouncement(entry.is_highlight ? 'Highlight removed' : 'Highlighted')
     } catch (err) {
       console.error('Failed to toggle highlight:', err)
+      setAnnouncement('Failed to update highlight')
     }
   }
 
@@ -349,6 +370,7 @@ export default function TodayView() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setPrepDialogOpen(true)}
+                  aria-label="Edit day preparation"
                 >
                   <Pencil className="h-3 w-3" />
                 </Button>
@@ -407,7 +429,7 @@ export default function TodayView() {
           {dayPreparation?.rest_day && (
             <>
               <span className="text-muted-foreground">·</span>
-              <Coffee className="h-4 w-4 text-amber-600 dark:text-amber-400" title="Rest day" />
+              <Coffee className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-label="Rest day" />
             </>
           )}
         </div>
@@ -455,7 +477,7 @@ export default function TodayView() {
                         <Star className="h-4 w-4 text-[hsl(var(--color-ui-accent))] fill-[hsl(var(--color-ui-accent))]" />
                       )}
                       {entry.warm_up_at && (
-                        <Sunrise className="h-3 w-3 text-muted-foreground" title="Warmed up" />
+                        <Sunrise className="h-3 w-3 text-muted-foreground" aria-label="Warmed up" />
                       )}
                     </div>
 
@@ -547,6 +569,8 @@ export default function TodayView() {
           <button
             onClick={() => setShowArchived(!showArchived)}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            aria-expanded={showArchived}
+            aria-controls="archived-entries"
           >
             {showArchived ? (
               <ChevronDown className="h-4 w-4" />
@@ -558,7 +582,7 @@ export default function TodayView() {
           </button>
 
           {showArchived && (
-            <div className="space-y-2 pl-6">
+            <div id="archived-entries" className="space-y-2 pl-6">
               {archivedEntries.map(entry => (
                 <Card key={entry.id} className="opacity-60 border-dashed">
                   <CardContent className="pt-3 pb-3">
@@ -614,6 +638,7 @@ export default function TodayView() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setClosureDialogOpen(true)}
+                  aria-label="Edit day closure"
                 >
                   <Pencil className="h-3 w-3" />
                 </Button>
@@ -673,6 +698,16 @@ export default function TodayView() {
         onSubmit={handleCoolDownSubmit}
         entry={coolDownEntry}
       />
+
+      {/* Visually hidden live region for screen reader announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
     </div>
   )
 }

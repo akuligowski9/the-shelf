@@ -79,6 +79,7 @@ function SortableTargetCard({ target, habits, progress, formatProgress }) {
           <button
             {...attributes}
             {...listeners}
+            aria-label="Reorder target"
             className="mt-1 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-muted-foreground touch-none"
           >
             <GripVertical className="h-5 w-5" />
@@ -96,7 +97,7 @@ function SortableTargetCard({ target, habits, progress, formatProgress }) {
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
                     className="text-muted-foreground hover:text-foreground transition-colors"
-                    title="View GitHub Issue"
+                    aria-label="View GitHub Issue"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>
@@ -176,6 +177,7 @@ function CompactSortableCard({ target, habits, progress, formatProgress }) {
       <button
         {...attributes}
         {...listeners}
+        aria-label="Reorder target"
         className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground touch-none"
       >
         <GripVertical className="h-4 w-4" />

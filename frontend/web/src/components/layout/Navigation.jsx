@@ -12,7 +12,7 @@ const navItems = [
 
 export default function Navigation() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
+    <nav aria-label="Main navigation" className="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
       <div className="container mx-auto max-w-6xl">
         <div className="flex justify-around py-2">
           {navItems.map(({ to, icon: Icon, label }) => (

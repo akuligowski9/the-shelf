@@ -890,6 +890,7 @@ export default function SettingsView() {
               size="sm"
               onClick={loadBackupStatus}
               disabled={backupLoading}
+              aria-label="Refresh backup status"
             >
               <RefreshCw className={`h-4 w-4 ${backupLoading ? 'animate-spin' : ''}`} />
             </Button>

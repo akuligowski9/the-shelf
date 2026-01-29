@@ -150,6 +150,7 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
             e.stopPropagation()
             onEdit(target)
           }}
+          aria-label="Edit target"
           className="text-muted-foreground/60 hover:text-muted-foreground shrink-0"
         >
           <MoreHorizontal className="h-4 w-4" />
@@ -185,7 +186,7 @@ function KanbanCard({ target, habitName, habitColorClasses, onEdit, isCompleted 
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className={`hidden md:flex text-xs text-muted-foreground hover:text-foreground items-center gap-1 ${isCompleted ? 'opacity-50' : ''}`}
-            title="View GitHub Issue"
+            aria-label="View GitHub Issue"
           >
             <ExternalLink className="h-3 w-3" />
             Issue
@@ -262,6 +263,7 @@ function SortablePracticeRow({ practice, habitName, onEdit }) {
       <button
         {...attributes}
         {...listeners}
+        aria-label="Reorder practice"
         className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground mr-1 touch-none"
       >
         <GripVertical className="h-3 w-3" />
@@ -305,6 +307,7 @@ function SortableActionChip({ action, practiceName, onEdit }) {
       <button
         {...attributes}
         {...listeners}
+        aria-label="Reorder action"
         className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground touch-none"
       >
         <GripVertical className="h-3 w-3" />
@@ -362,6 +365,7 @@ function SortablePracticeWithActions({
           <button
             {...attributes}
             {...listeners}
+            aria-label="Reorder practice"
             className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground mr-1 touch-none"
           >
             <GripVertical className="h-3 w-3" />
@@ -476,6 +480,7 @@ function SortableBehaviorRow({ behavior, onEdit }) {
       <button
         {...attributes}
         {...listeners}
+        aria-label="Reorder behavior"
         className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground mr-1 touch-none"
       >
         <GripVertical className="h-3 w-3" />
