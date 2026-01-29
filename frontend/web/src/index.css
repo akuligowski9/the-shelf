@@ -109,6 +109,25 @@
     --color-copper-light: 30 40% 90%;
     --color-marigold: 45 55% 48%;
     --color-marigold-light: 48 55% 90%;
+    /* Earth tones */
+    --color-olive: 75 30% 38%;
+    --color-olive-light: 75 22% 90%;
+    --color-moss: 95 25% 35%;
+    --color-moss-light: 95 18% 90%;
+    --color-clay: 8 40% 45%;
+    --color-clay-light: 8 30% 90%;
+    --color-rust: 15 50% 40%;
+    --color-rust-light: 15 40% 90%;
+    --color-umber: 25 35% 32%;
+    --color-umber-light: 25 25% 90%;
+    --color-ochre: 42 50% 45%;
+    --color-ochre-light: 42 40% 90%;
+    --color-bark: 22 30% 28%;
+    --color-bark-light: 22 22% 90%;
+    --color-sand: 38 45% 55%;
+    --color-sand-light: 38 35% 90%;
+    --color-stone: 45 15% 45%;
+    --color-stone-light: 45 10% 90%;
   }
 
   .dark {
@@ -209,6 +228,25 @@
     --color-copper-light: 30 45% 18%;
     --color-marigold: 45 60% 55%;
     --color-marigold-light: 45 50% 18%;
+    /* Earth tones */
+    --color-olive: 75 35% 48%;
+    --color-olive-light: 75 28% 18%;
+    --color-moss: 95 30% 45%;
+    --color-moss-light: 95 22% 18%;
+    --color-clay: 8 45% 52%;
+    --color-clay-light: 8 35% 18%;
+    --color-rust: 15 55% 48%;
+    --color-rust-light: 15 45% 18%;
+    --color-umber: 25 40% 42%;
+    --color-umber-light: 25 30% 18%;
+    --color-ochre: 42 55% 52%;
+    --color-ochre-light: 42 45% 18%;
+    --color-bark: 22 35% 38%;
+    --color-bark-light: 22 28% 18%;
+    --color-sand: 38 50% 60%;
+    --color-sand-light: 38 40% 18%;
+    --color-stone: 45 20% 55%;
+    --color-stone-light: 45 15% 18%;
   }
 }
 

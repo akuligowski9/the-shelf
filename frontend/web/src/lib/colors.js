@@ -19,6 +19,16 @@ export const colorHslValues = {
   sienna: '25 50% 45%',
   copper: '30 55% 50%',
   marigold: '40 70% 50%',
+  // Earth tones
+  olive: '75 30% 38%',
+  moss: '95 25% 35%',
+  clay: '8 40% 45%',
+  rust: '15 50% 40%',
+  umber: '25 35% 32%',
+  ochre: '42 50% 45%',
+  bark: '22 30% 28%',
+  sand: '38 45% 55%',
+  stone: '45 15% 45%',
 }
 
 // Get raw HSL color string for a habit color key
@@ -137,6 +147,70 @@ export const colorPalette = {
     text: 'text-[hsl(var(--color-marigold))]',
     border: 'border-[hsl(var(--color-marigold))]',
     dot: 'bg-[hsl(var(--color-marigold))]',
+  },
+  // Earth tones
+  olive: {
+    name: 'Olive',
+    bg: 'bg-[hsl(var(--color-olive-light))]',
+    text: 'text-[hsl(var(--color-olive))]',
+    border: 'border-[hsl(var(--color-olive))]',
+    dot: 'bg-[hsl(var(--color-olive))]',
+  },
+  moss: {
+    name: 'Moss',
+    bg: 'bg-[hsl(var(--color-moss-light))]',
+    text: 'text-[hsl(var(--color-moss))]',
+    border: 'border-[hsl(var(--color-moss))]',
+    dot: 'bg-[hsl(var(--color-moss))]',
+  },
+  clay: {
+    name: 'Clay',
+    bg: 'bg-[hsl(var(--color-clay-light))]',
+    text: 'text-[hsl(var(--color-clay))]',
+    border: 'border-[hsl(var(--color-clay))]',
+    dot: 'bg-[hsl(var(--color-clay))]',
+  },
+  rust: {
+    name: 'Rust',
+    bg: 'bg-[hsl(var(--color-rust-light))]',
+    text: 'text-[hsl(var(--color-rust))]',
+    border: 'border-[hsl(var(--color-rust))]',
+    dot: 'bg-[hsl(var(--color-rust))]',
+  },
+  umber: {
+    name: 'Umber',
+    bg: 'bg-[hsl(var(--color-umber-light))]',
+    text: 'text-[hsl(var(--color-umber))]',
+    border: 'border-[hsl(var(--color-umber))]',
+    dot: 'bg-[hsl(var(--color-umber))]',
+  },
+  ochre: {
+    name: 'Ochre',
+    bg: 'bg-[hsl(var(--color-ochre-light))]',
+    text: 'text-[hsl(var(--color-ochre))]',
+    border: 'border-[hsl(var(--color-ochre))]',
+    dot: 'bg-[hsl(var(--color-ochre))]',
+  },
+  bark: {
+    name: 'Bark',
+    bg: 'bg-[hsl(var(--color-bark-light))]',
+    text: 'text-[hsl(var(--color-bark))]',
+    border: 'border-[hsl(var(--color-bark))]',
+    dot: 'bg-[hsl(var(--color-bark))]',
+  },
+  sand: {
+    name: 'Sand',
+    bg: 'bg-[hsl(var(--color-sand-light))]',
+    text: 'text-[hsl(var(--color-sand))]',
+    border: 'border-[hsl(var(--color-sand))]',
+    dot: 'bg-[hsl(var(--color-sand))]',
+  },
+  stone: {
+    name: 'Stone',
+    bg: 'bg-[hsl(var(--color-stone-light))]',
+    text: 'text-[hsl(var(--color-stone))]',
+    border: 'border-[hsl(var(--color-stone))]',
+    dot: 'bg-[hsl(var(--color-stone))]',
   },
 }
 
