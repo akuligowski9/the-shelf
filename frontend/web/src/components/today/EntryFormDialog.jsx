@@ -19,37 +19,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
-import { Sunrise, ChevronDown, ChevronUp } from 'lucide-react'
+import { Sunrise, ChevronDown, ChevronUp, Copy } from 'lucide-react'
 import { renderWarmUpTemplate } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
-
-// Helper to get/set last used target per habit from localStorage
-const LAST_TARGET_KEY = 'shelf_last_target_by_habit'
-
-function getLastTargetForHabit(habitId) {
-  try {
-    const stored = localStorage.getItem(LAST_TARGET_KEY)
-    if (stored) {
-      const map = JSON.parse(stored)
-      return map[habitId] || ''
-    }
-  } catch (e) {
-    // Ignore localStorage errors
-  }
-  return ''
-}
-
-function setLastTargetForHabit(habitId, targetId) {
-  try {
-    const stored = localStorage.getItem(LAST_TARGET_KEY)
-    const map = stored ? JSON.parse(stored) : {}
-    map[habitId] = targetId
-    localStorage.setItem(LAST_TARGET_KEY, JSON.stringify(map))
-  } catch (e) {
-    // Ignore localStorage errors
-  }
-}
 
 const ENTRY_TYPES = [
   { value: 'habit', label: 'Habit' },
@@ -57,7 +30,7 @@ const ENTRY_TYPES = [
   { value: 'caution', label: 'Caution' },
 ]
 
-export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchive, editingEntry }) {
+export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchive, onCopy, editingEntry }) {
   const { targets, habits, activeHabits, getPracticesForHabit, getActionsForPractice, getWarmUpTemplatesForHabit } = useHabits()
   const { entries } = useEntries()
 
@@ -247,16 +220,11 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
       entry.practice = selectedPractice?.name || null
       entry.habit_id = habitId ? Number(habitId) : null
       entry.practice_id = practiceId ? Number(practiceId) : null
-      // Only set target_id if the target actually exists (prevents FK constraint errors from stale localStorage)
+      // Only set target_id if a valid target is selected (not 'none')
       entry.target_id = selectedTarget ? Number(targetId) : null
       entry.target = selectedTarget?.name || null
       entry.actions = selectedActions.length > 0 ? selectedActions : null
       entry.note = note || null
-
-      // Remember this target for next time (but not "none")
-      if (habitId && targetId && targetId !== 'none') {
-        setLastTargetForHabit(habitId, targetId)
-      }
     } else if (entryType === 'caution') {
       // Caution entries: only send practice_id (behavior), not habit_id
       // Backend requires habit_id to be null for non-habit entries
@@ -295,9 +263,8 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     setShowWarmUp(false)
     setWarmUpCompleted(false)
     setWarmUpNote('')
-    // Load last used target for this habit
-    const lastTarget = getLastTargetForHabit(value)
-    setTargetId(lastTarget)
+    // Default to no target - user can select one if needed
+    setTargetId('none')
   }
 
   const toggleAction = (actionName) => {
@@ -328,8 +295,23 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0">
           <DialogTitle>{editingEntry ? 'Edit Entry' : 'Add Entry'}</DialogTitle>
+          {editingEntry && onCopy && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 mr-8"
+              onClick={() => {
+                onCopy(editingEntry)
+                onOpenChange(false)
+              }}
+              title="Copy to today"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto">

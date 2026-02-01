@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Plus, Star, Pencil, Sun, Moon, Sunrise, Sunset, Archive, RotateCcw, ChevronDown, ChevronRight, Coffee, Target } from 'lucide-react'
+import { Plus, Star, Pencil, Sun, Moon, Sunrise, Sunset, Archive, RotateCcw, ChevronDown, ChevronRight, Coffee, Target, X } from 'lucide-react'
 import { formatDateKey } from '@/data/mockData'
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
@@ -50,6 +50,9 @@ export default function TodayView() {
   const [warmUpEntry, setWarmUpEntry] = useState(null)
   const [coolDownEntry, setCoolDownEntry] = useState(null)
   const [showArchived, setShowArchived] = useState(false)
+
+  // Copy notification state
+  const [copiedEntry, setCopiedEntry] = useState(null)
 
   // Accessibility: screen reader announcements
   const [announcement, setAnnouncement] = useState('')
@@ -191,6 +194,68 @@ export default function TodayView() {
     setEntryDialogOpen(isOpen)
     if (!isOpen) {
       setEditingEntry(null)
+    }
+  }
+
+  const handleCopyEntry = async (entry) => {
+    // Create timestamp for today in local time (avoid UTC date mismatch)
+    const now = new Date()
+    const todayKey = formatDateKey(now)
+    const timeStr = now.toTimeString().slice(0, 8) // HH:MM:SS in local time
+    const localTimestamp = `${todayKey}T${timeStr}`
+
+    // Create a copy of the entry with a new timestamp (now, local time)
+    const copiedData = {
+      type: entry.type,
+      occurred_at: localTimestamp,
+      duration_minutes: entry.duration_minutes || null,
+      note: entry.note || null,
+      is_highlight: false, // Don't copy highlight status
+      // Don't copy warm-up/cool-down data (session-specific)
+    }
+
+    // Only include habit-related fields for habit entries
+    if (entry.type === 'habit') {
+      copiedData.habit_id = entry.habit_id
+      copiedData.practice_id = entry.practice_id || null
+      copiedData.target_id = entry.target_id || null
+      copiedData.actions = entry.actions || null
+    }
+
+    // Only include practice_id for caution entries
+    if (entry.type === 'caution') {
+      copiedData.practice_id = entry.practice_id || null
+    }
+
+    try {
+      const newEntry = await createEntry(copiedData)
+      if (!newEntry || !newEntry.id) {
+        throw new Error('No entry returned from API')
+      }
+      setCopiedEntry(newEntry)
+      setAnnouncement('Entry copied to today')
+      // Navigate to today if not already there
+      if (!isToday) {
+        setSelectedDate(new Date())
+      }
+      // Auto-dismiss notification after 5 seconds
+      setTimeout(() => setCopiedEntry(null), 5000)
+    } catch (err) {
+      console.error('Failed to copy entry:', err)
+      setAnnouncement('Failed to copy entry')
+    }
+  }
+
+  const handleEditCopiedEntry = () => {
+    if (copiedEntry) {
+      // First close any existing dialog state, then open with new entry
+      setEditingEntry(null)
+      // Use setTimeout to ensure state update propagates before setting new entry
+      setTimeout(() => {
+        setEditingEntry(copiedEntry)
+        setEntryDialogOpen(true)
+        setCopiedEntry(null)
+      }, 0)
     }
   }
 
@@ -660,12 +725,34 @@ export default function TodayView() {
         </CardContent>
       </Card>
 
+      {/* Copy notification */}
+      {copiedEntry && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-background border border-border rounded-lg shadow-lg px-4 py-3 flex items-center gap-3">
+          <span className="text-sm">Entry copied to today</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleEditCopiedEntry}
+          >
+            Edit
+          </Button>
+          <button
+            onClick={() => setCopiedEntry(null)}
+            className="text-muted-foreground hover:text-foreground"
+            aria-label="Dismiss"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Dialogs */}
       <EntryFormDialog
         open={entryDialogOpen}
         onOpenChange={handleEntryDialogClose}
         onSubmit={handleEntrySubmit}
         onArchive={handleArchiveEntry}
+        onCopy={handleCopyEntry}
         editingEntry={editingEntry}
       />
 

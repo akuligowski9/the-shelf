@@ -26,11 +26,6 @@ export function getApiUrl() {
     apiUrl = import.meta.env.VITE_API_URL || 'https://shelf-api-785607788916.us-east1.run.app'
   }
 
-  // Debug logging in browser console (always enabled for debugging)
-  console.log('[API] Hostname:', hostname)
-  console.log('[API] Is Demo:', isDemo)
-  console.log('[API] API URL:', apiUrl)
-
   return apiUrl
 }
 
