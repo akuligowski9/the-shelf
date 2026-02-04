@@ -31,13 +31,13 @@ const ENTRY_TYPES = [
 ]
 
 export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchive, onCopy, editingEntry }) {
-  const { targets, habits, activeHabits, getPracticesForHabit, getActionsForPractice, getWarmUpTemplatesForHabit } = useHabits()
+  const { targets, habits, practices, activeHabits, getPracticesForHabit, getActionsForPractice, getWarmUpTemplatesForHabit } = useHabits()
   const { entries } = useEntries()
 
   const [entryType, setEntryType] = useState('habit')
   const [habitId, setHabitId] = useState('')
   const [practiceId, setPracticeId] = useState('')
-  const [targetId, setTargetId] = useState('')
+  const [targetId, setTargetId] = useState('none')
   const [selectedActions, setSelectedActions] = useState([])
   const [durationMinutes, setDurationMinutes] = useState('')
   const [note, setNote] = useState('')
@@ -73,7 +73,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     return targets.find(t => t.id === Number(targetId))
   }, [targetId, targets])
 
-  const practices = useMemo(() => {
+  const habitPractices = useMemo(() => {
     if (!habitId) return []
     return getPracticesForHabit(Number(habitId)).sort(sortByOrder)
   }, [habitId, getPracticesForHabit])
@@ -91,15 +91,15 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
   }, [habitId, sortedActiveHabits])
 
   const selectedPractice = useMemo(() => {
-    return practices.find(p => p.id === Number(practiceId))
-  }, [practiceId, practices])
+    return habitPractices.find(p => p.id === Number(practiceId))
+  }, [practiceId, habitPractices])
 
   // Caution behaviors (active practices under the caution-type habit, sorted)
   const cautionBehaviors = useMemo(() => {
     const cautionHabit = habits.find(h => h.type === 'caution')
     if (!cautionHabit) return []
-    return getPracticesForHabit(cautionHabit.id).filter(p => p.active).sort(sortByOrder)
-  }, [habits, getPracticesForHabit])
+    return practices.filter(p => p.habit_id === cautionHabit.id && p.active).sort(sortByOrder)
+  }, [habits, practices])
 
   const selectedCautionBehavior = useMemo(() => {
     return cautionBehaviors.find(b => b.id === Number(cautionBehaviorId))
@@ -178,7 +178,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
     setEntryType('habit')
     setHabitId('')
     setPracticeId('')
-    setTargetId('')
+    setTargetId('none')
     setSelectedActions([])
     setDurationMinutes('')
     setNote('')
@@ -371,7 +371,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
           )}
 
           {/* Practice Selector (only for habit type with habit selected) */}
-          {entryType === 'habit' && habitId && practices.length > 0 && (
+          {entryType === 'habit' && habitId && habitPractices.length > 0 && (
             <div className="space-y-2">
               <Label>Practice <span className="text-muted-foreground text-xs">(optional)</span></Label>
               <Select value={practiceId} onValueChange={(value) => {
@@ -382,7 +382,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
                   <SelectValue placeholder="Select a practice" />
                 </SelectTrigger>
                 <SelectContent>
-                  {practices.map(practice => (
+                  {habitPractices.map(practice => (
                     <SelectItem key={practice.id} value={String(practice.id)}>
                       {practice.name}
                     </SelectItem>
