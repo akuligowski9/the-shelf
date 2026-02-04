@@ -94,6 +94,10 @@ function normalizeEntry(entry, habits, practices, actions = [], targets = []) {
         if (target) {
           normalized.target = target.name
           normalized.target_id = target.id
+        } else {
+          // Keep the target name for display even if we can't match it
+          // (user will see it but it won't link to a target_id)
+          normalized.target = entry.target
         }
       }
     } else {
@@ -104,12 +108,14 @@ function normalizeEntry(entry, habits, practices, actions = [], targets = []) {
   }
 
   // For caution entries, match to a caution behavior
+  // GPT might use "practice" or "behavior" field - accept either
   if (normalized.type === 'caution') {
     const cautionHabit = habits.find(h => h.type === 'caution')
-    if (cautionHabit && entry.practice) {
+    const behaviorName = entry.practice || entry.behavior
+    if (cautionHabit && behaviorName) {
       const behavior = practices.find(p =>
         p.habit_id === cautionHabit.id &&
-        p.name.toLowerCase() === entry.practice.toLowerCase() &&
+        p.name.toLowerCase() === behaviorName.toLowerCase() &&
         p.active
       )
       if (behavior) {
