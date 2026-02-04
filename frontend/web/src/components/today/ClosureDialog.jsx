@@ -113,11 +113,12 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
 
           {/* Note */}
           <div className="space-y-2">
-            <Label>
+            <Label htmlFor="closure-note">
               Closing thoughts
               <span className="text-muted-foreground text-xs ml-1">(optional)</span>
             </Label>
             <Textarea
+              id="closure-note"
               placeholder="How did today feel? What worked well? Anything to carry forward?"
               value={note}
               onChange={(e) => setNote(e.target.value)}

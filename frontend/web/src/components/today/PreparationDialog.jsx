@@ -64,8 +64,9 @@ export default function PreparationDialog({ open, onOpenChange, onSubmit, existi
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Note */}
           <div className="space-y-2">
-            <Label>What's the focus?</Label>
+            <Label htmlFor="prep-note">What's the focus?</Label>
             <Textarea
+              id="prep-note"
               placeholder="What do you want to accomplish today? Any constraints or priorities?"
               value={note}
               onChange={(e) => setNote(e.target.value)}

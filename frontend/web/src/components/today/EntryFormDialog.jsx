@@ -307,7 +307,7 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
                 onCopy(editingEntry)
                 onOpenChange(false)
               }}
-              title="Copy to today"
+              aria-label="Copy to today"
             >
               <Copy className="h-4 w-4" />
             </Button>
@@ -503,8 +503,9 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
 
                     {/* Session Preparation Notes */}
                     <div className="space-y-2">
-                      <Label className="text-xs">Session preparation</Label>
+                      <Label htmlFor="warm-up-note" className="text-xs">Session preparation</Label>
                       <Textarea
+                        id="warm-up-note"
                         placeholder="What's your focus for this session?"
                         value={warmUpNote}
                         onChange={(e) => setWarmUpNote(e.target.value)}
@@ -560,8 +561,9 @@ export default function EntryFormDialog({ open, onOpenChange, onSubmit, onArchiv
 
           {/* Note */}
           <div className="space-y-2">
-            <Label>Note <span className="text-muted-foreground text-xs">(optional)</span></Label>
+            <Label htmlFor="entry-note">Note <span className="text-muted-foreground text-xs">(optional)</span></Label>
             <Textarea
+              id="entry-note"
               placeholder={
                 entryType === 'life'
                   ? 'What happened? (e.g., Family time, errands, travel)'
