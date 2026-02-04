@@ -191,9 +191,9 @@ function CompactSortableCard({ target, habits, progress, formatProgress }) {
           {habit.name}
         </Badge>
       )}
-      <span className="text-sm truncate flex-1">{target.name}</span>
+      <span className="text-sm truncate flex-1 min-w-0">{target.name}</span>
       {progress && formatProgress && (
-        <span className="text-xs text-muted-foreground shrink-0">
+        <span className="text-xs text-muted-foreground shrink-0 hidden md:inline">
           {formatProgress(progress.minutes)}
         </span>
       )}
