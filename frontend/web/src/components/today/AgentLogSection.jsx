@@ -189,7 +189,11 @@ export default function AgentLogSection({ dateKey, onEntriesAdded, existingPrepa
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardContent className="py-3 cursor-pointer hover:bg-accent/50 transition-colors">
+          <CardContent
+            className="py-3 cursor-pointer hover:bg-accent/50 transition-colors"
+            aria-expanded={isOpen}
+            aria-controls="balance-agent-content"
+          >
             <div className="flex items-center gap-2">
               {isOpen ? (
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -203,7 +207,7 @@ export default function AgentLogSection({ dateKey, onEntriesAdded, existingPrepa
           </CardContent>
         </CollapsibleTrigger>
 
-        <CollapsibleContent>
+        <CollapsibleContent id="balance-agent-content">
           <CardContent className="pt-0 pb-4 space-y-4">
             {/* Step 1: Copy Context */}
             <div className="space-y-2">
@@ -253,6 +257,8 @@ export default function AgentLogSection({ dateKey, onEntriesAdded, existingPrepa
                 2. Chat with your agent, then paste the JSON response
               </p>
               <Textarea
+                id="agent-response-input"
+                aria-label="Agent JSON response"
                 placeholder="Paste the agent's response here..."
                 value={responseText}
                 onChange={(e) => setResponseText(e.target.value)}
@@ -268,7 +274,7 @@ export default function AgentLogSection({ dateKey, onEntriesAdded, existingPrepa
                 Parse Response
               </Button>
               {parseError && (
-                <p className="text-sm text-destructive">{parseError}</p>
+                <p role="alert" className="text-sm text-destructive">{parseError}</p>
               )}
             </div>
 
