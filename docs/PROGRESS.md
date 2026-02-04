@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-01-29
+Last updated: 2026-02-03
 
 ---
 
@@ -29,6 +29,7 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v1.4.0 | 2026-02-03 | Balance Agent for conversational day logging via ChatGPT Custom GPT |
 | v1.3.1 | 2026-01-29 | Database sequence fix, earth tone colors, TargetEditDialog scroll |
 | v1.3.0 | 2026-01-28 | Version endpoint and display in Settings |
 | v1.2.0 | 2026-01-28 | Mobile UI polish: chart spacing, compact cards, PWA icon fix |
@@ -69,6 +70,97 @@ Reconstructed from git commit windows:
 ---
 
 ## Sessions
+
+### 2026-02-03 - Balance Agent Feature
+
+**Summary:**
+- Implemented "Balance Agent" — a ChatGPT Custom GPT integration for conversational day logging
+- Users can start their day, log entries, and close their day through natural conversation
+- Agent outputs structured JSON that imports directly into The Shelf
+
+**Three Modes:**
+| Mode | Trigger | Output |
+|------|---------|--------|
+| Morning | "Starting my day..." | Preparation (intention + rest day flag) |
+| Logging | "Here's what I did..." | Entries (habit, life, caution) |
+| Evening | "Closing out..." | Closure (reflection note) |
+
+**New Files Created:**
+- `docs/BALANCE_AGENT_GPT.md` — Complete setup instructions for Custom GPT
+- `frontend/web/src/lib/agentPrompt.js` — Generates context prompt with habits, entries, week summary
+- `frontend/web/src/lib/agentParser.js` — Parses JSON response, matches habit/practice names, converts to API format
+- `frontend/web/src/components/today/AgentLogSection.jsx` — Collapsible UI with copy context, paste response, review entries
+
+**Files Modified:**
+- `frontend/web/src/views/TodayView.jsx` — Integrated AgentLogSection component
+- `frontend/web/src/lib/colors.test.js` — Updated test to expect 24 colors (was 15)
+
+**How It Works:**
+1. User expands "Balance Agent" section in Today view
+2. Click "Copy Context" → paste into Custom GPT
+3. Chat naturally about the day
+4. Copy JSON response → paste back → click "Parse Response"
+5. Review preparation, entries, closure → click "Add"
+6. Data saved to The Shelf via existing APIs
+
+**Context Prompt Includes:**
+- All active habits and practices
+- Active targets
+- Day status (started/closed)
+- Today's entries so far
+- Yesterday's summary
+- This week's summary with neglected habits flagged
+- Caution count for the week
+
+**Agent Features:**
+- Detects mode from conversation context
+- Matches habit/practice names case-insensitively
+- Converts unmatched habits to "life" entries
+- Supports rest day flag in preparation
+- Shows "Already exists" badge if prep/closure exists
+- Works on any day (today or past)
+
+**GPT Instructions Include:**
+- Three-mode detection (morning/logging/evening)
+- JSON output format specification
+- When NOT to output JSON (meta questions)
+- Mode-specific guidelines
+- Example interactions for each mode
+
+**Testing:**
+- Build passes
+- 37/37 unit tests pass
+- Lint clean for new files (96 pre-existing errors in other files)
+
+**Deployed:** ✅ Frontend auto-deployed via Vercel (push to main)
+
+---
+
+### 2026-01-31 (Night) - Mobile Shelf Spacing & Docker Backup Fix
+
+**Summary:**
+- Improved mobile spacing on Shelf view Kanban cards
+- Fixed Docker auto-restore not seeing backup files (SHELF-064)
+
+**Shelf View Mobile Spacing (`ShelfView.jsx`):**
+- Compact card padding: `p-2` → `p-3 md:p-2` (more breathing room on mobile, desktop unchanged)
+- Grid gap: `gap-8` → `gap-x-4 gap-y-6 md:gap-x-8 md:gap-y-10` (separate horizontal/vertical gaps, more vertical space between rows)
+- Space between cards: `space-y-2` → `space-y-3 md:space-y-2` (all 4 Kanban zones)
+
+**Docker Auto-Restore Fix (SHELF-064):**
+- Problem: `dev-start.js` auto-restore couldn't find backup files inside Docker container
+- Root cause: `data/backups/` directory was outside the mounted volume (`./backend/api:/app`)
+- Fix: Added volume mount `./data:/data` to api service in `docker-compose.dev.yml`
+- Container's `/data/backups` now maps to host's `data/backups/`
+- Requires container restart to apply: `docker compose -f docker-compose.dev.yml down && docker compose -f docker-compose.dev.yml up -d`
+
+**Files Modified:**
+- `frontend/web/src/views/ShelfView.jsx` - Mobile spacing improvements
+- `docker-compose.dev.yml` - Added data volume mount
+- `docs/BACKLOG.md` - Added SHELF-064
+- `docs/PROGRESS.md` - This entry
+
+---
 
 ### 2026-01-29 (Early AM) - Database Sequence Fix & Earth Tone Colors
 
