@@ -410,6 +410,11 @@ Loading states across the app are inconsistent - some views show skeletons, othe
 - **Assignee:** Alex
 - **GitHub Issue:** No
 
+### Notes
+
+Initial implementation (2026-01-20) added skeletons to TodayView, ProgressView, ReviewView.
+ShelfView and AttentionView skeletons added 2026-02-04 to complete all views.
+
 ---
 
 ## SHELF-039: Search Entries

@@ -71,6 +71,42 @@ Reconstructed from git commit windows:
 
 ## Sessions
 
+### 2026-02-04 (Late Evening) - Loading Skeletons & Mobile Layout Fix
+
+**Summary:**
+- Fixed initial page load showing empty data on ShelfView and AttentionView
+- Synced frontend version to 1.4.0
+- Deployed backend to Cloud Run (v1.4.0)
+- Fixed compact target cards hiding target names on mobile
+
+**Loading Skeletons (Initial Load Fix):**
+- Problem: ShelfView and AttentionView rendered immediately with empty arrays before data loaded
+- Cause: Neither view checked `isLoading` from HabitsContext/EntriesContext
+- Fix: Added loading skeleton states to both views
+- ShelfView: Shows skeleton cards for targets, habits accordion, and activity section
+- AttentionView: Shows skeleton cards for Kanban columns and habits list
+
+**Version Sync:**
+- Frontend `package.json` updated from 0.0.0 → 1.4.0
+- Build output now shows `web@1.4.0` instead of `web@0.0.0`
+- Backend deployed to Cloud Run (revision `shelf-api-00027-vs5`)
+- Settings page now shows "Version 1.4.0"
+
+**Compact Card Mobile Fix:**
+- Problem: In Planned/Parked columns, target names were hidden when progress time was shown
+- Cause: Badge (`shrink-0`) + time (`shrink-0`) left no room for target name in narrow 2-column grid
+- Fix: Added `min-w-0` for proper flex truncation, `hidden md:inline` to hide time on mobile
+- Target names now always visible; progress time shown on tablet+ only
+
+**Files Modified:**
+- `frontend/web/src/views/ShelfView.jsx` - Loading skeleton + compact card fix
+- `frontend/web/src/views/AttentionView.jsx` - Loading skeleton
+- `frontend/web/package.json` - Version 1.4.0
+
+**Deployed:** ✅ Frontend via Vercel, Backend via Cloud Run
+
+---
+
 ### 2026-02-04 (Evening) - Mobile Shelf Spacing & Docker Auto-Restore
 
 **Summary:**
