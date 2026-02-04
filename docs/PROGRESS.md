@@ -72,6 +72,59 @@ Reconstructed from git commit windows:
 
 ## Sessions
 
+### 2026-02-04 (Late Night) - v2 Planning Session
+
+**Summary:**
+- Comprehensive planning for v2 App Store launch
+- Explored codebase for App Store readiness gaps
+- Designed practice and caution drill-down features for Progress view
+- Created 12 new backlog items (SHELF-067 through SHELF-078)
+
+**Key Decisions:**
+- **Target audience:** Public app (anyone can download)
+- **Authentication:** Biometric/PIN lock for device protection
+- **Data storage:** Local-first with optional OAuth cloud sync
+- **Drill-down:** Include in v2.0 release
+
+**App Store Gaps Identified:**
+- No privacy policy or terms of service
+- No iOS Privacy Manifest (required since iOS 17)
+- No EAS build configuration
+- No multi-tenant backend (single-user design)
+- No biometric/PIN authentication on mobile
+- No crash reporting or analytics
+- No onboarding flow
+
+**v2 Phases Planned:**
+1. Legal & Compliance (privacy policy, terms, iOS manifest)
+2. Local-First Data Architecture (SQLite for mobile)
+3. Multi-Tenant Backend (user_id on all tables)
+4. Mobile Authentication (biometric/PIN + optional OAuth)
+5. Progress View Drill-Down (practice + caution breakdowns)
+6. EAS Build & Store Setup
+7. Polish & Launch
+
+**Timeline:** ~5 weeks when work begins
+
+**Files Created:**
+- `docs/V2_PLAN.md` - Full v2 implementation plan
+
+**Backlog Items Added:**
+- SHELF-067: Privacy Policy and Terms of Service
+- SHELF-068: iOS Privacy Manifest
+- SHELF-069: Local SQLite Data Storage (Mobile)
+- SHELF-070: Multi-Tenant Backend (user_id)
+- SHELF-071: Mobile Biometric/PIN Authentication
+- SHELF-072: Optional Cloud Sync
+- SHELF-073: Practice Breakdown Drill-Down
+- SHELF-074: Caution Breakdown Drill-Down
+- SHELF-075: EAS Build Configuration
+- SHELF-076: App Store Assets & Metadata
+- SHELF-077: Crash Reporting (Sentry)
+- SHELF-078: Onboarding Flow
+
+---
+
 ### 2026-02-04 (Night) - Entry Form Bug Fixes
 
 **Summary:**

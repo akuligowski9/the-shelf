@@ -1070,6 +1070,312 @@ Can be done incrementally as each component from SHELF-052 through SHELF-055 is 
 
 ---
 
+## v2 - App Store Launch
+
+> These items are planned for v2 when ready to launch on iOS App Store and Google Play.
+> See `docs/V2_PLAN.md` for full implementation plan.
+
+## SHELF-067: Privacy Policy and Terms of Service
+
+### Description
+
+App Store submission requires privacy policy and terms of service. Create web pages accessible at /privacy and /terms, and add links in Settings view on both web and mobile apps.
+
+### Acceptance Criteria
+
+- [ ] Privacy policy page at /privacy route
+- [ ] Terms of service page at /terms route
+- [ ] Links added to web SettingsView
+- [ ] Links added to mobile settings screen
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-068: iOS Privacy Manifest
+
+### Description
+
+iOS 17+ requires a Privacy Manifest file (`PrivacyInfo.xcprivacy`) declaring what APIs the app uses and why. Required for App Store submission.
+
+### Acceptance Criteria
+
+- [ ] Create `frontend/mobile/ios/PrivacyInfo.xcprivacy`
+- [ ] Declare UserDefaults usage (AsyncStorage)
+- [ ] Declare no tracking
+- [ ] Validate with Xcode
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-069: Local SQLite Data Storage (Mobile)
+
+### Description
+
+Enable mobile app to work standalone without backend by storing data locally in SQLite. Currently the app requires the backend API to function. Local storage allows offline-first usage with optional cloud sync.
+
+### Acceptance Criteria
+
+- [ ] Add expo-sqlite dependency
+- [ ] Create local schema mirroring PostgreSQL tables
+- [ ] Implement data access layer abstracting local vs remote
+- [ ] Update Zustand stores to use local DB
+- [ ] App works completely offline (no backend required)
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-070: Multi-Tenant Backend (user_id)
+
+### Description
+
+Add `user_id` column to all data tables to support multiple users with isolated data. Currently the backend is single-user design. Required for public app where multiple people can use cloud sync.
+
+### Acceptance Criteria
+
+- [ ] Migration adds user_id column to all data tables
+- [ ] Backfill existing data to owner's user_id
+- [ ] All API routes scope queries by authenticated user
+- [ ] Create users table and registration flow
+- [ ] Demo mode unchanged (read-only sample data)
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-071: Mobile Biometric/PIN Authentication
+
+### Description
+
+Protect user data on mobile with biometric (Face ID/fingerprint) or PIN authentication. App should require authentication on launch when enabled.
+
+### Acceptance Criteria
+
+- [ ] Add expo-local-authentication dependency
+- [ ] Create LockScreen component
+- [ ] Settings to enable/disable auth and change PIN
+- [ ] Check auth on app foreground resume
+- [ ] PIN fallback for devices without biometrics
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-072: Optional Cloud Sync
+
+### Description
+
+Allow users to optionally sign in with OAuth to sync data across devices. Local-first by default, cloud sync as opt-in feature.
+
+### Acceptance Criteria
+
+- [ ] "Sign in for cloud sync" option in Settings
+- [ ] OAuth flow (Google/GitHub) on mobile
+- [ ] Bi-directional sync service
+- [ ] Conflict resolution (last-write-wins)
+- [ ] Clear indication of sync status
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-073: Practice Breakdown Drill-Down
+
+### Description
+
+Click/tap on a habit in Progress view to see practice-level breakdown showing which practices were used, session counts, and time distribution.
+
+### Acceptance Criteria
+
+- [ ] Web: PracticeBreakdownDialog component
+- [ ] Mobile: PracticeBreakdownSheet component
+- [ ] Shows practice name, sessions, time, percentage
+- [ ] Aggregates from entries by practice_id
+- [ ] Works for selected time period
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+### Notes
+
+Enhancement to SHELF-005 (ProgressView Practice Breakdowns).
+
+---
+
+## SHELF-074: Caution Breakdown Drill-Down
+
+### Description
+
+Click/tap on Caution count in Progress view Stewardship section to see list of individual caution entries with dates, behavior names, and notes.
+
+### Acceptance Criteria
+
+- [ ] Web: CautionBreakdownDialog component
+- [ ] Mobile: CautionBreakdownSheet component
+- [ ] Shows date, behavior (practice_name), note, duration
+- [ ] Filters entries by type='caution' for period
+- [ ] Summary count at top
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** High
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-075: EAS Build Configuration
+
+### Description
+
+Configure Expo Application Services (EAS) for building iOS and Android app store binaries. Includes build profiles, signing certificates, and app metadata.
+
+### Acceptance Criteria
+
+- [ ] Create `frontend/mobile/eas.json` with build profiles
+- [ ] Update `app.json` with bundle IDs and version codes
+- [ ] Configure iOS certificates and provisioning profiles
+- [ ] Configure Android keystore
+- [ ] Successful `eas build` for both platforms
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-076: App Store Assets & Metadata
+
+### Description
+
+Create all required assets for App Store and Google Play submission: screenshots, descriptions, keywords, release notes.
+
+### Acceptance Criteria
+
+- [ ] App store screenshots (various device sizes)
+- [ ] App description copy
+- [ ] Keywords/tags for discoverability
+- [ ] Release notes for v2.0
+- [ ] App preview video (optional)
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Critical
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-077: Crash Reporting (Sentry)
+
+### Description
+
+Add crash reporting to mobile app for production monitoring. Essential for debugging issues reported by users.
+
+### Acceptance Criteria
+
+- [ ] Add Sentry SDK to mobile app
+- [ ] Configure for production builds only
+- [ ] Verify crashes appear in Sentry dashboard
+- [ ] Source maps uploaded for readable stack traces
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+## SHELF-078: Onboarding Flow
+
+### Description
+
+First-launch tutorial to introduce new users to The Shelf concepts (habits, practices, targets, entries). 3-4 screens explaining the app.
+
+### Acceptance Criteria
+
+- [ ] Detect first launch (no data exists)
+- [ ] Show onboarding screens with illustrations
+- [ ] Explain core concepts: habits, practices, targets
+- [ ] Skip option for returning users
+- [ ] Mark onboarding complete in local storage
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** v2
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
 ## Parking Lot
 
 *Ideas not yet actionable. May be promoted or discarded.*
