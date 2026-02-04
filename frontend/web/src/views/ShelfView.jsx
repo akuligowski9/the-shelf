@@ -172,7 +172,7 @@ function CompactSortableCard({ target, habits, progress, formatProgress }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 p-2 rounded-md border bg-secondary hover:bg-accent/50 transition-colors"
+      className="flex items-center gap-2 p-3 md:p-2 rounded-md border bg-secondary hover:bg-accent/50 transition-colors"
     >
       <button
         {...attributes}
@@ -540,7 +540,7 @@ export default function ShelfView() {
         {/* Target Shelf - 2x2 grid for Planned, Parked, Completed, Archived */}
         <Card>
           <CardContent className="py-4">
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:gap-x-8 md:gap-y-10">
               {/* Planned */}
               <DroppableZone id="planned" className="min-h-[60px] rounded-md">
                 <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
@@ -555,7 +555,7 @@ export default function ShelfView() {
                   {targets.planned.length === 0 ? (
                     <p className="text-sm text-muted-foreground/60 py-2">Drop here to plan</p>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-3 md:space-y-2">
                       {targets.planned.slice(0, 5).map(t => (
                         <CompactSortableCard key={t.id} target={t} habits={habits} progress={targetProgress[t.id]} formatProgress={formatProgress} />
                       ))}
@@ -586,7 +586,7 @@ export default function ShelfView() {
                   {targets.parked.length === 0 ? (
                     <p className="text-sm text-muted-foreground/60 py-2">Drop here to park</p>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-3 md:space-y-2">
                       {targets.parked.slice(0, 5).map(t => (
                         <CompactSortableCard key={t.id} target={t} habits={habits} progress={targetProgress[t.id]} formatProgress={formatProgress} />
                       ))}
@@ -617,7 +617,7 @@ export default function ShelfView() {
                   {targets.completed.length === 0 ? (
                     <p className="text-sm text-muted-foreground/60 py-2">Drop here to complete</p>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-3 md:space-y-2">
                       {targets.completed.slice(0, 5).map(t => (
                         <CompactSortableCard key={t.id} target={t} habits={habits} progress={targetProgress[t.id]} formatProgress={formatProgress} />
                       ))}
@@ -648,7 +648,7 @@ export default function ShelfView() {
                   {targets.archived.length === 0 ? (
                     <p className="text-sm text-muted-foreground/60 py-2">Drop here to archive</p>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-3 md:space-y-2">
                       {targets.archived.slice(0, 5).map(t => (
                         <CompactSortableCard key={t.id} target={t} habits={habits} progress={targetProgress[t.id]} formatProgress={formatProgress} />
                       ))}

@@ -28,6 +28,7 @@ services:
     volumes:
       - ./backend/api:/app
       - /app/node_modules
+      - ./data:/data
 
   web:
     build:

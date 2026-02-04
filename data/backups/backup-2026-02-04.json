@@ -1,5 +1,5 @@
 {
-  "exported_at": "2026-02-04T05:40:12.693Z",
+  "exported_at": "2026-02-04T19:31:41.130Z",
   "version": "1.0",
   "habits": [
     {
@@ -609,16 +609,6 @@
       "sort_order": null,
       "created_at": "2026-01-23T07:08:16.201Z",
       "updated_at": "2026-01-23T07:08:16.201Z"
-    },
-    {
-      "id": 73,
-      "habit_id": 6,
-      "name": "Recovery",
-      "active": true,
-      "details": null,
-      "sort_order": null,
-      "created_at": "2026-01-23T07:24:35.079Z",
-      "updated_at": "2026-01-23T07:24:35.079Z"
     },
     {
       "id": 80,
@@ -1620,7 +1610,7 @@
       "start_date": null,
       "end_date": null,
       "planned_duration": null,
-      "done_at": "2026-01-25T00:00:00.000Z",
+      "done_at": "2026-01-25T05:00:00.000Z",
       "sort_order": null,
       "github_issue_url": null,
       "created_at": "2026-01-22T21:12:20.617Z",
@@ -1705,7 +1695,7 @@
       "start_date": null,
       "end_date": null,
       "planned_duration": null,
-      "done_at": "2026-01-25T00:00:00.000Z",
+      "done_at": "2026-01-25T05:00:00.000Z",
       "sort_order": null,
       "github_issue_url": null,
       "created_at": "2026-01-22T21:12:20.617Z",
@@ -1719,10 +1709,10 @@
       "notes": null,
       "status": "completed",
       "habit_id": 1,
-      "start_date": "2026-01-01T00:00:00.000Z",
+      "start_date": "2026-01-01T05:00:00.000Z",
       "end_date": null,
       "planned_duration": null,
-      "done_at": "2026-01-29T00:00:00.000Z",
+      "done_at": "2026-01-29T05:00:00.000Z",
       "sort_order": null,
       "github_issue_url": null,
       "created_at": "2026-01-23T05:36:55.751Z",
@@ -1736,7 +1726,7 @@
       "notes": null,
       "status": "planned",
       "habit_id": 6,
-      "start_date": "2026-01-21T00:00:00.000Z",
+      "start_date": "2026-01-21T05:00:00.000Z",
       "end_date": null,
       "planned_duration": null,
       "done_at": null,
@@ -1804,7 +1794,7 @@
       "notes": null,
       "status": "planned",
       "habit_id": 1,
-      "start_date": "2026-01-29T00:00:00.000Z",
+      "start_date": "2026-01-29T05:00:00.000Z",
       "end_date": null,
       "planned_duration": null,
       "done_at": null,
@@ -4427,7 +4417,7 @@
       "cool_down_note": null,
       "archived_at": null,
       "created_at": "2026-01-25T04:41:19.769Z",
-      "updated_at": "2026-02-02T06:10:25.572Z"
+      "updated_at": "2026-02-04T19:31:32.116Z"
     },
     {
       "id": 222,
@@ -5698,7 +5688,7 @@
     {
       "id": 1,
       "period_type": "day",
-      "period_start": "2026-01-25T00:00:00.000Z",
+      "period_start": "2026-01-25T05:00:00.000Z",
       "note": "Sick - Break from screens",
       "habit_id": null,
       "target_id": null,
@@ -5709,7 +5699,7 @@
     {
       "id": 2,
       "period_type": "day",
-      "period_start": "2026-01-13T00:00:00.000Z",
+      "period_start": "2026-01-13T05:00:00.000Z",
       "note": "Rest day",
       "habit_id": null,
       "target_id": null,
@@ -5720,7 +5710,7 @@
     {
       "id": 3,
       "period_type": "day",
-      "period_start": "2026-01-19T00:00:00.000Z",
+      "period_start": "2026-01-19T05:00:00.000Z",
       "note": "Rest day",
       "habit_id": null,
       "target_id": null,
