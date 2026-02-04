@@ -45,6 +45,7 @@ import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
 import { getPreparation, getClosure } from '@/lib/api'
 import { formatDateKey } from '@/data/mockData'
+import { SkeletonCard, SkeletonHabitAccordion } from '@/components/ui/skeleton'
 
 // Sortable target card component
 function SortableTargetCard({ target, habits, progress, formatProgress }) {
@@ -218,8 +219,11 @@ export default function ShelfView() {
   const navigate = useNavigate()
 
   // Use shared habits and targets from context
-  const { habits, activeHabits, targets: contextTargets, reorderTargets, updateTargetStatus, getPracticesForHabit, getActionsForPractice } = useHabits()
-  const { entries: allEntries } = useEntries()
+  const { habits, activeHabits, targets: contextTargets, reorderTargets, updateTargetStatus, getPracticesForHabit, getActionsForPractice, isLoading: isLoadingHabits } = useHabits()
+  const { entries: allEntries, isLoading: isLoadingEntries } = useEntries()
+
+  // Show loading state while data is being fetched
+  const isLoading = isLoadingHabits || isLoadingEntries
 
   // Today's date key
   const today = new Date()
@@ -454,6 +458,56 @@ export default function ShelfView() {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
+  }
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">The Shelf</h1>
+            <p className="text-muted-foreground">
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </p>
+          </div>
+        </div>
+
+        {/* Active Targets skeleton */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-2 h-2 rounded-full bg-muted"></span>
+            <span className="text-sm font-medium text-muted-foreground">Active</span>
+          </div>
+          <div className="space-y-3">
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+          </div>
+        </div>
+
+        {/* Target Shelf skeleton */}
+        <SkeletonCard lines={4} />
+
+        {/* Habits skeleton */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Habits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SkeletonHabitAccordion count={4} />
+          </CardContent>
+        </Card>
+
+        {/* Activity skeleton */}
+        <SkeletonCard lines={3} />
+      </div>
+    )
   }
 
   return (

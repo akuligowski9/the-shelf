@@ -50,6 +50,7 @@ import HabitEditDialog from '@/components/attention/HabitEditDialog'
 import PracticeEditDialog from '@/components/attention/PracticeEditDialog'
 import ActionEditDialog from '@/components/attention/ActionEditDialog'
 import TargetEditDialog from '@/components/attention/TargetEditDialog'
+import { SkeletonCard, SkeletonHabitAccordion } from '@/components/ui/skeleton'
 
 // Modal list item component (draggable)
 function ModalListItem({ target, habitName, habitColorClasses, onEdit, isOnBoard, position, colorScheme, isCompleted }) {
@@ -548,6 +549,7 @@ export default function AttentionView() {
   // Shared state from context
   const {
     habits,
+    isLoading,
     updateHabitColor,
     toggleHabitActive,
     getHabitByName,
@@ -856,6 +858,47 @@ export default function AttentionView() {
   const openActionEdit = (action, practiceName) => {
     setEditingAction(action)
     setEditingActionPracticeName(practiceName)
+  }
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Attention</h1>
+          <p className="text-muted-foreground">Manage what gets your attention</p>
+        </div>
+
+        {/* Targets skeleton */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Targets</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-4 gap-4">
+              <SkeletonCard lines={3} />
+              <SkeletonCard lines={3} />
+              <SkeletonCard lines={3} />
+              <SkeletonCard lines={3} />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Habits skeleton */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Habits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SkeletonHabitAccordion count={5} />
+          </CardContent>
+        </Card>
+
+        {/* Caution Behaviors skeleton */}
+        <SkeletonCard lines={3} />
+      </div>
+    )
   }
 
   return (
