@@ -99,11 +99,14 @@ Reconstructed from git commit windows:
 
 ---
 
-### 2026-02-04 - Accessibility Pass & Balance Agent Polish
+### 2026-02-04 - Accessibility Pass & Balance Agent Improvements
 
 **Summary:**
-- Quick accessibility pass on core components
+- Accessibility pass on core components
 - Linked "Open Balance Agent" button directly to custom GPT
+- Enhanced Balance Agent context prompt with caution behaviors, targets by status, actions
+- Created comprehensive knowledge document for Custom GPT
+- Fixed parser issues with field name variations and target display
 
 **Accessibility Improvements:**
 
@@ -121,11 +124,42 @@ Reconstructed from git commit windows:
 - Now links directly to custom GPT: `chatgpt.com/g/g-697ed5dccff081918e925a0f0aa24af0-balance-agent`
 - One-click access instead of generic ChatGPT homepage
 
+**Balance Agent Context Prompt (`agentPrompt.js`):**
+- Added caution behaviors to context (practices under caution-type habit)
+- Added targets grouped by status (active, planned, parked)
+- Added actions in brackets for habits with `track_actions: true`
+- Format: `Reading [Articles, Books, Podcasts, Audiobooks]`
+
+**Custom GPT Knowledge Document (`docs/BALANCE_AGENT_KNOWLEDGE.md`):**
+- Created 530-line authoritative reference for Balance Agent
+- Complete data model with hierarchy diagrams
+- Field specifications for all entry types (habit, life, caution)
+- Explicit type declarations: `target` is STRING, `actions` is ARRAY
+- WRONG vs CORRECT examples for common mistakes
+- Duration estimation guidelines
+- Complete JSON examples for all modes (morning, logging, evening)
+
+**GPT Instructions Condensed (`docs/BALANCE_AGENT_GPT.md`):**
+- Reduced instructions to ~2600 characters (under 8000 char limit)
+- Points to knowledge document for detailed schema
+- Kept essential mode detection and guidelines
+
+**Parser Fixes (`agentParser.js`):**
+- Accept `behavior` as alias for `practice` in caution entries (GPT uses either)
+- Preserve target name for display even if not matched to database ID
+- Fixed: targets now show in preview regardless of exact ID match
+
+**Files Created:**
+- `docs/BALANCE_AGENT_KNOWLEDGE.md` - Comprehensive GPT knowledge document
+
 **Files Modified:**
-- `frontend/web/src/components/today/AgentLogSection.jsx` - Accessibility + direct GPT link
+- `frontend/web/src/components/today/AgentLogSection.jsx` - Accessibility, direct GPT link, targets/actions display
 - `frontend/web/src/components/today/EntryFormDialog.jsx` - Label associations
 - `frontend/web/src/components/today/PreparationDialog.jsx` - Label association
 - `frontend/web/src/components/today/ClosureDialog.jsx` - Label association
+- `frontend/web/src/lib/agentPrompt.js` - Added caution behaviors, targets by status, actions
+- `frontend/web/src/lib/agentParser.js` - Field name aliasing, target display fix
+- `docs/BALANCE_AGENT_GPT.md` - Condensed instructions
 
 **Deployed:** ✅ Frontend auto-deployed via Vercel (push to main)
 
