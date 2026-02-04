@@ -25,7 +25,7 @@ function extractJson(text) {
 /**
  * Validate and normalize an entry from the agent
  */
-function normalizeEntry(entry, habits, practices) {
+function normalizeEntry(entry, habits, practices, actions = [], targets = []) {
   const normalized = {
     type: entry.type || 'habit',
     duration_minutes: entry.duration_minutes || null,
@@ -34,6 +34,9 @@ function normalizeEntry(entry, habits, practices) {
     practice: null,
     habit_id: null,
     practice_id: null,
+    target_id: null,
+    target: null,
+    actions: null,
   }
 
   // Validate type
@@ -61,6 +64,36 @@ function normalizeEntry(entry, habits, practices) {
         if (practice) {
           normalized.practice = practice.name
           normalized.practice_id = practice.id
+
+          // Match actions if provided and habit tracks actions
+          if (entry.actions && Array.isArray(entry.actions) && habit.track_actions) {
+            const matchedActions = entry.actions
+              .map(actionName => {
+                const action = actions.find(a =>
+                  a.practice_id === practice.id &&
+                  a.name.toLowerCase() === actionName.toLowerCase() &&
+                  a.active
+                )
+                return action ? action.name : null
+              })
+              .filter(Boolean)
+            if (matchedActions.length > 0) {
+              normalized.actions = matchedActions
+            }
+          }
+        }
+      }
+
+      // Match target if provided
+      if (entry.target) {
+        const target = targets.find(t =>
+          t.habit_id === habit.id &&
+          t.name.toLowerCase() === entry.target.toLowerCase() &&
+          ['active', 'planned', 'parked'].includes(t.status)
+        )
+        if (target) {
+          normalized.target = target.name
+          normalized.target_id = target.id
         }
       }
     } else {
@@ -70,10 +103,22 @@ function normalizeEntry(entry, habits, practices) {
     }
   }
 
-  // For caution entries, we might want to match to a caution behavior
-  // For now, just keep the note
+  // For caution entries, match to a caution behavior
   if (normalized.type === 'caution') {
-    normalized.note = entry.note || entry.habit || 'Caution logged'
+    const cautionHabit = habits.find(h => h.type === 'caution')
+    if (cautionHabit && entry.practice) {
+      const behavior = practices.find(p =>
+        p.habit_id === cautionHabit.id &&
+        p.name.toLowerCase() === entry.practice.toLowerCase() &&
+        p.active
+      )
+      if (behavior) {
+        normalized.practice = behavior.name
+        normalized.practice_id = behavior.id
+      }
+    }
+    // Keep the note regardless
+    normalized.note = entry.note || null
   }
 
   return normalized
@@ -107,6 +152,8 @@ function normalizeClosure(closure) {
  * @param {string} responseText - The raw text from ChatGPT
  * @param {Array} habits - List of habits from context
  * @param {Array} practices - List of practices from context
+ * @param {Array} actions - List of actions from context
+ * @param {Array} targets - List of targets from context
  * @returns {{
  *   entries: Array,
  *   preparation: object|null,
@@ -115,14 +162,14 @@ function normalizeClosure(closure) {
  *   error: string|null
  * }}
  */
-export function parseAgentResponse(responseText, habits, practices) {
+export function parseAgentResponse(responseText, habits, practices, actions = [], targets = []) {
   try {
     const jsonStr = extractJson(responseText)
     const data = JSON.parse(jsonStr)
 
     // Normalize entries (may be empty array or missing)
     const entries = (data.entries || [])
-      .map(e => normalizeEntry(e, habits, practices))
+      .map(e => normalizeEntry(e, habits, practices, actions, targets))
       .filter(e => {
         // Filter out invalid entries
         if (e.type === 'habit' && !e.habit_id) return false
@@ -164,6 +211,8 @@ export function entriesToApiFormat(entries, dateKey) {
     occurred_at: timestamp,
     habit_id: entry.habit_id,
     practice_id: entry.practice_id,
+    target_id: entry.target_id,
+    actions: entry.actions,
     duration_minutes: entry.duration_minutes,
     note: entry.note,
     is_highlight: false,

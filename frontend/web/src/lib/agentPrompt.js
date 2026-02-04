@@ -36,7 +36,7 @@ function summarizeByHabit(entries) {
 /**
  * Generate the context prompt for the Balance Agent
  */
-export function generateAgentPrompt({ habits, practices, targets, entries, todayKey, hasPreparation = false, hasClosure = false }) {
+export function generateAgentPrompt({ habits, practices, actions = [], targets, entries, todayKey, hasPreparation = false, hasClosure = false }) {
   const today = new Date()
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
@@ -46,24 +46,46 @@ export function generateAgentPrompt({ habits, practices, targets, entries, today
   const activeHabits = habits.filter(h => h.active && h.type !== 'caution')
   const habitNames = activeHabits.map(h => h.name)
 
-  // Get practices grouped by habit
+  // Get practices grouped by habit, with actions for habits that track them
   const practicesByHabit = {}
   activeHabits.forEach(h => {
     const habitPractices = practices
       .filter(p => p.habit_id === h.id && p.active)
-      .map(p => p.name)
+      .map(p => {
+        // Include actions if habit tracks them
+        if (h.track_actions) {
+          const practiceActions = actions
+            .filter(a => a.practice_id === p.id && a.active)
+            .map(a => a.name)
+          if (practiceActions.length > 0) {
+            return `${p.name} [${practiceActions.join(', ')}]`
+          }
+        }
+        return p.name
+      })
     if (habitPractices.length > 0) {
       practicesByHabit[h.name] = habitPractices
     }
   })
 
-  // Get active targets
-  const activeTargets = targets
-    .filter(t => t.status === 'active')
-    .map(t => {
+  // Get caution behaviors (practices under the caution-type habit)
+  const cautionHabit = habits.find(h => h.type === 'caution')
+  const cautionBehaviors = cautionHabit
+    ? practices.filter(p => p.habit_id === cautionHabit.id && p.active).map(p => p.name)
+    : []
+
+  // Get targets grouped by status
+  const targetsByStatus = {
+    active: [],
+    planned: [],
+    parked: [],
+  }
+  targets.forEach(t => {
+    if (targetsByStatus[t.status]) {
       const habit = habits.find(h => h.id === t.habit_id)
-      return `${t.name} (${habit?.name || 'Unknown'})`
-    })
+      targetsByStatus[t.status].push(`${t.name} (${habit?.name || 'Unknown'})`)
+    }
+  })
 
   // Today's entries
   const todayEntries = getEntriesForDate(entries, todayKey)
@@ -101,8 +123,12 @@ export function generateAgentPrompt({ habits, practices, targets, entries, today
 
 **Practices by Habit:**
 ${Object.entries(practicesByHabit).map(([habit, pracs]) => `- ${habit}: ${pracs.join(', ')}`).join('\n')}
+${cautionBehaviors.length > 0 ? `\n**Caution Behaviors:** ${cautionBehaviors.join(', ')}` : ''}
 
-**Active Targets:** ${activeTargets.length > 0 ? activeTargets.join(', ') : 'None'}
+**Targets:**
+${targetsByStatus.active.length > 0 ? `- Active: ${targetsByStatus.active.join(', ')}` : '- Active: None'}
+${targetsByStatus.planned.length > 0 ? `- Planned: ${targetsByStatus.planned.join(', ')}` : ''}
+${targetsByStatus.parked.length > 0 ? `- Parked: ${targetsByStatus.parked.join(', ')}` : ''}
 
 **Day Status:** ${dayStatusStr}
 
@@ -129,8 +155,16 @@ I'm going to chat with you about my day. Based on what I share, output JSON with
       "type": "habit",
       "habit": "Habit Name",
       "practice": "Practice Name or null",
+      "actions": ["Action1", "Action2"],
+      "target": "Target Name or null",
       "duration_minutes": 30,
       "note": "Optional note"
+    },
+    {
+      "type": "caution",
+      "practice": "Caution Behavior Name or null",
+      "duration_minutes": null,
+      "note": "Optional context"
     }
   ],
   "closure": {
@@ -144,7 +178,9 @@ I'm going to chat with you about my day. Based on what I share, output JSON with
 - Include \`preparation\` if I'm starting my day${hasPreparation ? ' (already exists today)' : ''}
 - Include \`entries\` for any activities I mention (type: "habit", "life", or "caution")
 - Include \`closure\` if I'm closing out the day${hasClosure ? ' (already exists today)' : ''}
-- Match habit and practice names exactly from my lists above
+- Match habit, practice, action, target, and caution behavior names exactly from my lists above
+- For habits with actions (shown in brackets), include the \`actions\` array
+- For caution entries, use \`practice\` for the behavior name
 - Omit sections that don't apply
 
 Ready when you are.`

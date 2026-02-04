@@ -19,7 +19,7 @@ import { savePreparation, saveClosure } from '@/lib/api'
 import { getHabitBadgeClassesByColor, entryTypeColors } from '@/lib/colors'
 
 export default function AgentLogSection({ dateKey, onEntriesAdded, existingPreparation, existingClosure }) {
-  const { habits, practices, targets } = useHabits()
+  const { habits, practices, targets, actions } = useHabits()
   const { entries, createEntry } = useEntries()
 
   const [isOpen, setIsOpen] = useState(false)
@@ -33,6 +33,7 @@ export default function AgentLogSection({ dateKey, onEntriesAdded, existingPrepa
     const prompt = generateAgentPrompt({
       habits,
       practices,
+      actions,
       targets,
       entries,
       todayKey: dateKey,
@@ -51,7 +52,7 @@ export default function AgentLogSection({ dateKey, onEntriesAdded, existingPrepa
 
   const handleParse = () => {
     setParseError(null)
-    const result = parseAgentResponse(responseText, habits, practices)
+    const result = parseAgentResponse(responseText, habits, practices, actions, targets)
 
     if (result.error) {
       setParseError(result.error)
@@ -328,16 +329,26 @@ export default function AgentLogSection({ dateKey, onEntriesAdded, existingPrepa
                         key={index}
                         className="flex items-center justify-between gap-2 p-2 rounded-md border bg-secondary/50"
                       >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
                           <Badge
                             variant={getEntryBadgeStyle(entry).variant}
                             className={getEntryBadgeStyle(entry).className}
                           >
-                            {entry.type === 'habit' ? entry.habit : entry.type}
+                            {entry.type === 'habit' ? entry.habit : entry.type === 'caution' ? 'Caution' : entry.type}
                           </Badge>
                           {entry.practice && (
                             <span className="text-sm text-muted-foreground truncate">
                               {entry.practice}
+                            </span>
+                          )}
+                          {entry.target && (
+                            <span className="text-sm text-muted-foreground truncate">
+                              → {entry.target}
+                            </span>
+                          )}
+                          {entry.actions && entry.actions.length > 0 && (
+                            <span className="text-sm text-muted-foreground truncate">
+                              [{entry.actions.join(', ')}]
                             </span>
                           )}
                           {entry.duration_minutes && (
