@@ -29,7 +29,7 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| v1.4.1 | 2026-02-04 | Loading skeletons for all views, mobile layout fixes |
+| v1.4.1 | 2026-02-04 | Loading skeletons for all views, mobile layout fixes, entry form bug fixes |
 | v1.4.0 | 2026-02-03 | Balance Agent for conversational day logging via ChatGPT Custom GPT |
 | v1.3.1 | 2026-01-29 | Database sequence fix, earth tone colors, TargetEditDialog scroll |
 | v1.3.0 | 2026-01-28 | Version endpoint and display in Settings |
@@ -71,6 +71,33 @@ Reconstructed from git commit windows:
 ---
 
 ## Sessions
+
+### 2026-02-04 (Night) - Entry Form Bug Fixes
+
+**Summary:**
+- Fixed caution behaviors order mismatch between AttentionView and EntryFormDialog
+- Fixed target not defaulting to "None" when adding new entries
+
+**Caution Behaviors Order Fix:**
+- Problem: Caution behaviors in Add Entry form didn't match order shown in AttentionView
+- Root cause: Stale closure issue - `cautionBehaviors` useMemo depended on `getPracticesForHabit` function reference, which doesn't change when practices data updates
+- Fix: Changed to use `practices` directly from context with `[habits, practices]` dependency array
+- Now properly re-computes when behaviors are reordered in AttentionView
+
+**Target Default Fix:**
+- Problem: Target selector didn't default to "None" consistently when adding new entries
+- Root cause: State initialized to `''` but Select's "None" option has value `'none'`
+- Fix: Changed `useState('')` to `useState('none')` and reset to `'none'` instead of `''`
+
+**Additional Change:**
+- Renamed local `practices` variable to `habitPractices` to avoid conflict with context `practices`
+
+**Files Modified:**
+- `frontend/web/src/components/today/EntryFormDialog.jsx`
+
+**Deployed:** ✅ Frontend via Vercel
+
+---
 
 ### 2026-02-04 (Late Evening) - Loading Skeletons & Mobile Layout Fix
 
