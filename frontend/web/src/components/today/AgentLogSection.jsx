@@ -240,12 +240,12 @@ export default function AgentLogSection({ dateKey, onEntriesAdded, existingPrepa
                   className="gap-2"
                 >
                   <a
-                    href="https://chat.openai.com"
+                    href="https://chatgpt.com/g/g-697ed5dccff081918e925a0f0aa24af0-balance-agent"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    Open ChatGPT
+                    Open Balance Agent
                   </a>
                 </Button>
               </div>
