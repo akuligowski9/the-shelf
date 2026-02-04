@@ -14,9 +14,9 @@ import {
 } from './colors'
 
 describe('colorHslValues', () => {
-  it('contains all 15 color keys', () => {
+  it('contains all 24 color keys', () => {
     const keys = Object.keys(colorHslValues)
-    expect(keys).toHaveLength(15)
+    expect(keys).toHaveLength(24)
     expect(keys).toContain('sage')
     expect(keys).toContain('forest')
     expect(keys).toContain('marigold')

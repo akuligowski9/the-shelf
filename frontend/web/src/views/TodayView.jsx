@@ -10,6 +10,7 @@ import ClosureDialog from '@/components/today/ClosureDialog'
 import WarmUpDialog from '@/components/today/WarmUpDialog'
 import CoolDownDialog from '@/components/today/CoolDownDialog'
 import DateNavigator from '@/components/today/DateNavigator'
+import AgentLogSection from '@/components/today/AgentLogSection'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -687,6 +688,27 @@ export default function TodayView() {
           )}
         </div>
       )}
+
+      {/* Agent Log Section */}
+      <AgentLogSection
+          dateKey={dateKey}
+          existingPreparation={dayPreparation}
+          existingClosure={dayClosure}
+          onEntriesAdded={({ entriesAdded, prepSaved, closureSaved }) => {
+            // Build announcement
+            const parts = []
+            if (prepSaved) parts.push('preparation')
+            if (entriesAdded > 0) parts.push(`${entriesAdded} ${entriesAdded === 1 ? 'entry' : 'entries'}`)
+            if (closureSaved) parts.push('closure')
+            if (parts.length > 0) {
+              setAnnouncement(`Added ${parts.join(', ')} from agent`)
+            }
+            // Refresh day data to show new prep/closure
+            if (prepSaved || closureSaved) {
+              fetchDayData(dateKey)
+            }
+          }}
+        />
 
       {/* Day Closure Card */}
       <Separator className="bg-border" />
