@@ -591,10 +591,10 @@ export default function ShelfView() {
           </DroppableZone>
         </div>
 
-        {/* Target Shelf - 2x2 grid for Planned, Parked, Completed, Archived */}
+        {/* Target Shelf - 1 column on mobile, 2x2 grid on tablet+ */}
         <Card>
           <CardContent className="py-4">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:gap-x-8 md:gap-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-8 md:gap-y-10">
               {/* Planned */}
               <DroppableZone id="planned" className="min-h-[60px] rounded-md">
                 <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
