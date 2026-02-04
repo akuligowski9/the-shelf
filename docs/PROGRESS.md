@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-02-03
+Last updated: 2026-02-04
 
 ---
 
@@ -70,6 +70,38 @@ Reconstructed from git commit windows:
 ---
 
 ## Sessions
+
+### 2026-02-04 - Accessibility Pass & Balance Agent Polish
+
+**Summary:**
+- Quick accessibility pass on core components
+- Linked "Open Balance Agent" button directly to custom GPT
+
+**Accessibility Improvements:**
+
+| Component | Changes |
+|-----------|---------|
+| AgentLogSection | `aria-expanded`, `aria-controls` on collapsible, `aria-label` on textarea, `role="alert"` on errors |
+| EntryFormDialog | `aria-label` on copy button, linked labels to textareas |
+| PreparationDialog | Linked label to focus textarea |
+| ClosureDialog | Linked label to closing thoughts textarea |
+| DateNavigator | Already had `aria-label` on nav buttons ✓ |
+| TodayView | Already had live announcements, edit button labels ✓ |
+
+**Balance Agent Link:**
+- Changed "Open ChatGPT" button to "Open Balance Agent"
+- Now links directly to custom GPT: `chatgpt.com/g/g-697ed5dccff081918e925a0f0aa24af0-balance-agent`
+- One-click access instead of generic ChatGPT homepage
+
+**Files Modified:**
+- `frontend/web/src/components/today/AgentLogSection.jsx` - Accessibility + direct GPT link
+- `frontend/web/src/components/today/EntryFormDialog.jsx` - Label associations
+- `frontend/web/src/components/today/PreparationDialog.jsx` - Label association
+- `frontend/web/src/components/today/ClosureDialog.jsx` - Label association
+
+**Deployed:** ✅ Frontend auto-deployed via Vercel (push to main)
+
+---
 
 ### 2026-02-03 - Balance Agent Feature
 
