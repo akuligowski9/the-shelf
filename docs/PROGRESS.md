@@ -29,6 +29,7 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v1.4.1 | 2026-02-04 | Loading skeletons for all views, mobile layout fixes |
 | v1.4.0 | 2026-02-03 | Balance Agent for conversational day logging via ChatGPT Custom GPT |
 | v1.3.1 | 2026-01-29 | Database sequence fix, earth tone colors, TargetEditDialog scroll |
 | v1.3.0 | 2026-01-28 | Version endpoint and display in Settings |
