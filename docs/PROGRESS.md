@@ -71,6 +71,34 @@ Reconstructed from git commit windows:
 
 ## Sessions
 
+### 2026-02-04 (Evening) - Mobile Shelf Spacing & Docker Auto-Restore
+
+**Summary:**
+- Improved mobile spacing on Shelf view Kanban cards (SHELF-064 follow-up)
+- Fixed Docker auto-restore not seeing backup files
+- Migrated Recovery practice from Relationships to Mental habit
+
+**Shelf View Mobile Spacing (`ShelfView.jsx`):**
+- Compact card padding: `p-2` → `p-3 md:p-2`
+- Grid gap: `gap-8` → `gap-x-4 gap-y-6 md:gap-x-8 md:gap-y-10` (more vertical space between rows)
+- Space between cards: `space-y-2` → `space-y-3 md:space-y-2` (all 4 Kanban zones)
+
+**Docker Auto-Restore Fix (SHELF-064):**
+- Problem: Container couldn't see `data/backups/` directory
+- Fix: Added volume mount `./data:/data` to `docker-compose.dev.yml`
+- Now auto-restores from latest backup on container restart
+
+**Data Migration:**
+- Moved entry 221 from Relationships/Recovery → Mental/Recovery
+- Deleted duplicate "Recovery" practice under Relationships (id: 73)
+- Recovery practice under Mental (id: 85) retained
+
+**Files Modified:**
+- `docker-compose.dev.yml` - Added data volume mount
+- `frontend/web/src/views/ShelfView.jsx` - Mobile spacing improvements
+
+---
+
 ### 2026-02-04 - Accessibility Pass & Balance Agent Polish
 
 **Summary:**
