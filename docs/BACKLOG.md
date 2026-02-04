@@ -94,6 +94,30 @@ Targets in The Shelf represent goals or milestones within habits. For software d
 
 ---
 
+## SHELF-066: Balance Agent Duplicate Entry Detection
+
+### Description
+
+The Balance Agent parser (`agentParser.js`) currently adds all entries from the GPT response without checking if similar entries already exist for that day. This can lead to duplicate entries when users re-run the agent or paste the same response twice. The parser should detect potential duplicates by comparing habit, practice, and approximate time, then either skip them automatically or flag them for user review before adding.
+
+### Acceptance Criteria
+
+- [ ] Parser checks existing entries for the selected date before adding
+- [ ] Duplicates detected by matching habit + practice + similar time window
+- [ ] Duplicate entries flagged in review UI (or auto-skipped)
+- [ ] User can choose to add anyway if needed
+
+### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** Unassigned
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
 ## SHELF-003: Import Practice/Action Drill Down
 
 ### Description
