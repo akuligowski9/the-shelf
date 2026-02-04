@@ -1845,3 +1845,74 @@ Implementation (2026-01-28):
 - Backend `app.js`: Added `GET /version` endpoint reading from package.json
 - Backend `package.json`: Updated version to 1.2.0
 - Frontend `SettingsView.jsx`: Fetches version from API, displays in About section
+
+---
+
+## SHELF-065: Balance Agent (ChatGPT Integration)
+
+### Description
+
+Users wanted a more conversational way to log their day instead of filling out forms for each entry. The Balance Agent is a ChatGPT Custom GPT that lets users ramble naturally about their day, then outputs structured JSON that imports directly into The Shelf. Supports three modes: morning (preparation/intentions), midday (entries), and evening (closure/reflection). The agent detects mode from context and can handle all three in a single conversation.
+
+### Acceptance Criteria
+
+- [x] Context prompt generator includes habits, practices, targets, recent entries, week summary
+- [x] JSON parser handles preparation, entries, and closure fields
+- [x] UI component with copy context, paste response, review, and add workflow
+- [x] Preparation saves to existing preparation API
+- [x] Entries save to existing entries API
+- [x] Closure saves to existing closure API
+- [x] Works on any day (today or past)
+- [x] Custom GPT instructions documented
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Feature
+- **Version:** v1.4.0
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+### Notes
+
+Implementation (2026-02-03):
+- `docs/BALANCE_AGENT_GPT.md` — Complete Custom GPT setup instructions
+- `frontend/web/src/lib/agentPrompt.js` — Generates context with day status, habits, entries, week summary
+- `frontend/web/src/lib/agentParser.js` — Parses JSON, matches habit/practice names, converts to API format
+- `frontend/web/src/components/today/AgentLogSection.jsx` — Collapsible UI in Today view
+
+GPT detects mode from natural language:
+- "Good morning, planning to focus on..." → preparation
+- "Did 30 minutes of reading..." → entries
+- "Wrapping up, solid day..." → closure
+
+---
+
+## SHELF-064: Fix Docker Auto-Restore from Backups
+
+### Description
+
+The `dev-start.js` script auto-restores from the latest production backup on startup, but when running via Docker Compose, the backup directory (`data/backups/`) was not mounted into the container. The script looks for backups at `../../data/backups` relative to `/app`, which resolves to `/data/backups` inside the container — but that path didn't exist because only `./backend/api:/app` was mounted. This meant local dev databases stayed stale while backups accumulated.
+
+### Acceptance Criteria
+
+- [x] Docker container can access `data/backups/` directory
+- [x] Auto-restore works when containers restart
+- [x] Production deployment unaffected (uses Cloud Run, not Docker Compose)
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Bug
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+### Notes
+
+Implementation (2026-01-31):
+- Added volume mount `./data:/data` to api service in `docker-compose.dev.yml`
+- Path `/data/backups` inside container now maps to host's `data/backups/`
+- Requires container restart to pick up new backups: `docker compose -f docker-compose.dev.yml down && docker compose -f docker-compose.dev.yml up -d`
