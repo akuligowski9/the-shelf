@@ -1111,6 +1111,8 @@ Notes:
 - Closures support end-of-day hygiene
 - Closure counts are tracked as metrics
 - Closures help retrieve "last session context" per habit/practice
+- `occurred_at` is anchored to the selected date (noon of that day), not the current clock time, to prevent timezone drift
+- Backend queries use `AT TIME ZONE 'America/New_York'` for EST-aware date boundaries (Neon server runs in UTC)
 
 ---
 

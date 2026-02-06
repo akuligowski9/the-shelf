@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-02-04
+Last updated: 2026-02-06
 
 ---
 
@@ -29,6 +29,7 @@ Full REST API with all endpoints, PostgreSQL database, import/export with previe
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v1.4.2 | 2026-02-06 | Fix closure date drift from UTC/EST timezone mismatch |
 | v1.4.1 | 2026-02-04 | Loading skeletons for all views, mobile layout fixes, entry form bug fixes |
 | v1.4.0 | 2026-02-03 | Balance Agent for conversational day logging via ChatGPT Custom GPT |
 | v1.3.1 | 2026-01-29 | Database sequence fix, earth tone colors, TargetEditDialog scroll |
@@ -71,6 +72,32 @@ Reconstructed from git commit windows:
 ---
 
 ## Sessions
+
+### 2026-02-06 (Late Night) - Closure Timezone Bug Fix (v1.4.2)
+
+**Summary:**
+- Diagnosed and fixed a bug where closure notes appeared on the wrong day
+- Root cause: two interacting timezone issues
+  1. `ClosureDialog` used `new Date().toISOString()` (current UTC time) instead of the selected date when creating closures
+  2. Backend closure queries used `$2::date` which resolves to UTC midnight on Neon (UTC server), not EST midnight
+- Each time the user "fixed" the closure by re-creating it on the correct date page, it drifted forward again because the timestamp was always the current UTC moment
+
+**Changes (3 files modified, 1 file created):**
+- `ClosureDialog.jsx` — Accepts `dateKey` prop; new closures use `${dateKey}T12:00:00` instead of `new Date().toISOString()`
+- `TodayView.jsx` — Passes `dateKey` to `ClosureDialog`
+- `closures.js` (backend) — All 3 queries (single day GET, range GET, PUT upsert check) use `AT TIME ZONE 'America/New_York'` for EST-aware date boundaries
+- `closures.test.js` — New test file with 13 tests covering GET, range, PUT, and EST boundary verification
+
+**Decisions:**
+- Hardcoded `America/New_York` timezone since app is single-user EST only
+- Preparations were confirmed unaffected (use plain `DATE` column `period_start`, not `TIMESTAMPTZ`)
+- Existing closure data in the database may still have wrong `occurred_at` — user needs to re-create on correct date page after deploy
+
+**What's next:**
+- Redeploy backend to Cloud Run for the fix to take effect on production
+- User may need to manually fix the Feb 4 closure after deploy
+
+---
 
 ### 2026-02-04 (Late Night) - v2 Planning Session
 
