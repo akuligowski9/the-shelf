@@ -73,6 +73,31 @@ Reconstructed from git commit windows:
 
 ## Sessions
 
+### 2026-02-06 (Late Night #2) - Stray Vercel Deployment Cleanup
+
+**Summary:**
+- Investigated an unknown second Vercel project ("web" at `web-gilt-mu-63.vercel.app`) appearing in user's dashboard
+- Determined it was an accidental deployment — `vercel` CLI was run from `frontend/web/` instead of the repo root, which created a new project auto-named "web"
+- The stray app was serving The Shelf's login page and routing to the production backend (since `api-url.js` falls through to production for any non-demo, non-localhost hostname)
+- Not a security breach — it was inside the user's own Vercel account and the app requires OAuth authentication
+
+**Root Cause:**
+- Two `.vercel/project.json` files existed locally:
+  - Repo root → linked to correct `the-shelf` project (`prj_1fsLRIoL9etqs1uvCLR0H8eor9Jl`)
+  - `frontend/web/` → linked to stray `web` project (`prj_cqEdzd8YG1PherHqzSXaXeAuVsRe`)
+- The root config has `"rootDirectory": "frontend/web"`, so all `vercel` commands should be run from repo root
+
+**Fix:**
+- Overwrote `frontend/web/.vercel/project.json` to point to the correct `the-shelf` project (same IDs as root)
+- This is gitignored (local-only), so it prevents future accidental project creation on this machine
+- User needs to manually delete the "web" project from Vercel dashboard
+
+**No deployment needed** — the fix is a local `.vercel` config change only.
+
+**Lesson learned:** Always run `vercel` from the repo root, not from `frontend/web/`. If `vercel` CLI is ever run from a subdirectory without a `.vercel/project.json`, it will prompt to create a new project.
+
+---
+
 ### 2026-02-06 (Late Night) - Closure Timezone Bug Fix (v1.4.2)
 
 **Summary:**

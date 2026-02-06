@@ -57,3 +57,8 @@ frontend/web/build/
 .vscode/
 .vercel
 .env*.local
+
+############################
+# Local database artifacts
+############################
+db/the-shelf.db
