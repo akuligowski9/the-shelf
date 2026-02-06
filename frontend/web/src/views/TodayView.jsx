@@ -792,6 +792,7 @@ export default function TodayView() {
         todayStats={dayStats}
         habitBreakdown={habitBreakdown}
         existingClosure={dayClosure}
+        dateKey={dateKey}
       />
 
       <WarmUpDialog

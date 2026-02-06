@@ -18,8 +18,8 @@ router.get('/', async (req, res, next) => {
       const r = await pool.query(
         `SELECT * FROM closures
          WHERE scope = $1
-           AND occurred_at >= $2::date
-           AND occurred_at < ($3::date + INTERVAL '1 day')
+           AND occurred_at >= ($2::date)::timestamp AT TIME ZONE 'America/New_York'
+           AND occurred_at < (($3::date + INTERVAL '1 day'))::timestamp AT TIME ZONE 'America/New_York'
          ORDER BY occurred_at ASC`,
         [scope, from, to]
       );
@@ -34,8 +34,8 @@ router.get('/', async (req, res, next) => {
     const r = await pool.query(
       `SELECT * FROM closures
        WHERE scope = $1
-         AND occurred_at >= $2::date
-         AND occurred_at < ($2::date + INTERVAL '1 day')
+         AND occurred_at >= ($2::date)::timestamp AT TIME ZONE 'America/New_York'
+         AND occurred_at < (($2::date + INTERVAL '1 day'))::timestamp AT TIME ZONE 'America/New_York'
        ORDER BY occurred_at DESC
        LIMIT 1`,
       [scope, date]
@@ -67,8 +67,8 @@ router.put('/', async (req, res, next) => {
     const existing = await pool.query(
       `SELECT id FROM closures
        WHERE scope = $1
-         AND occurred_at >= $2::date
-         AND occurred_at < ($2::date + INTERVAL '1 day')`,
+         AND occurred_at >= ($2::date)::timestamp AT TIME ZONE 'America/New_York'
+         AND occurred_at < (($2::date + INTERVAL '1 day'))::timestamp AT TIME ZONE 'America/New_York'`,
       [scope, date]
     );
 
