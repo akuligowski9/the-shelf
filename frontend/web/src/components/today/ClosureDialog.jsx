@@ -21,7 +21,7 @@ function formatDuration(minutes) {
   return `${hours}h ${mins}m`
 }
 
-export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats, habitBreakdown, existingClosure }) {
+export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats, habitBreakdown, existingClosure, dateKey }) {
   const [note, setNote] = useState('')
 
   // Populate form when editing existing closure
@@ -38,7 +38,7 @@ export default function ClosureDialog({ open, onOpenChange, onSubmit, todayStats
 
     const closure = {
       id: existingClosure?.id || Date.now(),
-      occurred_at: existingClosure?.occurred_at || new Date().toISOString(),
+      occurred_at: existingClosure?.occurred_at || `${dateKey}T12:00:00`,
       note: note.trim() || null,
     }
 
