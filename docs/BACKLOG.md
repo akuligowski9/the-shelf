@@ -694,6 +694,16 @@ Connection strings:
 - **Assignee:** Alex
 - **GitHub Issue:** No
 
+### Notes
+
+2026-02-14: Demo data overhaul and schema fix
+- Overhauled demo data: enriched existing 24 log files + created 15 new ones (Jan 24 - Feb 28)
+- Fixed critical bug: demo DB missing `sort_order` on `actions` table (migration never run against demo)
+- `/habits/actions` returned 500, crashing `loadInitialData()` and leaving every view empty
+- Added schema self-healing to `/demo/reset` (runs `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` before data insert)
+- Added `.catch(() => [])` to `getPractices()` and `getActions()` in `loadInitialData()` for resilience
+- Demo now shows populated data across all 6 views
+
 ---
 
 ## SHELF-048: Data Recovery from JSON Logs

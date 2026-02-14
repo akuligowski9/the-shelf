@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-02-06
+Last updated: 2026-02-14
 
 ---
 
@@ -72,6 +72,55 @@ Reconstructed from git commit windows:
 ---
 
 ## Sessions
+
+### 2026-02-14 - Demo Data Overhaul & Schema Fix
+
+**Summary:**
+- Overhauled demo site data: fixed path mismatch, enriched existing 24 log files, created 15 new log files (Jan 24 - Feb 28)
+- Diagnosed and fixed critical bug: demo database missing `sort_order` column on `actions` table, causing `/habits/actions` to return 500
+- The 500 crashed `loadInitialData()` via uncaught `Promise.all` rejection, leaving every demo view empty
+- Added schema self-healing to demo reset endpoint so hourly resets ensure schema stays current
+- Added `.catch(() => [])` to `getPractices()` and `getActions()` in `loadInitialData()` for resilience
+
+**Root Cause (empty demo views):**
+- Demo Neon database was missing migrations (specifically `20260128214256_add_actions_sort_order.js` and `habit_prompts` table)
+- The `/demo/reset` endpoint only inserts data — it never runs schema migrations
+- `/habits/actions` query referenced `sort_order` column that didn't exist → 500 error
+- `getActions()` in `loadInitialData()` had no `.catch()`, so the error propagated and killed the entire `Promise.all`
+- All React contexts received empty arrays → every view showed empty
+
+**Fix (2 files):**
+- `backend/api/routes/demo.js` — Added schema fixup block at start of reset transaction:
+  - `ALTER TABLE actions ADD COLUMN IF NOT EXISTS sort_order INT`
+  - `CREATE TABLE IF NOT EXISTS habit_prompts (...)` with all columns
+  - Three `ALTER TABLE habit_prompts ADD COLUMN IF NOT EXISTS ...` for safety
+  - Added `DELETE FROM habit_prompts` to cleanup section
+- `frontend/web/src/lib/api.js` — Added `.catch(() => [])` to `getPractices()` and `getActions()` in `loadInitialData()`
+
+**Demo data improvements:**
+- Enriched existing 24 log files with closures (~16 files), more reflections, more caution entries, more life entries
+- Created 15 new daily log files covering Jan 24 - Feb 28 (including future dates for demo browsing)
+- Added 3 more weekly reflections to `demo.js` inline data
+- Fixed `logFiles` filter to exclude `demo-habits.json`
+- Fixed file path resolution for Cloud Run deployment
+- Added `sync-demo` npm script for pre-deploy data copying
+- Progress view defaults to 'year' in demo mode
+- Fixed `.github/workflows/reset-demo.yml` with `-f` flag on curl
+
+**Production impact:** None.
+- `demo.js` schema fixup only runs inside `/demo/reset` handler, gated behind `DEMO_MODE=true`
+- `api.js` `.catch()` additions only add resilience — no behavior change when API is healthy
+
+**Deployed:**
+- Backend: `shelf-api-demo-00015-rvr` (Cloud Run)
+- Frontend: auto-deployed via Vercel on push to main
+- Demo reset verified: 200 OK with 7 habits, 152 entries, 28 preparations, 34 closures, 13 actions, 29 practices
+
+**Commits:**
+- `3271905` Overhaul demo data: fix path mismatch, enrich content, extend through Feb 2026
+- `fdb08d6` Fix demo site: add missing schema columns and resilient data loading
+
+---
 
 ### 2026-02-06 (Late Night #2) - Stray Vercel Deployment Cleanup
 
