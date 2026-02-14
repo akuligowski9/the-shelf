@@ -287,7 +287,7 @@ async function demoSeed() {
 
     // ===== 4. Load demo log files =====
     const demoLogsPath = path.join(__dirname, '..', '..', 'data', 'demo')
-    const logFiles = fs.readdirSync(demoLogsPath).filter(f => f.endsWith('.json')).sort()
+    const logFiles = fs.readdirSync(demoLogsPath).filter(f => f.endsWith('.json') && f !== 'demo-habits.json').sort()
 
     console.log(`\nSeeding entries from ${logFiles.length} demo log files...`)
 

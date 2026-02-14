@@ -1,0 +1,50 @@
+{
+  "date": "2026-02-20",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Taper week. Easy runs only. Trust the training."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2026-02-20T07:00:00Z",
+      "duration_minutes": 25,
+      "target": "Half marathon",
+      "note": "Short and easy. Trust the taper."
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Duolingo",
+      "occurred_at": "2026-02-20T08:30:00Z",
+      "duration_minutes": 20,
+      "target": "French A2 certification",
+      "note": "Grammar review"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Fiction",
+      "occurred_at": "2026-02-20T20:00:00Z",
+      "duration_minutes": 40,
+      "target": "Read 24 books this year",
+      "note": "Started The Name of the Wind"
+    },
+    {
+      "type": "caution",
+      "practice": "Impulse purchase",
+      "occurred_at": "2026-02-20T12:00:00Z",
+      "note": "Running watch upgrade. Justified it as race prep but still."
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Easy day. The taper anxiety is real — feels wrong to run so little."
+    }
+  ]
+}

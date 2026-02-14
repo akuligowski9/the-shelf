@@ -193,7 +193,7 @@ router.post('/reset', async (req, res) => {
     if (!fs.existsSync(demoLogsPath)) {
       demoLogsPath = path.join(__dirname, '..', '..', '..', 'data', 'demo');
     }
-    const logFiles = fs.readdirSync(demoLogsPath).filter(f => f.endsWith('.json')).sort();
+    const logFiles = fs.readdirSync(demoLogsPath).filter(f => f.endsWith('.json') && f !== 'demo-habits.json').sort();
 
     let entryCount = 0;
     let prepCount = 0;
@@ -306,17 +306,33 @@ router.post('/reset', async (req, res) => {
       }
     }
 
-    // Add weekly reflection
-    await client.query(
-      `INSERT INTO reflections (reflection_type, period_start, period_end, note)
-       VALUES ($1, $2, $3, $4)`,
-      [
-        'weekly',
-        '2026-01-13',
-        '2026-01-19',
-        '## Week 3 Reflection\n\n**What went well:**\n- Great progress on photo essay\n- French conversation improving\n- Consistent running schedule\n\n**What to improve:**\n- More focused guitar practice\n- Earlier bedtimes\n\n**Focus for next week:**\n- Finish photo essay selections\n- 14K long run'
-      ]
-    );
+    // Add weekly reflections
+    const weeklyReflections = [
+      {
+        start: '2025-12-30', end: '2026-01-05',
+        note: '## Week 1 Reflection\n\n**What went well:**\n- Strong start to the reading goal (finished 1 book already)\n- Good running base maintained over holidays\n- French streak unbroken\n\n**What to improve:**\n- Guitar practice was spotty over New Year\n- Need to establish morning routine again\n\n**Focus for next week:**\n- Get back to consistent music practice\n- Start selecting images for photo essay'
+      },
+      {
+        start: '2026-01-13', end: '2026-01-19',
+        note: '## Week 3 Reflection\n\n**What went well:**\n- Great progress on photo essay\n- French conversation improving\n- Consistent running schedule\n\n**What to improve:**\n- More focused guitar practice\n- Earlier bedtimes\n\n**Focus for next week:**\n- Finish photo essay selections\n- 14K long run'
+      },
+      {
+        start: '2026-01-27', end: '2026-02-02',
+        note: '## Week 5 Reflection\n\n**What went well:**\n- Photo essay nearly complete — 18 of 20 images selected\n- Hit 14K long run milestone\n- Finished book #3 ahead of schedule\n\n**What to improve:**\n- French conversation sessions slipped this week\n- Too many late nights\n\n**Focus for next week:**\n- Schedule 2 French conversation sessions\n- Submit photo essay draft for feedback'
+      },
+      {
+        start: '2026-02-10', end: '2026-02-16',
+        note: '## Week 7 Reflection\n\n**What went well:**\n- Submitted photo essay — feels like a real accomplishment\n- Half marathon training on track, 16K long run done\n- Guitar practice more consistent this week\n\n**What to improve:**\n- Caution behaviors crept up mid-week\n- Strength training dropped to 1x this week\n\n**Focus for next week:**\n- 2 strength sessions minimum\n- Start jazz standard #7 (Blue Bossa)'
+      }
+    ];
+
+    for (const ref of weeklyReflections) {
+      await client.query(
+        `INSERT INTO reflections (reflection_type, period_start, period_end, note)
+         VALUES ($1, $2, $3, $4)`,
+        ['weekly', ref.start, ref.end, ref.note]
+      );
+    }
 
     // Add habit transition (Cooking paused)
     await client.query(

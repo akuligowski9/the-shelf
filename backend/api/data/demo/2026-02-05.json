@@ -1,0 +1,45 @@
+{
+  "date": "2026-02-05",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Strength day. Keep French consistent."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Strength",
+      "occurred_at": "2026-02-05T07:00:00Z",
+      "duration_minutes": 50,
+      "target": "Half marathon",
+      "note": "Squats, deadlifts, core work",
+      "warm_up_note": "10 min rowing machine warmup"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Duolingo",
+      "occurred_at": "2026-02-05T08:30:00Z",
+      "duration_minutes": 20,
+      "target": "French A2 certification",
+      "note": "Review session"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Audiobooks",
+      "occurred_at": "2026-02-05T17:30:00Z",
+      "duration_minutes": 30,
+      "target": "Read 24 books this year",
+      "note": "Atomic Habits on the commute"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Solid training day. Legs are adapting to the higher mileage."
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "date": "2026-01-24",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Weekend — longer practice sessions today."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2026-01-24T08:00:00Z",
+      "duration_minutes": 60,
+      "target": "Half marathon",
+      "note": "16K long run — longest yet!",
+      "warm_up_note": "Easy mile warmup, dynamic stretches",
+      "cool_down_note": "Walked 10 min, stretched thoroughly",
+      "is_highlight": true
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2026-01-24T11:00:00Z",
+      "duration_minutes": 55,
+      "target": "Learn 10 jazz standards",
+      "note": "Standard #6 — Satin Doll, working on chord melody"
+    },
+    {
+      "type": "habit",
+      "habit": "Photography",
+      "practice": "Editing",
+      "occurred_at": "2026-01-24T14:00:00Z",
+      "duration_minutes": 45,
+      "target": "Photo essay: City at Dawn",
+      "note": "Color grading the dawn series — warm tones"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Non-Fiction",
+      "occurred_at": "2026-01-24T20:30:00Z",
+      "duration_minutes": 40,
+      "target": "Read 24 books this year",
+      "note": "Thinking Fast and Slow — the planning fallacy chapter"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Big mileage day. Body feels good. Photo essay edits coming together."
+    }
+  ]
+}

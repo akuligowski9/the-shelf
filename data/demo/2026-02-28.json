@@ -1,0 +1,33 @@
+{
+  "date": "2026-02-28",
+  "preparations": [
+    {
+      "period_type": "day",
+      "rest_day": true,
+      "note": "Rest day before tomorrow's race. Carb loading."
+    }
+  ],
+  "entries": [
+    {
+      "type": "life",
+      "occurred_at": "2026-02-28T11:00:00Z",
+      "duration_minutes": 90,
+      "note": "Race packet pickup and expo"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Non-Fiction",
+      "occurred_at": "2026-02-28T19:00:00Z",
+      "duration_minutes": 30,
+      "target": "Read 24 books this year",
+      "note": "Light reading — race prep articles"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Everything is ready. Bib pinned. Shoes laid out. 20 weeks of training comes down to tomorrow morning."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "date": "2026-01-30",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "End of January strong."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2026-01-30T06:30:00Z",
+      "duration_minutes": 45,
+      "target": "Half marathon",
+      "note": "6x800m intervals — new pace record"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Duolingo",
+      "occurred_at": "2026-01-30T08:00:00Z",
+      "duration_minutes": 20,
+      "target": "French A2 certification",
+      "note": "Vocabulary review"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Non-Fiction",
+      "occurred_at": "2026-01-30T13:00:00Z",
+      "duration_minutes": 35,
+      "target": "Read 24 books this year",
+      "note": "Finished Thinking Fast and Slow!"
+    },
+    {
+      "type": "habit",
+      "habit": "Photography",
+      "practice": "Street Photography",
+      "occurred_at": "2026-01-30T05:45:00Z",
+      "duration_minutes": 60,
+      "target": "Photo essay: City at Dawn",
+      "note": "Final dawn shoot for the essay",
+      "is_highlight": true
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "January done. Photo essay finished shooting phase — 20 images captured over 8 weeks."
+    }
+  ],
+  "reflections": [
+    {
+      "reflection_type": "day",
+      "note": "Last day of January. Looking back: ran my first 16K, captured 20 dawn images, kept the French streak alive. February is about finishing things — photo essay editing, hitting book #4, and the half marathon long runs."
+    }
+  ]
+}

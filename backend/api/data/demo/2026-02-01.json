@@ -1,0 +1,24 @@
+{
+  "date": "2026-02-01",
+  "preparations": [
+    {
+      "period_type": "day",
+      "rest_day": true,
+      "note": "Rest day. Recovery after a big week."
+    }
+  ],
+  "entries": [
+    {
+      "type": "life",
+      "occurred_at": "2026-02-01T13:00:00Z",
+      "duration_minutes": 120,
+      "note": "Batch cooking for the week. Lazy afternoon with a book."
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Good rest. Needed this."
+    }
+  ]
+}

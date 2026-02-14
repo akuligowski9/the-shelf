@@ -1,0 +1,41 @@
+{
+  "date": "2026-02-14",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Valentine's Day. Balance training with life."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2026-02-14T08:00:00Z",
+      "duration_minutes": 35,
+      "target": "Half marathon",
+      "note": "Short tempo run, saving legs"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Non-Fiction",
+      "occurred_at": "2026-02-14T10:30:00Z",
+      "duration_minutes": 45,
+      "target": "Read 24 books this year",
+      "note": "Started Deep Work by Cal Newport"
+    },
+    {
+      "type": "life",
+      "occurred_at": "2026-02-14T18:00:00Z",
+      "duration_minutes": 180,
+      "note": "Valentine's Day dinner and evening out"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Nice balance of training and living today."
+    }
+  ]
+}

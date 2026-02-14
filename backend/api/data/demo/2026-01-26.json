@@ -1,0 +1,44 @@
+{
+  "date": "2026-01-26",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Monday reset. French focus day."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Duolingo",
+      "occurred_at": "2026-01-26T07:30:00Z",
+      "duration_minutes": 25,
+      "target": "French A2 certification",
+      "note": "Grammar unit on passé composé"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Conversation",
+      "occurred_at": "2026-01-26T12:00:00Z",
+      "duration_minutes": 30,
+      "target": "French A2 certification",
+      "note": "Practice with language partner"
+    },
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Strength",
+      "occurred_at": "2026-01-26T17:00:00Z",
+      "duration_minutes": 40,
+      "target": "Half marathon",
+      "note": "Upper body — rows, bench, overhead press"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Good French day. Conversation partner said my listening has improved."
+    }
+  ]
+}

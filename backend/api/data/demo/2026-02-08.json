@@ -1,0 +1,55 @@
+{
+  "date": "2026-02-08",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Long run day. Big one."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2026-02-08T07:00:00Z",
+      "duration_minutes": 75,
+      "target": "Half marathon",
+      "note": "18K long run! Half marathon distance within reach",
+      "warm_up_note": "Dynamic stretches, 1K easy warmup",
+      "cool_down_note": "15 min walk, foam roll, ice bath",
+      "is_highlight": true
+    },
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Yoga",
+      "occurred_at": "2026-02-08T10:00:00Z",
+      "duration_minutes": 30,
+      "note": "Recovery session after the long run"
+    },
+    {
+      "type": "habit",
+      "habit": "Reading",
+      "practice": "Fiction",
+      "occurred_at": "2026-02-08T14:00:00Z",
+      "duration_minutes": 50,
+      "target": "Read 24 books this year",
+      "note": "Finished Project Hail Mary — incredible book"
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Music Theory",
+      "occurred_at": "2026-02-08T19:00:00Z",
+      "duration_minutes": 25,
+      "target": "Learn 10 jazz standards",
+      "note": "ii-V-I patterns in all keys"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "18K done. Two months ago this would've seemed impossible. Three more weeks to race day."
+    }
+  ]
+}

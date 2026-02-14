@@ -1,54 +1,53 @@
 {
-  "date": "2025-12-01",
+  "date": "2026-02-03",
   "preparations": [
     {
       "period_type": "day",
-      "note": "December: Photo essay project begins."
+      "note": "February begins. Focus on finishing the photo essay edits."
     }
   ],
   "entries": [
     {
       "type": "habit",
       "habit": "Photography",
-      "practice": "Street Photography",
-      "occurred_at": "2025-12-01T05:30:00Z",
+      "practice": "Editing",
+      "occurred_at": "2026-02-03T09:00:00Z",
       "duration_minutes": 90,
       "target": "Photo essay: City at Dawn",
-      "note": "First dawn shoot - golden hour magic",
-      "is_highlight": true
+      "note": "Selecting final 20 images, color grading"
     },
     {
       "type": "habit",
       "habit": "Fitness",
       "practice": "Running",
-      "occurred_at": "2025-12-01T10:00:00Z",
-      "duration_minutes": 50,
+      "occurred_at": "2026-02-03T06:30:00Z",
+      "duration_minutes": 40,
       "target": "Half marathon",
-      "note": "8K easy run"
+      "note": "Tempo run — 5:15/km pace"
     },
     {
       "type": "habit",
       "habit": "Music",
       "practice": "Guitar Practice",
-      "occurred_at": "2025-12-01T15:00:00Z",
+      "occurred_at": "2026-02-03T18:00:00Z",
       "duration_minutes": 45,
       "target": "Learn 10 jazz standards",
-      "note": "Blue Bossa - almost there"
+      "note": "Starting standard #7 — Blue Bossa"
     },
     {
       "type": "habit",
       "habit": "French",
       "practice": "Podcasts",
-      "occurred_at": "2025-12-01T20:00:00Z",
+      "occurred_at": "2026-02-03T20:30:00Z",
       "duration_minutes": 25,
       "target": "French A2 certification",
-      "note": "Coffee Break French"
+      "note": "InnerFrench podcast"
     }
   ],
   "closures": [
     {
       "scope": "day",
-      "note": "Photo essay project is exciting. The dawn shoots feel special."
+      "note": "Photo essay editing is slow but rewarding. Each image tells a piece of the story."
     }
   ]
 }

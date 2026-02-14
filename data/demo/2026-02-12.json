@@ -1,0 +1,53 @@
+{
+  "date": "2026-02-12",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Push through midweek."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2026-02-12T09:00:00Z",
+      "duration_minutes": 50,
+      "target": "Learn 10 jazz standards",
+      "note": "Blue Bossa — can play it through now"
+    },
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Strength",
+      "occurred_at": "2026-02-12T07:00:00Z",
+      "duration_minutes": 45,
+      "target": "Half marathon",
+      "note": "Light weights, focus on form"
+    },
+    {
+      "type": "habit",
+      "habit": "Photography",
+      "practice": "Street Photography",
+      "occurred_at": "2026-02-12T14:00:00Z",
+      "duration_minutes": 40,
+      "target": "Photo essay: City at Dawn",
+      "note": "Scouting new locations for next project"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Duolingo",
+      "occurred_at": "2026-02-12T20:00:00Z",
+      "duration_minutes": 15,
+      "target": "French A2 certification",
+      "note": "Quick review session"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Blue Bossa is standard #7 in the bag. Photography itch is back already."
+    }
+  ]
+}

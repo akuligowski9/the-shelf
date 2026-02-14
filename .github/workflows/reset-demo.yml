@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Reset demo database
         run: |
-          curl -X POST \
+          curl -f -X POST \
             -H "X-Reset-Secret: ${{ secrets.DEMO_RESET_SECRET }}" \
             https://shelf-api-demo-785607788916.us-east1.run.app/demo/reset
         env:

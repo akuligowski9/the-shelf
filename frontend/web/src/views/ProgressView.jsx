@@ -23,6 +23,7 @@ import {
 } from 'recharts'
 import { useHabits } from '@/context/HabitsContext'
 import { useEntries } from '@/context/EntriesContext'
+import { useAuth } from '@/context/AuthContext'
 import { getPreparationsInRange, getClosuresInRange, getReflections, getMetricsForRange } from '@/lib/api'
 import { colorPalette } from '@/lib/colors'
 import { SkeletonChart, Skeleton } from '@/components/ui/skeleton'
@@ -121,12 +122,13 @@ function getWeekKey(dateStr) {
 export default function ProgressView() {
   const { habits, targets, habitTransitions } = useHabits()
   const { entries } = useEntries()
+  const { isDemoMode } = useAuth()
 
   // Filter to only active habits for Progress view (excludes pseudo-habits like "Caution Behaviors")
   const activeHabits = useMemo(() => habits.filter(h => h.active), [habits])
 
   const [viewMode, setViewMode] = useState('balance') // 'balance' | 'patterns'
-  const [timeRange, setTimeRange] = useState('week') // 'week' | 'month' | 'year'
+  const [timeRange, setTimeRange] = useState(() => isDemoMode ? 'year' : 'week') // 'week' | 'month' | 'year'
   const [periodOffset, setPeriodOffset] = useState(0) // 0 = current, -1 = previous, etc.
   const [enabledFilters, setEnabledFilters] = useState(
     () => new Set([...activeHabits.map(h => h.name), 'Life'])

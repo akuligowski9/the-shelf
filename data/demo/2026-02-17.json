@@ -1,0 +1,60 @@
+{
+  "date": "2026-02-17",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Race week approaching. Stay sharp."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2026-02-17T06:30:00Z",
+      "duration_minutes": 40,
+      "target": "Half marathon",
+      "note": "Final speed session before taper — 5x1K"
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2026-02-17T10:00:00Z",
+      "duration_minutes": 55,
+      "target": "Learn 10 jazz standards",
+      "note": "Fly Me to the Moon — standard #8"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Reading",
+      "occurred_at": "2026-02-17T14:00:00Z",
+      "duration_minutes": 30,
+      "target": "French A2 certification",
+      "note": "Le Petit Prince chapter 8"
+    },
+    {
+      "type": "habit",
+      "habit": "Photography",
+      "practice": "Editing",
+      "occurred_at": "2026-02-17T19:00:00Z",
+      "duration_minutes": 35,
+      "target": "Photo essay: City at Dawn",
+      "note": "Final essay layout done",
+      "is_highlight": true
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Photo essay is DONE. 20 images, 8 weeks of dawn shoots. Submitting to the gallery tomorrow."
+    }
+  ],
+  "reflections": [
+    {
+      "reflection_type": "day",
+      "note": "Completed the City at Dawn photo essay today. This project taught me patience and seeing light differently. From the first freezing morning in December to the final edit today — this is the work I'm most proud of."
+    }
+  ]
+}

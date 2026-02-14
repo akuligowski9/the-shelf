@@ -1,0 +1,43 @@
+{
+  "date": "2026-02-24",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Final easy week before race."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Yoga",
+      "occurred_at": "2026-02-24T08:00:00Z",
+      "duration_minutes": 40,
+      "note": "Pre-race flexibility work"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Conversation",
+      "occurred_at": "2026-02-24T12:00:00Z",
+      "duration_minutes": 30,
+      "target": "French A2 certification",
+      "note": "Exam simulation with tutor — scored 78%"
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2026-02-24T18:00:00Z",
+      "duration_minutes": 45,
+      "target": "Learn 10 jazz standards",
+      "note": "Running through all learned standards"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Yoga felt great. Body is rested and ready. French exam next week."
+    }
+  ]
+}

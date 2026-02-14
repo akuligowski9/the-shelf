@@ -1,0 +1,41 @@
+{
+  "date": "2026-02-10",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Easy week. Taper starts soon for the race."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2026-02-10T07:00:00Z",
+      "duration_minutes": 30,
+      "target": "Half marathon",
+      "note": "Easy recovery run"
+    },
+    {
+      "type": "habit",
+      "habit": "French",
+      "practice": "Conversation",
+      "occurred_at": "2026-02-10T12:00:00Z",
+      "duration_minutes": 35,
+      "target": "French A2 certification",
+      "note": "Mock exam practice with tutor"
+    },
+    {
+      "type": "life",
+      "occurred_at": "2026-02-10T15:00:00Z",
+      "duration_minutes": 60,
+      "note": "Dentist appointment and grocery shopping"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "French tutor thinks I'm ready for the exam. That's encouraging."
+    }
+  ]
+}

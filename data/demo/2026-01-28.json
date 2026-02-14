@@ -1,0 +1,41 @@
+{
+  "date": "2026-01-28",
+  "preparations": [
+    {
+      "period_type": "day",
+      "note": "Midweek. Keep momentum."
+    }
+  ],
+  "entries": [
+    {
+      "type": "habit",
+      "habit": "Fitness",
+      "practice": "Running",
+      "occurred_at": "2026-01-28T07:00:00Z",
+      "duration_minutes": 35,
+      "target": "Half marathon",
+      "note": "Recovery run"
+    },
+    {
+      "type": "habit",
+      "habit": "Music",
+      "practice": "Guitar Practice",
+      "occurred_at": "2026-01-28T19:00:00Z",
+      "duration_minutes": 45,
+      "target": "Learn 10 jazz standards",
+      "note": "Blue Bossa - melody line"
+    },
+    {
+      "type": "caution",
+      "practice": "Stayed up past midnight",
+      "occurred_at": "2026-01-29T01:30:00Z",
+      "note": "Watched a movie until 1:30am"
+    }
+  ],
+  "closures": [
+    {
+      "scope": "day",
+      "note": "Short but consistent day. Need to fix the sleep schedule."
+    }
+  ]
+}
