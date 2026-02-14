@@ -402,8 +402,8 @@ export async function resetSequences() {
 export async function loadInitialData() {
   const [habits, practices, actions, targets, prompts] = await Promise.all([
     getHabits(),
-    getPractices(),
-    getActions(),
+    getPractices().catch(() => []),
+    getActions().catch(() => []),
     getTargets().catch(() => []),
     getPrompts().catch(() => []),
   ])

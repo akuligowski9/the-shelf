@@ -109,6 +109,26 @@ router.post('/reset', async (req, res) => {
   try {
     await client.query('BEGIN');
 
+    // Ensure schema is up-to-date (demo DB may be missing migrations)
+    await client.query(`ALTER TABLE actions ADD COLUMN IF NOT EXISTS sort_order INT`);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS habit_prompts (
+        id SERIAL PRIMARY KEY,
+        habit_id INT NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
+        type TEXT NOT NULL CHECK (type IN ('warmup', 'cooldown')),
+        name TEXT NOT NULL,
+        content TEXT NOT NULL,
+        active BOOLEAN DEFAULT true,
+        has_dynamic_elements BOOLEAN DEFAULT false,
+        sort_order INT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await client.query(`ALTER TABLE habit_prompts ADD COLUMN IF NOT EXISTS has_dynamic_elements BOOLEAN DEFAULT false`);
+    await client.query(`ALTER TABLE habit_prompts ADD COLUMN IF NOT EXISTS sort_order INT`);
+    await client.query(`ALTER TABLE habit_prompts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()`);
+
     // Clear existing data
     await client.query('DELETE FROM reflections');
     await client.query('DELETE FROM closures');
@@ -117,6 +137,7 @@ router.post('/reset', async (req, res) => {
     await client.query('DELETE FROM targets');
     await client.query('DELETE FROM actions');
     await client.query('DELETE FROM practices');
+    await client.query('DELETE FROM habit_prompts');
     await client.query('DELETE FROM habit_transitions');
     await client.query('DELETE FROM habits');
 
