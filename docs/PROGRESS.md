@@ -73,53 +73,47 @@ Reconstructed from git commit windows:
 
 ## Sessions
 
-### 2026-02-23 - Fix Mobile Reflection Save Bug (SHELF-079)
+### 2026-02-23 - Fix Reflection Save Bug (SHELF-079)
 
 **Summary:**
-- Fixed critical bug: "Save Reflection" button on mobile did nothing when tapped
-- Root cause: three field name mismatches between mobile frontend and backend API
-- Also fixed shared `Reflection` TypeScript type to match actual backend schema
-- Fixed `ReflectionEditor` component silently clearing user input on save failure
+- Reflections have **never worked** — not on web, not on mobile, not anywhere
+- Two independent bugs: (1) missing database columns on all environments, (2) mobile-specific field name mismatches
+- Fixed shared `Reflection` TypeScript type to match actual backend schema
+- Added visible error/success feedback to web ReviewView (errors were previously screen-reader-only)
+- Verified fix locally, then deployed to production
 
-**Root Cause (3 field mismatches):**
-1. **`content` vs `note`**: Mobile sent `content` but backend requires `note`. Backend returned `400: "note is required"` which was caught silently — button appeared to do nothing.
-2. **`period_type` vs `type`**: Mobile sent `period_type: 'week'` but backend reads `type`. Since `type` was undefined, backend defaulted to `'adhoc'` — wrong reflection type. Additionally, the value format differed: mobile used `'week'`/`'month'` but backend expects `'weekly'`/`'monthly'`.
-3. **Missing `period_end`**: Mobile didn't send `period_end`, which is required for non-adhoc reflection types. Would have caused a second 400 error if the type mismatch were fixed alone.
+**Bug 1 — Missing database columns (affected ALL platforms):**
+- The `reflections` table was missing `trigger_label` and `trigger_value` columns
+- Backend `POST /reflections` route referenced these columns in its INSERT query
+- Every save attempt failed with Postgres error: `column "trigger_label" of relation "reflections" does not exist`
+- On web, errors were caught and only logged to `console.error` + `setAnnouncement` (aria-live, invisible to sighted users)
+- Net effect: user taps Save, nothing visible happens, text stays in editor, no error shown
 
-**Why no error was visible:**
-- `handleSaveReflection` caught the error and called `handleError` (which shows a toast), but did not re-throw
-- `ReflectionEditor.handleSave` used `finally` (not `catch`), so on error it still ran `setContent('')` — clearing the user's text
-- Net effect: user typed a reflection, tapped Save, text disappeared, no reflection saved, toast may have flashed briefly
+**Bug 2 — Mobile field name mismatches (affected React Native mobile only):**
+1. **`content` vs `note`**: Mobile sent `content` but backend requires `note` — returned `400: "note is required"`
+2. **`period_type` vs `type`**: Mobile sent `period_type: 'week'` but backend reads `type` with different enum values (`'weekly'`/`'monthly'`)
+3. **Missing `period_end`**: Required for non-adhoc reflection types but not sent by mobile
+4. **Silent error clearing**: `ReflectionEditor` used `finally` without `catch`, clearing user's text even on failure
 
-**Fix (4 files modified):**
+**Fix — 6 files modified + 1 production schema change:**
 
-1. **`frontend/mobile/app/(tabs)/review.tsx`** — Fixed `handleSaveReflection`:
-   - `period_type` → `type` with correct values (`'weekly'`/`'monthly'`)
-   - `content` → `note`
-   - Added `period_end` field
-   - Added `throw err` after `handleError` so editor knows save failed
+1. **`db/schema.sql`** — Added `trigger_label TEXT` and `trigger_value TEXT` columns to reflections table definition
+2. **Production Neon** — Ran `ALTER TABLE reflections ADD COLUMN IF NOT EXISTS trigger_label TEXT; ALTER TABLE reflections ADD COLUMN IF NOT EXISTS trigger_value TEXT;` via Neon SQL Editor
+3. **`frontend/web/src/views/ReviewView.jsx`** — Added visible inline error/success messages next to Save button (red for errors, green for success) instead of screen-reader-only announcements
+4. **`frontend/mobile/app/(tabs)/review.tsx`** — Fixed field names: `period_type` → `type`, `content` → `note`, added `period_end`, re-throw errors
+5. **`frontend/mobile/src/components/review/ReflectionEditor.tsx`** — Added `catch` block to preserve user text on error
+6. **`frontend/mobile/src/components/review/ReflectionCard.tsx`** — Changed `reflection.content` → `reflection.note`
+7. **`frontend/shared/types/index.ts`** — Updated `Reflection` interface to match backend schema
 
-2. **`frontend/mobile/src/components/review/ReflectionEditor.tsx`** — Fixed `handleSave`:
-   - Changed `finally` to `try/catch/finally` pattern
-   - On error: keep user's text (don't clear content), just reset saving state
+**Deployed:**
+- Frontend: auto-deployed via Vercel (2 pushes to main)
+- Backend: no changes needed — backend code was already correct, only the DB schema was missing columns
+- Production DB: columns added via Neon SQL Editor
+- Verified working on production PWA
 
-3. **`frontend/mobile/src/components/review/ReflectionCard.tsx`** — Fixed display:
-   - Changed `reflection.content` → `reflection.note` to match backend response
-
-4. **`frontend/shared/types/index.ts`** — Fixed `Reflection` interface:
-   - Replaced `period_type` with `reflection_type` (matches DB column name)
-   - Replaced `content` with `note` (matches DB column name)
-   - Added missing fields: `period_end`, `habit_id`, `target_id`, `entry_id`, `trigger_label`, `trigger_value`
-
-**How the web frontend avoided this bug:**
-- Web's `ReviewView.jsx` already used the correct field names (`type`, `note`, `period_end`)
-- Web reads `reflection.note` directly, bypassing the incorrect TypeScript type
-
-**Production impact:** Mobile only. No backend changes needed.
-
-**What's next:**
-- Deploy mobile app update (or rebuild via Expo)
-- No backend deployment required
+**Commits:**
+- `126e1ad` (rebased to `ed34dfa`) Fix mobile reflection save: field name mismatches caused silent failure
+- `530e44b` Add missing trigger columns to reflections schema and visible save feedback
 
 ---
 

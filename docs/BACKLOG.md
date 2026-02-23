@@ -1421,18 +1421,21 @@ Plan how the React dashboard maps to SwiftUI. Identify views, API needs, and wha
 
 ## Done
 
-## SHELF-079: Fix Mobile Reflection Save Bug
+## SHELF-079: Fix Reflection Save Bug
 
 ### Description
 
-The "Save Reflection" button on mobile did nothing when tapped. Root cause was three field name mismatches between the mobile frontend and backend API: `content` vs `note`, `period_type` vs `type` (with wrong enum values), and a missing `period_end` field. The error was caught silently and the `ReflectionEditor` component cleared the user's input on failure, making it appear as though nothing happened. Also fixed the shared `Reflection` TypeScript type to match the actual backend schema.
+Reflections never worked on any platform. Two independent bugs: (1) the `reflections` database table was missing `trigger_label` and `trigger_value` columns that the backend INSERT referenced, causing every save to fail with a Postgres column-not-found error; (2) the React Native mobile app sent wrong field names (`content` instead of `note`, `period_type` instead of `type`, missing `period_end`). Errors were invisible on web (only logged to console and screen-reader announcements) and silently cleared user input on mobile. Also fixed the shared `Reflection` TypeScript type and added visible inline error/success feedback to the web ReviewView.
 
 ### Acceptance Criteria
 
+- [x] Production database has `trigger_label` and `trigger_value` columns on reflections table
+- [x] Web reflection save shows visible error/success message inline
 - [x] Mobile reflection save sends correct field names (`type`, `note`, `period_end`)
-- [x] Save errors display toast and preserve user input for retry
+- [x] Mobile save errors display toast and preserve user input for retry
 - [x] `ReflectionCard` displays `note` field from backend response
 - [x] Shared `Reflection` type matches backend schema
+- [x] Verified working on production PWA
 
 ### Metadata
 
