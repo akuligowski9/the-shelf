@@ -43,7 +43,7 @@ export function ReflectionCard({ reflection, onDelete }: ReflectionCardProps) {
 
       {/* Content */}
       <Text style={[styles.content, { color: colors.text }]}>
-        {reflection.content || '(No content)'}
+        {reflection.note || '(No content)'}
       </Text>
     </View>
   )

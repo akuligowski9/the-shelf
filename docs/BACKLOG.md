@@ -1421,6 +1421,30 @@ Plan how the React dashboard maps to SwiftUI. Identify views, API needs, and wha
 
 ## Done
 
+## SHELF-079: Fix Mobile Reflection Save Bug
+
+### Description
+
+The "Save Reflection" button on mobile did nothing when tapped. Root cause was three field name mismatches between the mobile frontend and backend API: `content` vs `note`, `period_type` vs `type` (with wrong enum values), and a missing `period_end` field. The error was caught silently and the `ReflectionEditor` component cleared the user's input on failure, making it appear as though nothing happened. Also fixed the shared `Reflection` TypeScript type to match the actual backend schema.
+
+### Acceptance Criteria
+
+- [x] Mobile reflection save sends correct field names (`type`, `note`, `period_end`)
+- [x] Save errors display toast and preserve user input for retry
+- [x] `ReflectionCard` displays `note` field from backend response
+- [x] Shared `Reflection` type matches backend schema
+
+### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Bug
+- **Version:** v1
+- **Assignee:** Alex
+- **GitHub Issue:** No
+
+---
+
 ## SHELF-011: Refine Core Terminology
 
 ### Description

@@ -19,6 +19,9 @@ export function ReflectionEditor({ periodLabel, onSave }: ReflectionEditorProps)
     try {
       await onSave(content.trim())
       setContent('')
+    } catch {
+      // Error already handled by parent via handleError toast
+      // Don't clear content so user can retry
     } finally {
       setSaving(false)
     }

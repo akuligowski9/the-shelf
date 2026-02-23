@@ -205,14 +205,16 @@ export default function ReviewScreen() {
   const handleSaveReflection = async (content: string) => {
     try {
       const saved = await api.createReflection({
-        period_type: timeRange === 'week' ? 'week' : timeRange === 'month' ? 'month' : 'year',
+        type: timeRange === 'week' ? 'weekly' : timeRange === 'month' ? 'monthly' : 'monthly',
         period_start: formatDate(dateRange.start),
-        content,
+        period_end: formatDate(dateRange.end),
+        note: content,
       })
       setReflections((prev) => [saved, ...prev])
       handleSuccess('Reflection saved')
     } catch (err) {
       handleError(err, 'Save reflection')
+      throw err
     }
   }
 

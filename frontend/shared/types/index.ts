@@ -103,9 +103,15 @@ export interface Closure {
 
 export interface Reflection {
   id: number
-  period_type: 'week' | 'month' | 'quarter' | 'year'
-  period_start: string
-  content: string | null
+  reflection_type: 'day' | 'weekly' | 'monthly' | 'habit' | 'entry' | 'target' | 'adhoc'
+  period_start: string | null
+  period_end: string | null
+  habit_id: number | null
+  target_id: number | null
+  entry_id: number | null
+  note: string | null
+  trigger_label: string | null
+  trigger_value: string | null
   created_at: string
   updated_at: string
 }

@@ -2,7 +2,7 @@
 
 > Session-by-session changelog and decision log.
 
-Last updated: 2026-02-14
+Last updated: 2026-02-23
 
 ---
 
@@ -72,6 +72,56 @@ Reconstructed from git commit windows:
 ---
 
 ## Sessions
+
+### 2026-02-23 - Fix Mobile Reflection Save Bug (SHELF-079)
+
+**Summary:**
+- Fixed critical bug: "Save Reflection" button on mobile did nothing when tapped
+- Root cause: three field name mismatches between mobile frontend and backend API
+- Also fixed shared `Reflection` TypeScript type to match actual backend schema
+- Fixed `ReflectionEditor` component silently clearing user input on save failure
+
+**Root Cause (3 field mismatches):**
+1. **`content` vs `note`**: Mobile sent `content` but backend requires `note`. Backend returned `400: "note is required"` which was caught silently — button appeared to do nothing.
+2. **`period_type` vs `type`**: Mobile sent `period_type: 'week'` but backend reads `type`. Since `type` was undefined, backend defaulted to `'adhoc'` — wrong reflection type. Additionally, the value format differed: mobile used `'week'`/`'month'` but backend expects `'weekly'`/`'monthly'`.
+3. **Missing `period_end`**: Mobile didn't send `period_end`, which is required for non-adhoc reflection types. Would have caused a second 400 error if the type mismatch were fixed alone.
+
+**Why no error was visible:**
+- `handleSaveReflection` caught the error and called `handleError` (which shows a toast), but did not re-throw
+- `ReflectionEditor.handleSave` used `finally` (not `catch`), so on error it still ran `setContent('')` — clearing the user's text
+- Net effect: user typed a reflection, tapped Save, text disappeared, no reflection saved, toast may have flashed briefly
+
+**Fix (4 files modified):**
+
+1. **`frontend/mobile/app/(tabs)/review.tsx`** — Fixed `handleSaveReflection`:
+   - `period_type` → `type` with correct values (`'weekly'`/`'monthly'`)
+   - `content` → `note`
+   - Added `period_end` field
+   - Added `throw err` after `handleError` so editor knows save failed
+
+2. **`frontend/mobile/src/components/review/ReflectionEditor.tsx`** — Fixed `handleSave`:
+   - Changed `finally` to `try/catch/finally` pattern
+   - On error: keep user's text (don't clear content), just reset saving state
+
+3. **`frontend/mobile/src/components/review/ReflectionCard.tsx`** — Fixed display:
+   - Changed `reflection.content` → `reflection.note` to match backend response
+
+4. **`frontend/shared/types/index.ts`** — Fixed `Reflection` interface:
+   - Replaced `period_type` with `reflection_type` (matches DB column name)
+   - Replaced `content` with `note` (matches DB column name)
+   - Added missing fields: `period_end`, `habit_id`, `target_id`, `entry_id`, `trigger_label`, `trigger_value`
+
+**How the web frontend avoided this bug:**
+- Web's `ReviewView.jsx` already used the correct field names (`type`, `note`, `period_end`)
+- Web reads `reflection.note` directly, bypassing the incorrect TypeScript type
+
+**Production impact:** Mobile only. No backend changes needed.
+
+**What's next:**
+- Deploy mobile app update (or rebuild via Expo)
+- No backend deployment required
+
+---
 
 ### 2026-02-14 - Demo Data Overhaul & Schema Fix
 
