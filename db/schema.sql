@@ -235,6 +235,8 @@ CREATE TABLE IF NOT EXISTS reflections (
   target_id INT REFERENCES targets(id) ON DELETE SET NULL,
   entry_id INT REFERENCES entries(id) ON DELETE SET NULL,
   note TEXT NOT NULL,
+  trigger_label TEXT,
+  trigger_value TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CHECK (

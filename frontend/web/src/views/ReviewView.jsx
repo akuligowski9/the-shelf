@@ -253,6 +253,9 @@ export default function ReviewView() {
   const reflectionFormRef = useRef(null)
   // selectedTrigger shape: { type: 'prompt'|'accomplishment'|'metric', id, label, value }
 
+  // Visible save feedback
+  const [saveMessage, setSaveMessage] = useState(null) // { type: 'success'|'error', text }
+
   // Accessibility: screen reader announcements
   const [announcement, setAnnouncement] = useState('')
 
@@ -446,6 +449,7 @@ export default function ReviewView() {
       }
     }
 
+    setSaveMessage(null)
     try {
       const saved = await createReflection({
         type: reflectionType,
@@ -460,9 +464,11 @@ export default function ReviewView() {
       setReflections(prev => [saved, ...prev])
       setReflectionText('')
       setSelectedTrigger(null)
+      setSaveMessage({ type: 'success', text: 'Reflection saved' })
       setAnnouncement('Reflection saved')
     } catch (err) {
       console.error('Failed to save reflection:', err)
+      setSaveMessage({ type: 'error', text: 'Failed to save reflection. Please try again.' })
       setAnnouncement('Failed to save reflection')
     } finally {
       setIsSavingReflection(false)
@@ -927,13 +933,20 @@ export default function ReviewView() {
             <span className="text-xs text-muted-foreground">
               For: {periodLabel}
             </span>
-            <Button
-              size="sm"
-              onClick={handleSaveReflection}
-              disabled={!reflectionText.trim()}
-            >
-              Save Reflection
-            </Button>
+            <div className="flex items-center gap-3">
+              {saveMessage && (
+                <span className={`text-xs ${saveMessage.type === 'error' ? 'text-red-500' : 'text-green-600'}`}>
+                  {saveMessage.text}
+                </span>
+              )}
+              <Button
+                size="sm"
+                onClick={handleSaveReflection}
+                disabled={!reflectionText.trim()}
+              >
+                Save Reflection
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
